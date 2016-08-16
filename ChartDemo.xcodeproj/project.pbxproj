@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1E7B58C71D621010005BF850 /* TYTLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TYTLineChartView.m */; };
+		1ED678DD1D62DDB700CCF09D /* TipBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ED678DC1D62DDB700CCF09D /* TipBoardView.m */; };
 		1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */; };
 		1EF4CEA51D5D5FA600221294 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEA41D5D5FA600221294 /* main.m */; };
 		1EF4CEA81D5D5FA600221294 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEA71D5D5FA600221294 /* AppDelegate.m */; };
@@ -54,6 +55,8 @@
 		094B6C9633E09A521CD38E54 /* Pods-ChartDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChartDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ChartDemo/Pods-ChartDemo.debug.xcconfig"; sourceTree = "<group>"; };
 		1E7B58C51D621010005BF850 /* TYTLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TYTLineChartView.h; sourceTree = "<group>"; };
 		1E7B58C61D621010005BF850 /* TYTLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TYTLineChartView.m; sourceTree = "<group>"; };
+		1ED678DB1D62DDB700CCF09D /* TipBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TipBoardView.h; sourceTree = "<group>"; };
+		1ED678DC1D62DDB700CCF09D /* TipBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TipBoardView.m; sourceTree = "<group>"; };
 		1EEC1A4A1D5DC4600063A205 /* UIBezierPath+curved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBezierPath+curved.h"; sourceTree = "<group>"; };
 		1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIBezierPath+curved.m"; sourceTree = "<group>"; };
 		1EF4CEA01D5D5FA600221294 /* ChartDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChartDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -138,6 +141,15 @@
 			path = TLine;
 			sourceTree = "<group>";
 		};
+		1ED678DA1D62DD9F00CCF09D /* TipBoard */ = {
+			isa = PBXGroup;
+			children = (
+				1ED678DB1D62DDB700CCF09D /* TipBoardView.h */,
+				1ED678DC1D62DDB700CCF09D /* TipBoardView.m */,
+			);
+			path = TipBoard;
+			sourceTree = "<group>";
+		};
 		1EEC1A491D5DC4600063A205 /* UIBezierPath+curved */ = {
 			isa = PBXGroup;
 			children = (
@@ -218,6 +230,7 @@
 		1EF4CED81D5D5FFF00221294 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				1ED678DA1D62DD9F00CCF09D /* TipBoard */,
 				1EF4CF331D5D67C200221294 /* KLine */,
 				1E7B58C41D621010005BF850 /* TLine */,
 			);
@@ -546,6 +559,7 @@
 				1EF4CF1E1D5D63B400221294 /* NSString+md5.m in Sources */,
 				1EF4CF1D1D5D63B400221294 /* NSDictionary+NetWorkingMehods.m in Sources */,
 				1EF4CF391D5D67C200221294 /* TYKLineChartView.m in Sources */,
+				1ED678DD1D62DDB700CCF09D /* TipBoardView.m in Sources */,
 				1EF4CF251D5D63B400221294 /* GApiResponse.m in Sources */,
 				1EF4CEA81D5D5FA600221294 /* AppDelegate.m in Sources */,
 				1EF4CF241D5D63B400221294 /* GApiLogger.m in Sources */,

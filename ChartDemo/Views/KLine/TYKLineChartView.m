@@ -10,6 +10,7 @@
 #import "TYKLineChartView.h"
 #import "KLineListTransformer.h"
 #import "UIBezierPath+curved.h"
+#import "TipBoardView.h"
 
 #define RGB(r, g, b)    [UIColor colorWithRed:(r/255.0f) green:(g/255.0f) blue:(b/255.0f) alpha:1.0]
 
@@ -54,6 +55,10 @@
 @property (nonatomic, strong) UIView *horizontalLine;   //水平
 
 @property (nonatomic, strong) UIView *barVerticalLine;
+
+@property (nonatomic, strong) TipBoardView *tipBoard;
+
+@property (nonatomic, strong) NSTimer *timer;
 
 @end
 
@@ -193,7 +198,7 @@
 #pragma mark - event reponse
 
 - (void)tapEvent:(UITapGestureRecognizer *)tapGesture {
-    
+    //[self longPressEvent:nil];
 }
 
 - (void)panEvent:(UIPanGestureRecognizer *)panGesture {
@@ -249,12 +254,17 @@
         self.horizontalLine.hidden = YES;
         self.verticalLine.hidden = YES;
         self.barVerticalLine.hidden = YES;
+        CATransition *animation = [CATransition animation];
+        animation.type = kCATransitionFade;
+        animation.duration = 3.5;
+        [self.tipBoard.layer addAnimation:animation forKey:nil];
+        self.tipBoard.hidden = YES;
     } else {
         CGPoint touchPoint = [longGesture locationInView:self];
         [self.xAxisContext enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSNumber *obj, BOOL *stop) {
             if (_kLinePadding+_kLineWidth >= ([obj floatValue] - touchPoint.x) && ([obj floatValue] - touchPoint.x) > 0) {
                 NSInteger index = [key integerValue];
-                NSLog(@"%ld", (long)[key integerValue]);
+                
                 // 获取对应的k线数据
                 NSArray *line = _contexts[index];
                 CGFloat open = [line[0] floatValue];
@@ -267,30 +277,39 @@
                     yAxis = self.yAxisHeight - (close - self.minLowValue)/scale + self.topMargin;
                 }
                 
-                self.verticalLine.hidden = NO;
-                CGRect frame = self.verticalLine.frame;
-                frame.origin.x = xAxis;
-                self.verticalLine.frame = frame;
-                
-                self.horizontalLine.hidden = NO;
-                frame = self.horizontalLine.frame;
-                frame.origin.y = yAxis;
-                self.horizontalLine.frame = frame;
-                
-                [self bringSubviewToFront:self.horizontalLine];
-                [self bringSubviewToFront:self.verticalLine];
-                
-                self.barVerticalLine.hidden = NO;
-                frame = self.barVerticalLine.frame;
-                frame.origin.x = xAxis;
-                self.barVerticalLine.frame = frame;
-                
-                [self bringSubviewToFront:self.barVerticalLine];
+                [self configUIWithPoint:CGPointMake(xAxis, yAxis)];
                 
                 *stop = YES;
             }
         }];
     }
+}
+
+- (void)configUIWithPoint:(CGPoint)point {
+    self.verticalLine.hidden = NO;
+    CGRect frame = self.verticalLine.frame;
+    frame.origin.x = point.x;
+    self.verticalLine.frame = frame;
+    
+    self.horizontalLine.hidden = NO;
+    frame = self.horizontalLine.frame;
+    frame.origin.y = point.y;
+    self.horizontalLine.frame = frame;
+    
+    [self bringSubviewToFront:self.horizontalLine];
+    [self bringSubviewToFront:self.verticalLine];
+    
+    self.barVerticalLine.hidden = NO;
+    frame = self.barVerticalLine.frame;
+    frame.origin.x = point.x;
+    self.barVerticalLine.frame = frame;
+    
+    [self bringSubviewToFront:self.barVerticalLine];
+    
+    self.tipBoard.hidden = NO;
+    [self.tipBoard.layer removeAllAnimations];
+    [self.tipBoard showForTipPoint:CGPointMake(point.x, point.y)];
+    [self bringSubviewToFront:self.tipBoard];
 }
 
 #pragma mark - private methods
@@ -525,6 +544,15 @@
         [self addSubview:_barVerticalLine];
     }
     return _barVerticalLine;
+}
+
+- (TipBoardView *)tipBoard {
+    if (!_tipBoard) {
+        _tipBoard = [[TipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 80.0f, 50.0f)];
+        _tipBoard.backgroundColor = [UIColor clearColor];
+        [self addSubview:_tipBoard];
+    }
+    return _tipBoard;
 }
 
 - (UITapGestureRecognizer *)tapGesture {
