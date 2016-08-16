@@ -10,12 +10,10 @@
 
 @interface TipBoardView : UIView
 
-@property (nonatomic, assign) BOOL showArrow;
-
-@property (nonatomic, strong) UIColor *shadowColor;
-
-@property (nonatomic, assign) CGFloat cornerRadius;
+@property (nonatomic, assign) CGFloat radius;
 
 - (void)showForTipPoint:(CGPoint)point;
+
+- (void)hide;
 
 @end

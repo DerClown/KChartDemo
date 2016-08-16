@@ -254,11 +254,7 @@
         self.horizontalLine.hidden = YES;
         self.verticalLine.hidden = YES;
         self.barVerticalLine.hidden = YES;
-        CATransition *animation = [CATransition animation];
-        animation.type = kCATransitionFade;
-        animation.duration = 3.5;
-        [self.tipBoard.layer addAnimation:animation forKey:nil];
-        self.tipBoard.hidden = YES;
+        [self.tipBoard hide];
     } else {
         CGPoint touchPoint = [longGesture locationInView:self];
         [self.xAxisContext enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSNumber *obj, BOOL *stop) {
@@ -296,19 +292,16 @@
     frame.origin.y = point.y;
     self.horizontalLine.frame = frame;
     
-    [self bringSubviewToFront:self.horizontalLine];
-    [self bringSubviewToFront:self.verticalLine];
-    
     self.barVerticalLine.hidden = NO;
     frame = self.barVerticalLine.frame;
     frame.origin.x = point.x;
     self.barVerticalLine.frame = frame;
     
-    [self bringSubviewToFront:self.barVerticalLine];
-    
-    self.tipBoard.hidden = NO;
-    [self.tipBoard.layer removeAllAnimations];
     [self.tipBoard showForTipPoint:CGPointMake(point.x, point.y)];
+    
+    [self bringSubviewToFront:self.horizontalLine];
+    [self bringSubviewToFront:self.verticalLine];
+    [self bringSubviewToFront:self.barVerticalLine];
     [self bringSubviewToFront:self.tipBoard];
 }
 
@@ -548,7 +541,7 @@
 
 - (TipBoardView *)tipBoard {
     if (!_tipBoard) {
-        _tipBoard = [[TipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 80.0f, 50.0f)];
+        _tipBoard = [[TipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 100, 60.0f)];
         _tipBoard.backgroundColor = [UIColor clearColor];
         [self addSubview:_tipBoard];
     }

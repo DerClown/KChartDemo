@@ -14,7 +14,8 @@
 
 @interface TipBoardView ()
 
-@property (nonatomic) BOOL tipBoardInLeft;
+@property (nonatomic) BOOL arrowInLeft;
+
 @property (nonatomic) CGPoint tipPoint;
 
 @end
@@ -23,100 +24,120 @@
 
 #pragma mark - life cycle
 
+- (id)init {
+    if (self = [super init]) {
+        [self _setup];
+    }
+    return self;
+}
+
+- (id)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        [self _setup];
+    }
+    return self;
+}
+
+- (void)_setup {
+    _radius = 4.0;
+}
+
 - (void)drawRect:(CGRect)rect {
     [super drawRect:rect];
-    
     [self drawInContext:UIGraphicsGetCurrentContext()];
 }
 
--(void)drawInContext:(CGContextRef)context{
-    //设置当前图形的宽度
+#pragma mark - private methods
+
+- (void)drawInContext:(CGContextRef)context {
     CGContextSetLineWidth(context, 1.0);
-    //填充的颜色
     CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0.35 alpha:0.9].CGColor);
     CGContextSetStrokeColorWithColor(context, [UIColor blueColor].CGColor);
     [self getDrawPath:context];
-    //填充形状内的颜色
     CGContextFillPath(context);
     CGContextStrokePath(context);
 }
--(void)getDrawPath:(CGContextRef)context{
+
+- (void)getDrawPath:(CGContextRef)context {
     CGRect rrect = CGRectMake(0.5, 0.5, self.bounds.size.width-1, self.bounds.size.height-1);
-    //设置园弧度
-    CGFloat radius = 4;
     
-    CGFloat minx = CGRectGetMinX(rrect),//0
-    //中点
-    midy = CGRectGetMidY(rrect),
-    //最大的宽度的X
-    maxx = CGRectGetMaxX(rrect);
-    CGFloat miny = CGRectGetMinY(rrect),
-    //最大的高度Y
-    maxy = CGRectGetMaxY(rrect);
+    CGFloat minx = CGRectGetMinX(rrect), maxx = CGRectGetMaxX(rrect);
+    CGFloat miny = CGRectGetMinY(rrect), midy = CGRectGetMidY(rrect), maxy = CGRectGetMaxY(rrect);
     
-    if (!_tipBoardInLeft) {
-        CGContextMoveToPoint(context, 5, midy - 5);
-        CGContextAddLineToPoint(context, minx, midy);
-        CGContextAddLineToPoint(context, 5, midy+5);
-        
-        CGContextAddArcToPoint(context, 5, maxy, maxx, maxy, radius);
-        CGContextAddArcToPoint(context, maxx, maxy, maxx, miny, radius);
-        CGContextAddArcToPoint(context, maxx, miny, 5, miny, radius);
-        CGContextAddArcToPoint(context, 5, miny, 5, midy, radius);
-        CGContextClosePath(context);
-    } else {
-        CGContextMoveToPoint(context, maxx - 5, midy - 5);
-        CGContextAddLineToPoint(context, maxx, midy);
-        CGContextAddLineToPoint(context, maxx - 5, midy+5);
-        
-        CGContextAddArcToPoint(context, maxx - 5, miny, minx, miny, radius);
-        CGContextAddArcToPoint(context, minx, miny, minx, maxy, radius);
-        CGContextAddArcToPoint(context, minx, maxy, maxx - 5, maxy, radius);
-        CGContextAddArcToPoint(context, maxx - 5, maxy, maxx - 5, miny, radius);
-        CGContextClosePath(context);
+    CGFloat triangleWidth = 5;
+    
+    CGFloat startMoveX = !_arrowInLeft ? triangleWidth : maxx - triangleWidth;
+    CGContextMoveToPoint(context, startMoveX, midy - triangleWidth);
+    CGContextAddLineToPoint(context, (!_arrowInLeft ? minx : maxx), midy);
+    CGContextAddLineToPoint(context, startMoveX, midy+triangleWidth);
+    
+    CGPoint p1 = !_arrowInLeft ? CGPointMake(triangleWidth, maxy) : CGPointMake(maxx - triangleWidth, miny);
+    CGPoint p2 = !_arrowInLeft ? CGPointMake(maxx, maxy) : CGPointMake(minx, miny);
+    CGPoint p3 = !_arrowInLeft ? CGPointMake(maxx, miny) : CGPointMake(minx, maxy);
+    CGPoint p4 = !_arrowInLeft ? CGPointMake(triangleWidth, miny) : CGPointMake(maxx - triangleWidth, maxy);
+    CGPoint p5 = !_arrowInLeft ? CGPointMake(triangleWidth, midy) : CGPointMake(maxx - triangleWidth, miny);
+    NSArray *points = @[NSStringFromCGPoint(p1), NSStringFromCGPoint(p2),NSStringFromCGPoint(p3),NSStringFromCGPoint(p4),NSStringFromCGPoint(p5)];
+    
+    for (int i = 0; i < points.count - 1; i ++) {
+        p1 = CGPointFromString(points[i]);
+        p2 = CGPointFromString(points[i + 1]);
+        CGContextAddArcToPoint(context, p1.x, p1.y, p2.x, p2.y, _radius);
     }
+    CGContextClosePath(context);
 }
 
 #pragma mark - public methods
 
 - (void)showForTipPoint:(CGPoint)point {
+    self.hidden = NO;
+    [self.layer removeAllAnimations];
+    
     CGRect rect = self.superview.frame;
     if ((CGPointEqualToPoint(_tipPoint, point))) {
         return;
     }
-    _tipBoardInLeft = NO;
+    _arrowInLeft = NO;
     CGRect frame = self.frame;
-    frame.origin.y = point.y - frame.size.height/2.0;
     
-    if (point.x > rect.origin.x && point.x < rect.origin.x + frame.size.width + 20.0f) {
-        frame.origin.x = point.x;
-    } else if (point.x > rect.origin.x + rect.size.width - frame.size.width - 20.0f) {
-        frame.origin.x = point.x - frame.size.width;
-        _tipBoardInLeft = YES;
-    }else if (point.x < (rect.origin.x + rect.size.width - frame.size.width - 20) && point.x > (rect.origin.x + frame.size.width + 20)) {
+    if (point.x > rect.origin.x && point.x < rect.origin.x + frame.size.width + 20.0f + 2) {
+        frame.origin.x = point.x + 2;
+    } else if (point.x > rect.origin.x + rect.size.width - frame.size.width - 20.0f - 2) {
+        frame.origin.x = point.x - frame.size.width - 2;
+        _arrowInLeft = YES;
+    }else if (point.x < (rect.origin.x + rect.size.width - frame.size.width - 20 - 2) && point.x > (rect.origin.x + frame.size.width + 20 + 2)) {
         if (CGPointEqualToPoint(_tipPoint, CGPointZero)) {
             if (point.x - rect.origin.x > rect.size.width/2.0) {
-                frame.origin.x = point.x - frame.size.width;
-                _tipBoardInLeft = YES;
+                frame.origin.x = point.x - frame.size.width - 2;
+                _arrowInLeft = YES;
             } else {
-                frame.origin.x = point.x;
+                frame.origin.x = point.x + 2;
             }
         } else {
             if (_tipPoint.x < point.x) {
-                frame.origin.x = point.x - frame.size.width;
-                _tipBoardInLeft = YES;
+                frame.origin.x = point.x - frame.size.width - 2;
+                _arrowInLeft = YES;
             } else {
-                frame.origin.x = point.x;
+                frame.origin.x = point.x + 2;
             }
         }
         
     }
     
+    frame.origin.y = (point.y - frame.size.height - 2.0) < rect.origin.y ? rect.origin.y : point.y - frame.size.height - 2.0;
+    
     _tipPoint = point;
-    
     self.frame = frame;
-    
     [self setNeedsDisplay];
+}
+
+- (void)hide {
+    CATransition *animation = [CATransition animation];
+    animation.type = kCATransitionFade;
+    animation.duration = 2.0;
+    animation.startProgress = 0.0;
+    animation.endProgress = 0.65;
+    [self.layer addAnimation:animation forKey:nil];
+    self.hidden = YES;
 }
 
 @end
