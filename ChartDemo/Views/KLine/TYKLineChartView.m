@@ -202,7 +202,7 @@
 }
 
 - (void)panEvent:(UIPanGestureRecognizer *)panGesture {
-    if (!self.scrollEnable) {
+    if (!self.scrollEnable || self.contexts.count == 0) {
         return;
     }
     
@@ -226,7 +226,7 @@
 }
 
 - (void)pinchEvent:(UIPinchGestureRecognizer *)pinchEvent {
-    if (!self.zoomEnable) {
+    if (!self.zoomEnable || self.contexts.count == 0) {
         return;
     }
     
@@ -344,7 +344,7 @@
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", yAxisValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
-        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.topMargin + avgHeight*i - size.height/2.0, size.width, size.height)];
+        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.topMargin + avgHeight*i - (i == 5 ? size.height - 1 : size.height/2.0), size.width, size.height)];
     }
     
     if (self.showBarChart) {
@@ -584,6 +584,10 @@
     }
     
     _kLineDrawNum = self.contexts.count > 0 && kLineDrawNum < self.contexts.count ? kLineDrawNum : self.contexts.count;
+}
+
+- (void)setKLineWidth:(CGFloat)kLineWidth {
+    _kLineWidth = kLineWidth < 2.0 ? 2.0 : kLineWidth;
 }
 
 @end
