@@ -141,6 +141,11 @@
 @property (nonatomic, assign) BOOL showBarChart;
 
 /**
+ *  k线最大宽度
+ */
+@property (nonatomic, assign) CGFloat maxKLineWidth;
+
+/**
  *  k线最小宽度
  */
 @property (nonatomic, assign) CGFloat minKLineWidth;

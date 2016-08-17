@@ -11,6 +11,7 @@
 #import "KLineListTransformer.h"
 #import "UIBezierPath+curved.h"
 #import "TipBoardView.h"
+#import "UIColor+Ext.h"
 
 #define RGB(r, g, b)    [UIColor colorWithRed:(r/255.0f) green:(g/255.0f) blue:(b/255.0f) alpha:1.0]
 
@@ -99,9 +100,9 @@
     
     self.avgLineWidth = 0.8;
     
-    self.avgLineMA5Color = [UIColor colorWithRed:(135/255.0f) green:(186/255.0f) blue:(215/255.0f) alpha:1.0];
-    self.avgLineMA10Color = [UIColor colorWithRed:(224/255.0f) green:(132/255.0f) blue:(161/255.0f) alpha:1.0];
-    self.avgLineMA20Color = [UIColor colorWithRed:(137/255.0f) green:(204/255.0f) blue:(87/255.0f) alpha:1.0];
+    self.avgLineMA5Color = [UIColor colorWithHexString:@"#019FFD"];
+    self.avgLineMA10Color = [UIColor colorWithHexString:@"#FF99OO"];
+    self.avgLineMA20Color = [UIColor colorWithHexString:@"#FF00FF"];
     
     self.axisShadowColor = [UIColor colorWithRed:223/255.0f green:223/255.0f blue:223/255.0f alpha:1.0];
     self.axisShadowWidth = 0.8;
@@ -119,6 +120,8 @@
     self.showAvgLine = YES;
     
     self.showBarChart = YES;
+    
+    self.maxKLineWidth = 25.0f;
     
     self.minKLineWidth = 2.0;
     
@@ -234,8 +237,8 @@
     
     self.kLineWidth = self.kLineWidth*scale < 1.5 ? 1.5 : self.kLineWidth*scale;
     
-    if (self.kLineWidth > 25) {
-        self.kLineWidth = 25.0f;
+    if (self.kLineWidth > self.maxKLineWidth) {
+        self.kLineWidth = self.maxKLineWidth;
     }
     
     self.kLineDrawNum = (int)((self.frame.size.width - self.leftMargin - self.rightMargin) / (self.kLineWidth + self.kLinePadding)) + 1;
@@ -515,7 +518,7 @@
 - (UIView *)verticalLine {
     if (!_verticalLine) {
         _verticalLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 0.5, self.yAxisHeight)];
-        _verticalLine.backgroundColor = [UIColor redColor];
+        _verticalLine.backgroundColor = [UIColor colorWithHexString:@"#C9C9C9"];
         [self addSubview:_verticalLine];
     }
     return _verticalLine;
@@ -524,7 +527,7 @@
 - (UIView *)horizontalLine {
     if (!_horizontalLine) {
         _horizontalLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, self.xAxisWidth, 0.5)];
-        _horizontalLine.backgroundColor = [UIColor blueColor];
+        _horizontalLine.backgroundColor = [UIColor colorWithHexString:@"#C9C9C9"];
         [self addSubview:_horizontalLine];
     }
     return _horizontalLine;

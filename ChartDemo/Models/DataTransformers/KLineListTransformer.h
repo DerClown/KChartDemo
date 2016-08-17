@@ -15,7 +15,9 @@ extern NSString *const kCandlerstickChartsMaxHigh;
 extern NSString *const kCandlerstickChartsMinLow;
 extern NSString *const kCandlerstickChartsMaxVol;
 extern NSString *const kCandlerstickChartsMinVol;
-
+/**
+ *  extern key 可修改为Entity
+ */
 @interface KLineListTransformer : NSObject<GApiBaseManagerCallBackDataTransformer>
 
 @end
