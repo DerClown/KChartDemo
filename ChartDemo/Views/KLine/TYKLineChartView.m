@@ -89,9 +89,6 @@
 }
 
 - (void)_setup {
-    _kLineWidth = 5.0;
-    self.kLinePadding = 2.0;
-    
     self.barRiseColor = [UIColor colorWithRed:(252/255.0f) green:(80.0f/255.0f) blue:(92.0f/255.0f) alpha:1.0];
     self.barFallColor = [UIColor colorWithRed:(56.0f/255.0f) green:(185.0f/255.0f) blue:(30/255.0f) alpha:1.0];
     
@@ -122,8 +119,10 @@
     self.showBarChart = YES;
     
     self.maxKLineWidth = 25.0f;
-    
     self.minKLineWidth = 1.5;
+    
+    self.kLineWidth = 8.0;
+    self.kLinePadding = 2.0;
     
     self.lastPanScale = 1.0;
     
