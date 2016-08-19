@@ -445,7 +445,7 @@
     
     for (int i = 0; i < 3; i ++) {
         CGContextSetStrokeColorWithColor(context, colors[i].CGColor);
-        CGPathRef path = [self maGraphPathForContextAtIndex:(i + 5)];
+        CGPathRef path = [self avgMAGraphPathForContextAtIndex:(i + 5)];
         CGContextAddPath(context, path);
         CGContextStrokePath(context);
     }
@@ -454,7 +454,7 @@
 /**
  *  均线path
  */
-- (CGPathRef)maGraphPathForContextAtIndex:(NSInteger)index {
+- (CGPathRef)avgMAGraphPathForContextAtIndex:(NSInteger)index {
     UIBezierPath *path;
     
     CGFloat xAxis = self.leftMargin + 1/2.0*_kLineWidth + _kLinePadding;
