@@ -89,7 +89,7 @@
 }
 
 - (void)_setup {
-    self.kLineWidth = 5.0;
+    _kLineWidth = 5.0;
     self.kLinePadding = 2.0;
     
     self.barRiseColor = [UIColor colorWithRed:(252/255.0f) green:(80.0f/255.0f) blue:(92.0f/255.0f) alpha:1.0];
@@ -123,7 +123,7 @@
     
     self.maxKLineWidth = 25.0f;
     
-    self.minKLineWidth = 2.0;
+    self.minKLineWidth = 1.5;
     
     self.lastPanScale = 1.0;
     
@@ -176,18 +176,17 @@
     self.contexts = data[kCandlerstickChartsContext];
     self.dates = data[kCandlerstickChartsDate];
     
-    self.kLineDrawNum = (int)((self.frame.size.width - self.leftMargin - self.rightMargin) / (self.kLineWidth + self.kLinePadding));
+    //更具宽度和间距确定要画多少个k线柱形图
+    self.kLineDrawNum = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - _kLinePadding) / (self.kLineWidth + self.kLinePadding)));
     
-    self.startDrawIndex = self.contexts.count - self.kLineDrawNum + 1 == 0 ? 0 : self.contexts.count - self.kLineDrawNum + 1;
+    //确定从第几个开始画
+    self.startDrawIndex = self.contexts.count > 0 ? self.contexts.count - self.kLineDrawNum : 0;
     
     /**
      *  最高价,最低价
      */
     self.maxHighValue = [data[kCandlerstickChartsMaxHigh] floatValue];
     self.minLowValue = [data[kCandlerstickChartsMinLow] floatValue];
-    float avgValue = (self.maxHighValue - self.minLowValue) / 6.0;
-    self.maxHighValue += avgValue;
-    self.minLowValue -= avgValue;
     
     /**
      *  成交量最大之，最小值
@@ -235,16 +234,12 @@
     
     CGFloat scale = pinchEvent.scale - self.lastPanScale + 1;
     
-    self.kLineWidth = self.kLineWidth*scale < 1.5 ? 1.5 : self.kLineWidth*scale;
+    self.kLineWidth = self.kLineWidth*scale;
     
-    if (self.kLineWidth > self.maxKLineWidth) {
-        self.kLineWidth = self.maxKLineWidth;
-    }
-    
-    self.kLineDrawNum = (int)((self.frame.size.width - self.leftMargin - self.rightMargin) / (self.kLineWidth + self.kLinePadding)) + 1;
-    
+    self.kLineDrawNum = floor((self.frame.size.width - self.leftMargin - self.rightMargin) / (self.kLineWidth + self.kLinePadding));
+
     if (self.startDrawIndex + self.kLineDrawNum - 1 > self.contexts.count) {
-        self.startDrawIndex = self.contexts.count - self.kLineDrawNum + 1;
+        self.startDrawIndex = self.contexts.count - self.kLineDrawNum ;
     }
     
     self.lastPanScale = pinchEvent.scale;
@@ -343,7 +338,7 @@
     //k线y坐标
     CGFloat avgValue = (self.maxHighValue - self.minLowValue) / 5.0;
     for (int i = 0; i < 6; i ++) {
-        float yAxisValue = self.maxHighValue - avgValue*i;
+        float yAxisValue = i == 5 ? self.minLowValue : self.maxHighValue - avgValue*i;
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", yAxisValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
@@ -384,7 +379,7 @@
     CGFloat xAxis = _kLinePadding;
     [self.xAxisContext removeAllObjects];
     
-    for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum - 1)]) {
+    for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
         [self.xAxisContext setObject:@(xAxis + _kLineWidth) forKey:@([_contexts indexOfObject:line])];
         
         //通过开盘价、收盘价判断颜色
@@ -450,7 +445,7 @@
     
     if (scale != 0) {
         path = [UIBezierPath bezierPath];
-        for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum - 1)]) {
+        for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
             CGFloat maValue = [line[index] floatValue];
             CGFloat yAxis = self.yAxisHeight - (maValue - self.minLowValue)/scale + self.topMargin;
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
@@ -490,7 +485,7 @@
     CGFloat boxHeight = rect.size.height - boxYOrigin;
     CGFloat scale = self.maxVolValue/boxHeight;
     
-    for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum - 1)]) {
+    for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
         CGFloat open = [line[0] floatValue];
         CGFloat close = [line[3] floatValue];
         UIColor *fillColor = open > close ? RGB(31, 185, 63.0f) : RGB(232, 50.0f, 52.0f);
@@ -587,10 +582,34 @@
     }
     
     _kLineDrawNum = self.contexts.count > 0 && kLineDrawNum < self.contexts.count ? kLineDrawNum : self.contexts.count;
+    
+    if (_kLineDrawNum != 0) {
+        self.kLineWidth = (self.frame.size.width - self.leftMargin - self.rightMargin - _kLinePadding)/_kLineDrawNum - _kLinePadding;
+    }
 }
 
 - (void)setKLineWidth:(CGFloat)kLineWidth {
-    _kLineWidth = kLineWidth < 2.0 ? 2.0 : kLineWidth;
+    if (kLineWidth < self.minKLineWidth) {
+        kLineWidth = self.minKLineWidth;
+    }
+    
+    if (kLineWidth > self.maxKLineWidth) {
+        kLineWidth = self.maxKLineWidth;
+    }
+    
+    _kLineWidth = kLineWidth;
+}
+
+- (void)setMaxKLineWidth:(CGFloat)maxKLineWidth {
+    if (maxKLineWidth < _minKLineWidth) {
+        maxKLineWidth = maxKLineWidth;
+    }
+    
+    CGFloat realAxisWidth = (self.frame.size.width - self.leftMargin - self.rightMargin - _kLinePadding);
+    NSInteger maxKLineCount = floor(realAxisWidth)/(maxKLineWidth + _kLinePadding);
+    maxKLineWidth = realAxisWidth/maxKLineCount - _kLinePadding;
+    
+    _maxKLineWidth = maxKLineWidth;
 }
 
 @end
