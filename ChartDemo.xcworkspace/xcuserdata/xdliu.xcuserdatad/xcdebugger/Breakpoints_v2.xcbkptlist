@@ -20,12 +20,28 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ChartDemo/Views/KLine/TYKLineChartView.m"
-            timestampString = "493279542.817289"
+            timestampString = "493293021.710573"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "587"
-            endingLineNumber = "587"
+            startingLineNumber = "636"
+            endingLineNumber = "636"
             landmarkName = "-setKLineDrawNum:"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "ChartDemo/Views/KLine/TYKLineChartView.m"
+            timestampString = "493285840.325804"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "212"
+            endingLineNumber = "212"
+            landmarkName = "-panEvent:"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

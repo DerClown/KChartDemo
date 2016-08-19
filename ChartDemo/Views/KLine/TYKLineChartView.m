@@ -212,16 +212,12 @@
     NSInteger offsetIndex = fabs(touchPoint.x/8.0);
     
     if (touchPoint.x > 0) {
-        self.startDrawIndex -= offsetIndex;
-        
-        self.startDrawIndex = self.startDrawIndex < 0 ? 0 : self.startDrawIndex;
+        self.startDrawIndex = self.startDrawIndex - offsetIndex < 0 ? 0 : self.startDrawIndex - offsetIndex;
     } else {
-        self.startDrawIndex += offsetIndex;
-        
-        if (self.startDrawIndex + self.kLineDrawNum - 1 > self.contexts.count) {
-            self.startDrawIndex = self.contexts.count - self.kLineDrawNum + 1;
-        }
+        self.startDrawIndex = self.startDrawIndex + offsetIndex + self.kLineDrawNum > self.contexts.count ? self.contexts.count - self.kLineDrawNum : self.startDrawIndex + offsetIndex;
     }
+    
+    [self resetMaxAndMin];
     
     [self setNeedsDisplay];
     [panGesture setTranslation:CGPointMake(0, 0) inView:self];
@@ -234,13 +230,33 @@
     
     CGFloat scale = pinchEvent.scale - self.lastPanScale + 1;
     
+    if (scale == 1) {
+        return;
+    }
+    
     self.kLineWidth = self.kLineWidth*scale;
     
     self.kLineDrawNum = floor((self.frame.size.width - self.leftMargin - self.rightMargin) / (self.kLineWidth + self.kLinePadding));
 
-    if (self.startDrawIndex + self.kLineDrawNum - 1 > self.contexts.count) {
-        self.startDrawIndex = self.contexts.count - self.kLineDrawNum ;
+    CGFloat forwardDrawInde = self.startDrawIndex;
+    self.startDrawIndex = self.contexts.count > 0 ? self.contexts.count - self.kLineDrawNum : 0;
+    
+    if (forwardDrawInde == self.startDrawIndex) {
+        return;
     }
+    
+    NSInteger diffCount = fabs(self.startDrawIndex - forwardDrawInde);
+    
+    if (forwardDrawInde > self.startDrawIndex) {
+        // 放大
+        self.startDrawIndex += ceil(diffCount/2.0);
+        self.startDrawIndex = self.startDrawIndex + self.kLineDrawNum > self.contexts.count ? self.contexts.count - self.kLineDrawNum : self.startDrawIndex;
+    } else {
+        self.startDrawIndex -= floor(diffCount/2.0);
+        self.startDrawIndex = self.startDrawIndex < 0 ? 0 : self.startDrawIndex;
+    }
+    
+    [self resetMaxAndMin];
     
     self.lastPanScale = pinchEvent.scale;
     
@@ -444,13 +460,17 @@
     CGFloat scale = (self.maxHighValue - self.minLowValue) / self.yAxisHeight;
     
     if (scale != 0) {
-        path = [UIBezierPath bezierPath];
         for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
             CGFloat maValue = [line[index] floatValue];
             CGFloat yAxis = self.yAxisHeight - (maValue - self.minLowValue)/scale + self.topMargin;
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
+            if (yAxis < self.topMargin || yAxis > (self.frame.size.height - self.bottomMargin)) {
+                xAxis += self.kLineWidth + self.kLinePadding;
+                continue;
+            }
             
-            if (xAxis == (self.leftMargin + 1/2.0*_kLineWidth + _kLinePadding)) {
+            if (!path) {
+                path = [UIBezierPath bezierPath];
                 [path moveToPoint:maPoint];
             } else {
                 [path addLineToPoint:maPoint];
@@ -497,6 +517,35 @@
         CGContextFillPath(context);
         
         xAxis += _kLineWidth + _kLinePadding;
+    }
+}
+
+- (void)resetMaxAndMin {
+    NSArray *drawContext = [self.contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)];
+    for (int i = 0; i < drawContext.count; i++) {
+        NSArray<NSString *> *item = drawContext[i];
+        if (i == 0) {
+            self.minVolValue = [item[4] floatValue];
+            self.maxVolValue = [item[4] floatValue];
+            self.minLowValue = [item[2] floatValue];
+            self.maxHighValue = [item[1] floatValue];
+        } else {
+            if (self.maxHighValue < [item[1] floatValue]) {
+                self.maxHighValue = [item[1] floatValue];
+            }
+            
+            if (self.minLowValue > [item[2] floatValue]) {
+                self.minLowValue = [item[2] floatValue];
+            }
+            
+            if (self.maxVolValue < [item[4] floatValue]) {
+                self.maxVolValue = [item[4] floatValue];
+            }
+            
+            if (self.minVolValue > [item[4] floatValue]) {
+                self.minVolValue = [item[4] floatValue];
+            }
+        }
     }
 }
 
