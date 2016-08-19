@@ -118,6 +118,8 @@
     
     self.showBarChart = YES;
     
+    self.yAxisTitleIsChange = YES;
+    
     self.maxKLineWidth = 25.0f;
     self.minKLineWidth = 1.5;
     
@@ -520,6 +522,9 @@
 }
 
 - (void)resetMaxAndMin {
+    if (!self.yAxisTitleIsChange) {
+        return;
+    }
     NSArray *drawContext = [self.contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)];
     for (int i = 0; i < drawContext.count; i++) {
         NSArray<NSString *> *item = drawContext[i];

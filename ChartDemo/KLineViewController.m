@@ -53,6 +53,7 @@
         _kLineChartView.leftMargin = 50.0f;
         _kLineChartView.rightMargin = 1.0;
         _kLineChartView.bottomMargin = 100.0f;
+        _kLineChartView.yAxisTitleIsChange = NO;
     }
     return _kLineChartView;
 }

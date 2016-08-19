@@ -141,6 +141,11 @@
 @property (nonatomic, assign) BOOL showBarChart;
 
 /**
+ *  YES表示Y坐标的值，根据试图中呈现的k线图的最大值最小值变化而变化；NO表示Y坐标的最大和最小值初始设定多少就多少，不管k线图呈现如何都不会变化。默认YES
+ */
+@property (nonatomic, assign) BOOL yAxisTitleIsChange;
+
+/**
  *  k线最大宽度
  */
 @property (nonatomic, assign) CGFloat maxKLineWidth;
