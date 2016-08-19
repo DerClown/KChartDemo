@@ -25,7 +25,7 @@
 /*                                      bottomMargin                                */
 /*                                          |                                       */
 /************************************************************************************/
-
+    
 
 /**
  *  内容距离父试图顶部高度
@@ -60,17 +60,17 @@
 /**
  *  均线宽度
  */
-@property (nonatomic, assign) CGFloat avgLineWidth;
+@property (nonatomic, assign) CGFloat movingAvgLineWidth;
 
 /**
- *  上升颜色
+ *  阳线颜色(negative line)
  */
-@property (nonatomic, strong) UIColor *barRiseColor;
+@property (nonatomic, strong) UIColor *positiveLineColor;
 
 /**
- *  下跌颜色
+ *  阴线颜色
  */
-@property (nonatomic, strong) UIColor *barFallColor;
+@property (nonatomic, strong) UIColor *negativeLineColor;
 
 /**
  *  上影线
@@ -85,17 +85,17 @@
 /**
  *  5日
  */
-@property (nonatomic, strong) UIColor *avgLineMA5Color;
+@property (nonatomic, strong) UIColor *movingAverageLineMA5Color;
 
 /**
  *  顿号10
  */
-@property (nonatomic, strong) UIColor *avgLineMA10Color;
+@property (nonatomic, strong) UIColor *movingAverageLineMA10Color;
 
 /**
  *  日顿号20
  */
-@property (nonatomic, strong) UIColor *avgLineMA20Color;
+@property (nonatomic, strong) UIColor *movingAverageLineMA20Color;
 
 /**
  *  y坐标轴字体
@@ -158,7 +158,7 @@
 @property (nonatomic, assign) BOOL showBarChart;
 
 /**
- *  YES表示Y坐标的值，根据试图中呈现的k线图的最大值最小值变化而变化；NO表示Y坐标的最大和最小值初始设定多少就多少，不管k线图呈现如何都不会变化。默认YES
+ *  YES表示：Y坐标的值根据视图中呈现的k线图的最大值最小值变化而变化；NO表示：Y坐标的最大和最小值初始设定多少就多少，不管k线图呈现如何都不会变化。默认YES
  */
 @property (nonatomic, assign) BOOL yAxisTitleIsChange;
 

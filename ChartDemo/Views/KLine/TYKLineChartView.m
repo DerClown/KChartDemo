@@ -89,17 +89,17 @@
 }
 
 - (void)_setup {
-    self.barRiseColor = [UIColor colorWithRed:(252/255.0f) green:(80.0f/255.0f) blue:(92.0f/255.0f) alpha:1.0];
-    self.barFallColor = [UIColor colorWithRed:(56.0f/255.0f) green:(185.0f/255.0f) blue:(30/255.0f) alpha:1.0];
+    self.positiveLineColor = [UIColor colorWithRed:(252/255.0f) green:(80.0f/255.0f) blue:(92.0f/255.0f) alpha:1.0];
+    self.negativeLineColor = [UIColor colorWithRed:(56.0f/255.0f) green:(185.0f/255.0f) blue:(30/255.0f) alpha:1.0];
     
-    self.upperShadowColor = self.barFallColor;
-    self.lowerShadowColor = self.barFallColor;
+    self.upperShadowColor = self.positiveLineColor;
+    self.lowerShadowColor = self.negativeLineColor;
     
-    self.avgLineWidth = 0.8;
+    self.movingAvgLineWidth = 0.8;
     
-    self.avgLineMA5Color = [UIColor colorWithHexString:@"#019FFD"];
-    self.avgLineMA10Color = [UIColor colorWithHexString:@"#FF99OO"];
-    self.avgLineMA20Color = [UIColor colorWithHexString:@"#FF00FF"];
+    self.movingAverageLineMA5Color = [UIColor colorWithHexString:@"#019FFD"];
+    self.movingAverageLineMA10Color = [UIColor colorWithHexString:@"#FF99OO"];
+    self.movingAverageLineMA20Color = [UIColor colorWithHexString:@"#FF00FF"];
     
     self.axisShadowColor = [UIColor colorWithRed:223/255.0f green:223/255.0f blue:223/255.0f alpha:1.0];
     self.axisShadowWidth = 0.8;
@@ -438,14 +438,14 @@
         return;
     }
     
-    NSArray<UIColor *> *colors = @[self.avgLineMA5Color, self.avgLineMA10Color, self.avgLineMA20Color];
+    NSArray<UIColor *> *colors = @[self.movingAverageLineMA5Color, self.movingAverageLineMA10Color, self.movingAverageLineMA20Color];
     
     CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetLineWidth(context, self.avgLineWidth);
+    CGContextSetLineWidth(context, self.movingAvgLineWidth);
     
     for (int i = 0; i < 3; i ++) {
         CGContextSetStrokeColorWithColor(context, colors[i].CGColor);
-        CGPathRef path = [self avgMAGraphPathForContextAtIndex:(i + 5)];
+        CGPathRef path = [self movingAvgGraphPathForContextAtIndex:(i + 5)];
         CGContextAddPath(context, path);
         CGContextStrokePath(context);
     }
@@ -454,7 +454,7 @@
 /**
  *  均线path
  */
-- (CGPathRef)avgMAGraphPathForContextAtIndex:(NSInteger)index {
+- (CGPathRef)movingAvgGraphPathForContextAtIndex:(NSInteger)index {
     UIBezierPath *path;
     
     CGFloat xAxis = self.leftMargin + 1/2.0*_kLineWidth + _kLinePadding;
