@@ -407,7 +407,7 @@
         
         CGFloat diffValue = fabs(open - close);
         CGFloat maxValue = MAX(open, close);
-        CGFloat height = diffValue/scale;
+        CGFloat height = diffValue/scale == 0 ? 1 : diffValue/scale;
         CGFloat width = _kLineWidth;
         CGFloat yAxis = self.yAxisHeight - (maxValue - self.minLowValue)/scale + self.topMargin;
         
@@ -512,7 +512,7 @@
         UIColor *fillColor = open > close ? RGB(31, 185, 63.0f) : RGB(232, 50.0f, 52.0f);
         CGContextSetFillColorWithColor(context, fillColor.CGColor);
         
-        CGFloat height = [line[4] floatValue]/scale;
+        CGFloat height = [line[4] floatValue]/scale == 0 ? 1.0 : [line[4] floatValue]/scale;
         CGRect pathRect = CGRectMake(xAxis, boxYOrigin + boxHeight - height, self.kLineWidth, height);
         CGContextAddRect(context, pathRect);
         CGContextFillPath(context);
