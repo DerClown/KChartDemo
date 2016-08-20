@@ -39,17 +39,35 @@
 }
 
 - (void)_setup {
+    _triangleWidth = 5.0;
     _radius = 4.0;
+    
+    self.open = @"0.0";
+    self.close = @"0.0";
+    self.high = @"0.0";
+    self.low = @"0.0";
+    
+    self.openColor = [UIColor whiteColor];
+    self.closeColor = [UIColor whiteColor];
+    self.highColor = [UIColor whiteColor];
+    self.lowColor = [UIColor whiteColor];
+    
+    self.font = [UIFont systemFontOfSize:8.0f];
 }
 
 - (void)drawRect:(CGRect)rect {
     [super drawRect:rect];
-    [self drawInContext:UIGraphicsGetCurrentContext()];
+    //图形
+    [self drawInContext];
+    
+    //文字
+    [self drawText];
 }
 
 #pragma mark - private methods
 
-- (void)drawInContext:(CGContextRef)context {
+- (void)drawInContext {
+    CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(context, 1.0);
     CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0.35 alpha:0.9].CGColor);
     CGContextSetStrokeColorWithColor(context, [UIColor blueColor].CGColor);
@@ -64,18 +82,16 @@
     CGFloat minx = CGRectGetMinX(rrect), maxx = CGRectGetMaxX(rrect);
     CGFloat miny = CGRectGetMinY(rrect), midy = CGRectGetMidY(rrect), maxy = CGRectGetMaxY(rrect);
     
-    CGFloat triangleWidth = 5;
-    
-    CGFloat startMoveX = !_arrowInLeft ? triangleWidth : maxx - triangleWidth;
-    CGContextMoveToPoint(context, startMoveX, midy - triangleWidth);
+    CGFloat startMoveX = !_arrowInLeft ? _triangleWidth : maxx - _triangleWidth;
+    CGContextMoveToPoint(context, startMoveX, midy - _triangleWidth);
     CGContextAddLineToPoint(context, (!_arrowInLeft ? minx : maxx), midy);
-    CGContextAddLineToPoint(context, startMoveX, midy+triangleWidth);
+    CGContextAddLineToPoint(context, startMoveX, midy+_triangleWidth);
     
-    CGPoint p1 = !_arrowInLeft ? CGPointMake(triangleWidth, maxy) : CGPointMake(maxx - triangleWidth, miny);
+    CGPoint p1 = !_arrowInLeft ? CGPointMake(_triangleWidth, maxy) : CGPointMake(maxx - _triangleWidth, miny);
     CGPoint p2 = !_arrowInLeft ? CGPointMake(maxx, maxy) : CGPointMake(minx, miny);
     CGPoint p3 = !_arrowInLeft ? CGPointMake(maxx, miny) : CGPointMake(minx, maxy);
-    CGPoint p4 = !_arrowInLeft ? CGPointMake(triangleWidth, miny) : CGPointMake(maxx - triangleWidth, maxy);
-    CGPoint p5 = !_arrowInLeft ? CGPointMake(triangleWidth, midy) : CGPointMake(maxx - triangleWidth, miny);
+    CGPoint p4 = !_arrowInLeft ? CGPointMake(_triangleWidth, miny) : CGPointMake(maxx - _triangleWidth, maxy);
+    CGPoint p5 = !_arrowInLeft ? CGPointMake(_triangleWidth, midy) : CGPointMake(maxx - _triangleWidth, miny);
     NSArray *points = @[NSStringFromCGPoint(p1), NSStringFromCGPoint(p2),NSStringFromCGPoint(p3),NSStringFromCGPoint(p4),NSStringFromCGPoint(p5)];
     
     for (int i = 0; i < points.count - 1; i ++) {
@@ -84,6 +100,20 @@
         CGContextAddArcToPoint(context, p1.x, p1.y, p2.x, p2.y, _radius);
     }
     CGContextClosePath(context);
+}
+
+- (void)drawText {
+    NSArray *titles = @[[@"开盘价：" stringByAppendingString:self.open], [@"收盘价：" stringByAppendingString:self.close], [@"最高价：" stringByAppendingString:self.high], [@"最低价：" stringByAppendingString:self.low]];
+    NSArray<UIColor *> *colors = @[self.openColor, self.closeColor, self.highColor, self.lowColor];
+    
+    CGFloat padding = (self.frame.size.height - 2*self.font.lineHeight) / 3.0;
+    
+    for (int i = 0; i < 4; i ++) {
+        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:titles[i] attributes:@{NSFontAttributeName:self.font, NSForegroundColorAttributeName:colors[i]}];
+        CGFloat originY = i == 0 || i == 1 ? padding - 2 : padding*2 + 4 + self.font.lineHeight;
+        CGFloat originX = i == 0 || i == 2 ? self.triangleWidth + 2 : (self.frame.size.width - self.triangleWidth - 4 - 2)/2.0 + self.triangleWidth + 2.0;
+        [attString drawInRect:CGRectMake(originX, originY, self.frame.size.width, self.font.lineHeight)];
+    }
 }
 
 #pragma mark - public methods

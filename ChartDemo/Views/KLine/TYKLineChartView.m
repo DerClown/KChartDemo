@@ -288,7 +288,7 @@
                     yAxis = self.yAxisHeight - (close - self.minLowValue)/scale + self.topMargin;
                 }
                 
-                [self configUIWithPoint:CGPointMake(xAxis, yAxis)];
+                [self configUIWithLine:line atPoint:CGPointMake(xAxis, yAxis)];
                 
                 *stop = YES;
             }
@@ -296,7 +296,7 @@
     }
 }
 
-- (void)configUIWithPoint:(CGPoint)point {
+- (void)configUIWithLine:(NSArray *)line atPoint:(CGPoint)point {
     self.verticalLine.hidden = NO;
     CGRect frame = self.verticalLine.frame;
     frame.origin.x = point.x;
@@ -312,6 +312,10 @@
     frame.origin.x = point.x;
     self.barVerticalLine.frame = frame;
     
+    self.tipBoard.open = line[0];
+    self.tipBoard.close = line[3];
+    self.tipBoard.high = line[1];
+    self.tipBoard.low = line[2];
     [self.tipBoard showForTipPoint:CGPointMake(point.x, point.y)];
     
     [self bringSubviewToFront:self.horizontalLine];
@@ -592,7 +596,7 @@
 
 - (TipBoardView *)tipBoard {
     if (!_tipBoard) {
-        _tipBoard = [[TipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 100, 60.0f)];
+        _tipBoard = [[TipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 130, 60.0f)];
         _tipBoard.backgroundColor = [UIColor clearColor];
         [self addSubview:_tipBoard];
     }
