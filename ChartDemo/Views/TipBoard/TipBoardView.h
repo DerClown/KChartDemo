@@ -64,6 +64,11 @@
  */
 @property (nonatomic, strong) UIFont *font;
 
+/**
+ *  隐藏时间, 默认3s
+ */
+@property (nonatomic, assign) CGFloat hideDuration;
+
 - (void)showForTipPoint:(CGPoint)point;
 
 - (void)hide;

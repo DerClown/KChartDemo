@@ -39,8 +39,9 @@
 }
 
 - (void)_setup {
-    _triangleWidth = 5.0;
-    _radius = 4.0;
+    self.triangleWidth = 5.0;
+    self.radius = 4.0;
+    self.hideDuration = 2.5;
     
     self.open = @"0.0";
     self.close = @"0.0";
@@ -163,9 +164,9 @@
 - (void)hide {
     CATransition *animation = [CATransition animation];
     animation.type = kCATransitionFade;
-    animation.duration = 2.0;
+    animation.duration = self.hideDuration;
     animation.startProgress = 0.0;
-    animation.endProgress = 0.65;
+    animation.endProgress = 0.35;
     [self.layer addAnimation:animation forKey:nil];
     self.hidden = YES;
 }
