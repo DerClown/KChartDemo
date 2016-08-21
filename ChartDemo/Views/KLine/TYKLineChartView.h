@@ -138,6 +138,11 @@
 @property (nonatomic, strong) UIColor *separatorColor;
 
 /**
+ *  十字线颜色
+ */
+@property (nonatomic, strong) UIColor *crossLineColor;
+
+/**
  *   默认可以放大缩小
  */
 @property (nonatomic, assign) BOOL zoomEnable;

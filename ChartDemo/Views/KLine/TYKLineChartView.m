@@ -12,6 +12,7 @@
 #import "UIBezierPath+curved.h"
 #import "TipBoardView.h"
 #import "UIColor+Ext.h"
+#import "MATipView.h"
 
 #define RGB(r, g, b)    [UIColor colorWithRed:(r/255.0f) green:(g/255.0f) blue:(b/255.0f) alpha:1.0]
 
@@ -52,14 +53,14 @@
 @property (nonatomic, strong) NSMutableDictionary *xAxisContext;
 
 //十字线
-@property (nonatomic, strong) UIView *verticalLine;     //垂直
-@property (nonatomic, strong) UIView *horizontalLine;   //水平
+@property (nonatomic, strong) UIView *verticalCrossLine;     //垂直十字线
+@property (nonatomic, strong) UIView *horizontalCrossLine;   //水平十字线
 
 @property (nonatomic, strong) UIView *barVerticalLine;
 
 @property (nonatomic, strong) TipBoardView *tipBoard;
 
-@property (nonatomic, strong) NSTimer *timer;
+@property (nonatomic, strong) MATipView *maTipView;
 
 @end
 
@@ -109,6 +110,8 @@
     
     self.yAxisTitleFont = [UIFont systemFontOfSize:8.0];
     self.yAxisTitleColor = [UIColor colorWithRed:(130/255.0f) green:(130/255.0f) blue:(130/255.0f) alpha:1.0];
+    
+    self.crossLineColor = [UIColor colorWithHexString:@"#C9C9C9"];
     
     self.scrollEnable = YES;
     
@@ -186,8 +189,12 @@
     /**
      *  最高价,最低价
      */
-    self.maxHighValue = [data[kCandlerstickChartsMaxHigh] floatValue];
-    self.minLowValue = [data[kCandlerstickChartsMinLow] floatValue];
+    if (!self.yAxisTitleIsChange) {
+        self.maxHighValue = [data[kCandlerstickChartsMaxHigh] floatValue];
+        self.minLowValue = [data[kCandlerstickChartsMinLow] floatValue];
+    } else {
+        [self resetMaxAndMin];
+    }
     
     /**
      *  成交量最大之，最小值
@@ -266,9 +273,10 @@
 
 - (void)longPressEvent:(UILongPressGestureRecognizer *)longGesture {
     if (longGesture.state == UIGestureRecognizerStateEnded) {
-        self.horizontalLine.hidden = YES;
-        self.verticalLine.hidden = YES;
+        self.horizontalCrossLine.hidden = YES;
+        self.verticalCrossLine.hidden = YES;
         self.barVerticalLine.hidden = YES;
+        self.maTipView.hidden = YES;
         [self.tipBoard hide];
     } else {
         CGPoint touchPoint = [longGesture locationInView:self];
@@ -297,20 +305,24 @@
 }
 
 - (void)configUIWithLine:(NSArray *)line atPoint:(CGPoint)point {
-    self.verticalLine.hidden = NO;
-    CGRect frame = self.verticalLine.frame;
+    self.verticalCrossLine.hidden = NO;
+    CGRect frame = self.verticalCrossLine.frame;
     frame.origin.x = point.x;
-    self.verticalLine.frame = frame;
+    self.verticalCrossLine.frame = frame;
     
-    self.horizontalLine.hidden = NO;
-    frame = self.horizontalLine.frame;
+    self.horizontalCrossLine.hidden = NO;
+    frame = self.horizontalCrossLine.frame;
     frame.origin.y = point.y;
-    self.horizontalLine.frame = frame;
+    self.horizontalCrossLine.frame = frame;
     
     self.barVerticalLine.hidden = NO;
     frame = self.barVerticalLine.frame;
     frame.origin.x = point.x;
     self.barVerticalLine.frame = frame;
+    self.maTipView.hidden = NO;
+    self.maTipView.movingAverage5 = [NSString stringWithFormat:@"%.2f", [line[5] doubleValue]];
+    self.maTipView.movingAverage10 = [NSString stringWithFormat:@"%.2f", [line[6] doubleValue]];
+    self.maTipView.movingAverage20 = [NSString stringWithFormat:@"%.2f", [line[7] doubleValue]];
     
     self.tipBoard.open = line[0];
     self.tipBoard.close = line[3];
@@ -318,8 +330,8 @@
     self.tipBoard.low = line[2];
     [self.tipBoard showForTipPoint:CGPointMake(point.x, point.y)];
     
-    [self bringSubviewToFront:self.horizontalLine];
-    [self bringSubviewToFront:self.verticalLine];
+    [self bringSubviewToFront:self.horizontalCrossLine];
+    [self bringSubviewToFront:self.verticalCrossLine];
     [self bringSubviewToFront:self.barVerticalLine];
     [self bringSubviewToFront:self.tipBoard];
 }
@@ -567,28 +579,28 @@
 
 #pragma mark - getters
 
-- (UIView *)verticalLine {
-    if (!_verticalLine) {
-        _verticalLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 0.5, self.yAxisHeight)];
-        _verticalLine.backgroundColor = [UIColor colorWithHexString:@"#C9C9C9"];
-        [self addSubview:_verticalLine];
+- (UIView *)verticalCrossLine {
+    if (!_verticalCrossLine) {
+        _verticalCrossLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 0.5, self.yAxisHeight)];
+        _verticalCrossLine.backgroundColor = self.crossLineColor;
+        [self addSubview:_verticalCrossLine];
     }
-    return _verticalLine;
+    return _verticalCrossLine;
 }
 
-- (UIView *)horizontalLine {
-    if (!_horizontalLine) {
-        _horizontalLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, self.xAxisWidth, 0.5)];
-        _horizontalLine.backgroundColor = [UIColor colorWithHexString:@"#C9C9C9"];
-        [self addSubview:_horizontalLine];
+- (UIView *)horizontalCrossLine {
+    if (!_horizontalCrossLine) {
+        _horizontalCrossLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, self.xAxisWidth, 0.5)];
+        _horizontalCrossLine.backgroundColor = self.crossLineColor;
+        [self addSubview:_horizontalCrossLine];
     }
-    return _horizontalLine;
+    return _horizontalCrossLine;
 }
 
 - (UIView *)barVerticalLine {
     if (!_barVerticalLine) {
         _barVerticalLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin + self.yAxisHeight + 20.0f, 0.5, self.frame.size.height - (self.topMargin + self.yAxisHeight + 20.0f))];
-        _barVerticalLine.backgroundColor = [UIColor redColor];
+        _barVerticalLine.backgroundColor = self.crossLineColor;
         [self addSubview:_barVerticalLine];
     }
     return _barVerticalLine;
@@ -601,6 +613,17 @@
         [self addSubview:_tipBoard];
     }
     return _tipBoard;
+}
+
+- (MATipView *)maTipView {
+    if (!_maTipView) {
+        _maTipView = [[MATipView alloc] initWithFrame:CGRectMake(self.leftMargin + 100, self.topMargin - 18.0f, self.frame.size.width - self.leftMargin - self.rightMargin - 100, 13.0f)];
+        _maTipView.layer.masksToBounds = YES;
+        _maTipView.layer.cornerRadius = 7.0f;
+        _maTipView.backgroundColor = [UIColor colorWithWhite:0.35 alpha:1.0];
+        [self addSubview:_maTipView];
+    }
+    return _maTipView;
 }
 
 - (UITapGestureRecognizer *)tapGesture {

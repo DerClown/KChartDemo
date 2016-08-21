@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		1E7B58C71D621010005BF850 /* TYTLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TYTLineChartView.m */; };
-		1ED678DD1D62DDB700CCF09D /* TipBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ED678DC1D62DDB700CCF09D /* TipBoardView.m */; };
 		1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */; };
 		1EF4CEA51D5D5FA600221294 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEA41D5D5FA600221294 /* main.m */; };
 		1EF4CEA81D5D5FA600221294 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEA71D5D5FA600221294 /* AppDelegate.m */; };
@@ -31,6 +30,8 @@
 		1EF4CF2E1D5D650400221294 /* KLineListManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF2D1D5D650400221294 /* KLineListManager.m */; };
 		1EF4CF321D5D659500221294 /* KLineListTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF311D5D659500221294 /* KLineListTransformer.m */; };
 		1EF4CF391D5D67C200221294 /* TYKLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF351D5D67C200221294 /* TYKLineChartView.m */; };
+		1EFDDC741D69ED9D00A39786 /* MATipView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EFDDC711D69ED9D00A39786 /* MATipView.m */; };
+		1EFDDC751D69ED9D00A39786 /* TipBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EFDDC731D69ED9D00A39786 /* TipBoardView.m */; };
 		330576591CA2D489547641F4 /* libPods-ChartDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D535C7F057AFD1EF9EB36 /* libPods-ChartDemo.a */; };
 /* End PBXBuildFile section */
 
@@ -55,8 +56,6 @@
 		094B6C9633E09A521CD38E54 /* Pods-ChartDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChartDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ChartDemo/Pods-ChartDemo.debug.xcconfig"; sourceTree = "<group>"; };
 		1E7B58C51D621010005BF850 /* TYTLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TYTLineChartView.h; sourceTree = "<group>"; };
 		1E7B58C61D621010005BF850 /* TYTLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TYTLineChartView.m; sourceTree = "<group>"; };
-		1ED678DB1D62DDB700CCF09D /* TipBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TipBoardView.h; sourceTree = "<group>"; };
-		1ED678DC1D62DDB700CCF09D /* TipBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TipBoardView.m; sourceTree = "<group>"; };
 		1EEC1A4A1D5DC4600063A205 /* UIBezierPath+curved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBezierPath+curved.h"; sourceTree = "<group>"; };
 		1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIBezierPath+curved.m"; sourceTree = "<group>"; };
 		1EF4CEA01D5D5FA600221294 /* ChartDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChartDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -102,6 +101,10 @@
 		1EF4CF311D5D659500221294 /* KLineListTransformer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineListTransformer.m; sourceTree = "<group>"; };
 		1EF4CF341D5D67C200221294 /* TYKLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TYKLineChartView.h; sourceTree = "<group>"; };
 		1EF4CF351D5D67C200221294 /* TYKLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TYKLineChartView.m; sourceTree = "<group>"; };
+		1EFDDC701D69ED9D00A39786 /* MATipView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MATipView.h; sourceTree = "<group>"; };
+		1EFDDC711D69ED9D00A39786 /* MATipView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MATipView.m; sourceTree = "<group>"; };
+		1EFDDC721D69ED9D00A39786 /* TipBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TipBoardView.h; sourceTree = "<group>"; };
+		1EFDDC731D69ED9D00A39786 /* TipBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TipBoardView.m; sourceTree = "<group>"; };
 		E55D535C7F057AFD1EF9EB36 /* libPods-ChartDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ChartDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FC75484B824CADDEA0656875 /* Pods-ChartDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChartDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-ChartDemo/Pods-ChartDemo.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -139,15 +142,6 @@
 				1E7B58C61D621010005BF850 /* TYTLineChartView.m */,
 			);
 			path = TLine;
-			sourceTree = "<group>";
-		};
-		1ED678DA1D62DD9F00CCF09D /* TipBoard */ = {
-			isa = PBXGroup;
-			children = (
-				1ED678DB1D62DDB700CCF09D /* TipBoardView.h */,
-				1ED678DC1D62DDB700CCF09D /* TipBoardView.m */,
-			);
-			path = TipBoard;
 			sourceTree = "<group>";
 		};
 		1EEC1A491D5DC4600063A205 /* UIBezierPath+curved */ = {
@@ -230,7 +224,7 @@
 		1EF4CED81D5D5FFF00221294 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				1ED678DA1D62DD9F00CCF09D /* TipBoard */,
+				1EFDDC6F1D69ED9D00A39786 /* TipViews */,
 				1EF4CF331D5D67C200221294 /* KLine */,
 				1E7B58C41D621010005BF850 /* TLine */,
 			);
@@ -347,6 +341,17 @@
 				1EF4CF351D5D67C200221294 /* TYKLineChartView.m */,
 			);
 			path = KLine;
+			sourceTree = "<group>";
+		};
+		1EFDDC6F1D69ED9D00A39786 /* TipViews */ = {
+			isa = PBXGroup;
+			children = (
+				1EFDDC701D69ED9D00A39786 /* MATipView.h */,
+				1EFDDC711D69ED9D00A39786 /* MATipView.m */,
+				1EFDDC721D69ED9D00A39786 /* TipBoardView.h */,
+				1EFDDC731D69ED9D00A39786 /* TipBoardView.m */,
+			);
+			path = TipViews;
 			sourceTree = "<group>";
 		};
 		2FFDDADA03EA9C61C5387714 /* Pods */ = {
@@ -546,6 +551,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1EFDDC741D69ED9D00A39786 /* MATipView.m in Sources */,
 				1EF4CEAB1D5D5FA600221294 /* KLineViewController.m in Sources */,
 				1EF4CF2B1D5D64AE00221294 /* UIColor+Ext.m in Sources */,
 				1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */,
@@ -553,13 +559,13 @@
 				1EF4CF201D5D63B400221294 /* GApiBaseManager.m in Sources */,
 				1EF4CF1F1D5D63B400221294 /* GApiAgent.m in Sources */,
 				1EF4CF2E1D5D650400221294 /* KLineListManager.m in Sources */,
+				1EFDDC751D69ED9D00A39786 /* TipBoardView.m in Sources */,
 				1EF4CF211D5D63B400221294 /* GApiCache.m in Sources */,
 				1EF4CF231D5D63B400221294 /* GApiConfig.m in Sources */,
 				1EF4CF221D5D63B400221294 /* GApiCachedObject.m in Sources */,
 				1EF4CF1E1D5D63B400221294 /* NSString+md5.m in Sources */,
 				1EF4CF1D1D5D63B400221294 /* NSDictionary+NetWorkingMehods.m in Sources */,
 				1EF4CF391D5D67C200221294 /* TYKLineChartView.m in Sources */,
-				1ED678DD1D62DDB700CCF09D /* TipBoardView.m in Sources */,
 				1EF4CF251D5D63B400221294 /* GApiResponse.m in Sources */,
 				1EF4CEA81D5D5FA600221294 /* AppDelegate.m in Sources */,
 				1EF4CF241D5D63B400221294 /* GApiLogger.m in Sources */,
