@@ -328,6 +328,15 @@
     self.tipBoard.close = line[3];
     self.tipBoard.high = line[1];
     self.tipBoard.low = line[2];
+    
+    if (point.y - self.topMargin - self.tipBoard.frame.size.height/2.0 < 0) {
+        point.y = self.topMargin;
+    } else if ((point.y - self.tipBoard.frame.size.height/2.0) > self.topMargin + self.yAxisHeight - self.tipBoard.frame.size.height*3/2.0f) {
+        point.y = self.topMargin + self.yAxisHeight - self.tipBoard.frame.size.height*3/2.0f;
+    } else {
+        point.y -= self.tipBoard.frame.size.height / 2.0;
+    }
+    
     [self.tipBoard showWithTipPoint:CGPointMake(point.x, point.y)];
     
     [self bringSubviewToFront:self.horizontalCrossLine];
