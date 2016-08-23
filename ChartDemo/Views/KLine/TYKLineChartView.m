@@ -10,7 +10,7 @@
 #import "TYKLineChartView.h"
 #import "KLineListTransformer.h"
 #import "UIBezierPath+curved.h"
-#import "TipBoardView.h"
+#import "KLineTipBoardView.h"
 #import "UIColor+Ext.h"
 #import "MATipView.h"
 
@@ -58,7 +58,7 @@
 
 @property (nonatomic, strong) UIView *barVerticalLine;
 
-@property (nonatomic, strong) TipBoardView *tipBoard;
+@property (nonatomic, strong) KLineTipBoardView *tipBoard;
 
 @property (nonatomic, strong) MATipView *maTipView;
 
@@ -328,7 +328,7 @@
     self.tipBoard.close = line[3];
     self.tipBoard.high = line[1];
     self.tipBoard.low = line[2];
-    [self.tipBoard showForTipPoint:CGPointMake(point.x, point.y)];
+    [self.tipBoard showWithTipPoint:CGPointMake(point.x, point.y)];
     
     [self bringSubviewToFront:self.horizontalCrossLine];
     [self bringSubviewToFront:self.verticalCrossLine];
@@ -385,7 +385,7 @@
         strokeRect = CGRectMake(self.leftMargin, self.yAxisHeight + self.topMargin + 20.0f, self.xAxisWidth, rect.size.height - self.yAxisHeight - self.topMargin - 20.0f);
         CGContextStrokeRect(context, strokeRect);
         
-        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", self.maxVolValue/10000.0f] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
+        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", self.maxVolValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
         [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.yAxisHeight + self.topMargin + 20.0f - 2, size.width, size.height)];
@@ -606,9 +606,9 @@
     return _barVerticalLine;
 }
 
-- (TipBoardView *)tipBoard {
+- (KLineTipBoardView *)tipBoard {
     if (!_tipBoard) {
-        _tipBoard = [[TipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 130, 60.0f)];
+        _tipBoard = [[KLineTipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 130, 60.0f)];
         _tipBoard.backgroundColor = [UIColor clearColor];
         [self addSubview:_tipBoard];
     }

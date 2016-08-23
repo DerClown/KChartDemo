@@ -30,7 +30,9 @@
 		1EF4CF2E1D5D650400221294 /* KLineListManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF2D1D5D650400221294 /* KLineListManager.m */; };
 		1EF4CF321D5D659500221294 /* KLineListTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF311D5D659500221294 /* KLineListTransformer.m */; };
 		1EF4CF391D5D67C200221294 /* TYKLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF351D5D67C200221294 /* TYKLineChartView.m */; };
-		1EFDDC741D69ED9D00A39786 /* MATipView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EFDDC711D69ED9D00A39786 /* MATipView.m */; };
+		1EF83FC31D6C300900798643 /* KLineTipBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF83FC21D6C300900798643 /* KLineTipBoardView.m */; };
+		1EF83FC61D6C335300798643 /* TLineTipBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF83FC51D6C335300798643 /* TLineTipBoardView.m */; };
+		1EF83FC91D6C420200798643 /* MATipView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF83FC81D6C420200798643 /* MATipView.m */; };
 		1EFDDC751D69ED9D00A39786 /* TipBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EFDDC731D69ED9D00A39786 /* TipBoardView.m */; };
 		330576591CA2D489547641F4 /* libPods-ChartDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D535C7F057AFD1EF9EB36 /* libPods-ChartDemo.a */; };
 /* End PBXBuildFile section */
@@ -101,8 +103,12 @@
 		1EF4CF311D5D659500221294 /* KLineListTransformer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineListTransformer.m; sourceTree = "<group>"; };
 		1EF4CF341D5D67C200221294 /* TYKLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TYKLineChartView.h; sourceTree = "<group>"; };
 		1EF4CF351D5D67C200221294 /* TYKLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TYKLineChartView.m; sourceTree = "<group>"; };
-		1EFDDC701D69ED9D00A39786 /* MATipView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MATipView.h; sourceTree = "<group>"; };
-		1EFDDC711D69ED9D00A39786 /* MATipView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MATipView.m; sourceTree = "<group>"; };
+		1EF83FC11D6C300900798643 /* KLineTipBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineTipBoardView.h; sourceTree = "<group>"; };
+		1EF83FC21D6C300900798643 /* KLineTipBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineTipBoardView.m; sourceTree = "<group>"; };
+		1EF83FC41D6C335300798643 /* TLineTipBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLineTipBoardView.h; sourceTree = "<group>"; };
+		1EF83FC51D6C335300798643 /* TLineTipBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TLineTipBoardView.m; sourceTree = "<group>"; };
+		1EF83FC71D6C420200798643 /* MATipView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MATipView.h; sourceTree = "<group>"; };
+		1EF83FC81D6C420200798643 /* MATipView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MATipView.m; sourceTree = "<group>"; };
 		1EFDDC721D69ED9D00A39786 /* TipBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TipBoardView.h; sourceTree = "<group>"; };
 		1EFDDC731D69ED9D00A39786 /* TipBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TipBoardView.m; sourceTree = "<group>"; };
 		E55D535C7F057AFD1EF9EB36 /* libPods-ChartDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ChartDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -140,6 +146,8 @@
 			children = (
 				1E7B58C51D621010005BF850 /* TYTLineChartView.h */,
 				1E7B58C61D621010005BF850 /* TYTLineChartView.m */,
+				1EF83FC41D6C335300798643 /* TLineTipBoardView.h */,
+				1EF83FC51D6C335300798643 /* TLineTipBoardView.m */,
 			);
 			path = TLine;
 			sourceTree = "<group>";
@@ -339,6 +347,10 @@
 			children = (
 				1EF4CF341D5D67C200221294 /* TYKLineChartView.h */,
 				1EF4CF351D5D67C200221294 /* TYKLineChartView.m */,
+				1EF83FC71D6C420200798643 /* MATipView.h */,
+				1EF83FC81D6C420200798643 /* MATipView.m */,
+				1EF83FC11D6C300900798643 /* KLineTipBoardView.h */,
+				1EF83FC21D6C300900798643 /* KLineTipBoardView.m */,
 			);
 			path = KLine;
 			sourceTree = "<group>";
@@ -346,8 +358,6 @@
 		1EFDDC6F1D69ED9D00A39786 /* TipViews */ = {
 			isa = PBXGroup;
 			children = (
-				1EFDDC701D69ED9D00A39786 /* MATipView.h */,
-				1EFDDC711D69ED9D00A39786 /* MATipView.m */,
 				1EFDDC721D69ED9D00A39786 /* TipBoardView.h */,
 				1EFDDC731D69ED9D00A39786 /* TipBoardView.m */,
 			);
@@ -551,16 +561,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1EFDDC741D69ED9D00A39786 /* MATipView.m in Sources */,
+				1EF83FC61D6C335300798643 /* TLineTipBoardView.m in Sources */,
 				1EF4CEAB1D5D5FA600221294 /* KLineViewController.m in Sources */,
 				1EF4CF2B1D5D64AE00221294 /* UIColor+Ext.m in Sources */,
 				1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */,
 				1E7B58C71D621010005BF850 /* TYTLineChartView.m in Sources */,
 				1EF4CF201D5D63B400221294 /* GApiBaseManager.m in Sources */,
 				1EF4CF1F1D5D63B400221294 /* GApiAgent.m in Sources */,
+				1EF83FC31D6C300900798643 /* KLineTipBoardView.m in Sources */,
 				1EF4CF2E1D5D650400221294 /* KLineListManager.m in Sources */,
 				1EFDDC751D69ED9D00A39786 /* TipBoardView.m in Sources */,
 				1EF4CF211D5D63B400221294 /* GApiCache.m in Sources */,
+				1EF83FC91D6C420200798643 /* MATipView.m in Sources */,
 				1EF4CF231D5D63B400221294 /* GApiConfig.m in Sources */,
 				1EF4CF221D5D63B400221294 /* GApiCachedObject.m in Sources */,
 				1EF4CF1E1D5D63B400221294 /* NSString+md5.m in Sources */,

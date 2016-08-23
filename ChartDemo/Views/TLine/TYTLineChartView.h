@@ -31,14 +31,24 @@
 @property (nonatomic, assign) CGFloat bottomMargin;
 
 /**
- *  折线图宽度
+ *  线宽度
  */
 @property (nonatomic, assign) CGFloat lineWidth;
 
 /**
- *  折线图颜色
+ *  线颜色
  */
-@property (nonatomic, strong) UIFont *lineColor;
+@property (nonatomic, strong) UIColor *lineColor;
+
+/**
+ *  阴影开始绘制颜色
+ */
+@property (nonatomic, strong) UIColor *gradientStartColor;
+
+/**
+ *  阴影绘制结束颜色
+ */
+@property (nonatomic, strong) UIColor *gradientEndColor;
 
 /**
  *  点之间的间距 
@@ -61,6 +71,11 @@
 @property (nonatomic, strong) UIFont *yAxisTitleFont;
 
 /**
+ *  y坐标轴标题颜色
+ */
+@property (nonatomic, strong) UIColor *yAxisTitleColor;
+
+/**
  *  x坐标轴字体
  */
 @property (nonatomic, strong) UIFont *xAxisTitleFont;
@@ -71,9 +86,14 @@
 @property (nonatomic, strong) UIColor *xAxisTitleColor;
 
 /**
- *  y坐标轴标题颜色
+ *  分割线条数, 默认4条
  */
-@property (nonatomic, strong) UIColor *yAxisTitleColor;
+@property (nonatomic, assign) NSInteger separatorNum;
+
+/**
+ *  分割线大小
+ */
+@property (nonatomic, assign) CGFloat separatorWidth;
 
 /**
  *  分割线颜色
@@ -81,9 +101,19 @@
 @property (nonatomic, strong) UIColor *separatorColor;
 
 /**
- *  显示柱形图，默认不显示
+ *  十字线颜色
  */
-@property (nonatomic, assign) BOOL showBarChart;
+@property (nonatomic, strong) UIColor *crossLineColor;
+
+/**
+ *  虚线边框
+ */
+@property (nonatomic, assign) BOOL dashLineBorder;
+
+/**
+ *  圆滑曲线，默认YES
+ */
+@property (nonatomic, assign) BOOL smoothPath;
 
 
 - (void)drawChartWithData:(NSDictionary *)data;

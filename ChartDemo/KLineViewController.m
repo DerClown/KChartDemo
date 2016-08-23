@@ -8,6 +8,7 @@
 
 #import "KLineViewController.h"
 #import "TYKLineChartView.h"
+#import "TYTLineChartView.h"
 #import "KLineListManager.h"
 #import "KLineListTransformer.h"
 
@@ -16,6 +17,7 @@
 @property (nonatomic, strong) KLineListManager *chartApi;
 @property (nonatomic, strong) KLineListTransformer *lineListTransformer;
 @property (nonatomic, strong) TYKLineChartView *kLineChartView;
+@property (nonatomic, strong) TYTLineChartView *tLineChartView;
 
 @end
 
@@ -25,6 +27,7 @@
     [super viewDidLoad];
     
     [self.view addSubview:self.kLineChartView];
+    [self.view addSubview:self.tLineChartView];
     
     //发起请求
     self.chartApi.dateType = @"d";
@@ -37,6 +40,7 @@
 - (void)managerApiCallBackDidSuccess:(__kindof GApiBaseManager *)manager {
     NSDictionary *lineData = [self.chartApi fetchDataWithTransformer:self.lineListTransformer];
     [self.kLineChartView drawChartWithData:lineData];
+    [self.tLineChartView drawChartWithData:lineData];
 }
 
 - (void)managerApiCallBackDidFailed:(__kindof GApiBaseManager *)manager {
@@ -53,9 +57,21 @@
         _kLineChartView.leftMargin = 50.0f;
         _kLineChartView.rightMargin = 1.0;
         _kLineChartView.bottomMargin = 100.0f;
-        //_kLineChartView.yAxisTitleIsChange = NO;
+        _kLineChartView.yAxisTitleIsChange = NO;
     }
     return _kLineChartView;
+}
+
+- (TYTLineChartView *)tLineChartView {
+    if (!_tLineChartView) {
+        _tLineChartView = [[TYTLineChartView alloc] initWithFrame:CGRectMake(20, 420, self.view.frame.size.width - 40.0f, 250.0f)];
+        _tLineChartView.backgroundColor = [UIColor whiteColor];
+        _tLineChartView.topMargin = 5.0f;
+        _tLineChartView.leftMargin = 50.0;
+        _tLineChartView.bottomMargin = 0.5;
+        _tLineChartView.rightMargin = 1.0;
+    }
+    return _tLineChartView;
 }
 
 - (KLineListManager *)chartApi {
