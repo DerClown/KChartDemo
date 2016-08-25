@@ -37,11 +37,17 @@
 
 @property (nonatomic, strong) UILongPressGestureRecognizer *longGesture;
 
+@property (nonatomic, strong) CALayer *flashLayer;
+
 @end
 
 @implementation TYTLineChartView
 
 #pragma mark - life cycle
+
+- (void)dealloc {
+    [self stopFlashAnimation];
+}
 
 - (id)initWithCoder:(NSCoder *)aDecoder {
     if (self = [super initWithCoder:aDecoder]) {
@@ -81,11 +87,14 @@
     
     self.crossLineColor = [UIColor colorWithHexString:@"#C9C9C9"];
     
+    self.flashPointColor = [UIColor redColor];
+    
     [self addGestureRecognizer:self.longGesture];
 }
 
 - (void)drawRect:(CGRect)rect {
     [super drawRect:rect];
+    [self stopFlashAnimation];
     if (self.contexts.count == 0) {
         return;
     }
@@ -111,9 +120,10 @@
         [self.tipBox hide];
     } else {
         CGPoint touchPoint = [longGesture locationInView:self];
+        
         [self.points enumerateObjectsUsingBlock:^(NSString *pointString, NSUInteger idx, BOOL * _Nonnull stop) {
             CGPoint point = CGPointFromString(pointString);
-            if (touchPoint.x > self.pointPadding && touchPoint.x < (self.frame.size.width - self.leftMargin - self.rightMargin)) {
+            if (touchPoint.x > (self.pointPadding + self.leftMargin) && touchPoint.x < (self.frame.size.width - self.pointPadding - self.rightMargin)) {
                 if (touchPoint.x > (point.x - self.pointPadding/2.0) && touchPoint.x < (point.x + self.pointPadding/2.0)) {
                     self.vtlCrossLine.hidden = NO;
                     CGRect frame = self.vtlCrossLine.frame;
@@ -123,7 +133,7 @@
                     
                     self.tipBox.hidden = NO;
                     
-                    point.y = point.y > 4*(self.frame.size.height - self.topMargin)/5.0 ? 4*(self.frame.size.height - self.topMargin)/5.0 : point.y;
+                    point.y = point.y > (self.frame.size.height - self.topMargin - self.tipBox.frame.size.height/2.0)/2.0 ? (self.frame.size.height - self.topMargin - self.tipBox.frame.size.height/2.0)/2.0 : point.y;
                     point.y -= self.tipBox.frame.size.height/2.0;
                     if (point.y < self.topMargin + self.tipBox.frame.size.height/2.0) {
                         point.y = self.topMargin;
@@ -155,8 +165,12 @@
     self.maxValue += offsetValue;
     self.minValue = self.minValue - offsetValue < 0 ? 0 : self.minValue - offsetValue;
     
+    NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", self.maxValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
+    CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
+    self.leftMargin = size.width + 4.0f;
+    
     //绘制点数
-    self.kGraphDrawCount = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - self.pointPadding) / (1 + self.pointPadding)));
+    self.kGraphDrawCount = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - self.pointPadding) / self.pointPadding));
     
     [self setNeedsDisplay];
 }
@@ -171,7 +185,7 @@
     CGRect strokeRect = CGRectMake(self.leftMargin, self.topMargin, self.xAxisWidth, self.yAxisHeight);
     CGContextSetLineWidth(context, self.axisShadowWidth);
     
-    double lengths[] = {5,5};
+    CGFloat lengths[] = {5,5};
     if (self.dashLineBorder) {
         CGContextSetLineDash(context, 0, lengths, 2);
     }
@@ -266,6 +280,8 @@
             xAxis += self.pointPadding;
         }
         self.points = contentPoints;
+        
+        [self startFlashAnimation];
     }
     
     if (self.smoothPath) {
@@ -273,6 +289,46 @@
     }
 
     return path;
+}
+
+- (void)startFlashAnimation {
+    if (!self.flashPoint) {
+        return;
+    }
+    
+    self.flashLayer.hidden = NO;
+    CGRect frame = self.flashLayer.frame;
+    CGPoint lastPoint = CGPointFromString([self.points lastObject]);
+    frame.origin.x = lastPoint.x - frame.size.width/2.0;
+    frame.origin.y = lastPoint.y - frame.size.height/2.0;
+    self.flashLayer.frame = frame;
+    
+    //animation
+    CAAnimationGroup *animaTionGroup = [CAAnimationGroup animation];
+    animaTionGroup.duration = 0.8;
+    animaTionGroup.removedOnCompletion = NO;
+    animaTionGroup.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionDefault];
+    animaTionGroup.autoreverses = YES;
+    animaTionGroup.repeatCount = MAXFLOAT;
+    
+    CABasicAnimation *scaleAnimation = [CABasicAnimation animationWithKeyPath:@"transform.scale"];
+    scaleAnimation.fromValue = @1.0;
+    scaleAnimation.toValue = @0;
+    
+    CAKeyframeAnimation *opencityAnimation = [CAKeyframeAnimation animationWithKeyPath:@"opacity"];
+    opencityAnimation.values = @[@1.0, @0.1];
+    opencityAnimation.keyTimes = @[@0, @(animaTionGroup.duration)];
+    
+    animaTionGroup.animations = @[scaleAnimation,opencityAnimation];
+    [self.flashLayer addAnimation:animaTionGroup forKey:nil];
+}
+
+- (void)stopFlashAnimation {
+    if (!self.flashPoint) {
+        return;
+    }
+    self.flashLayer.hidden = YES;
+    [self.flashLayer removeAllAnimations];
 }
 
 #pragma mark - getters
@@ -302,6 +358,18 @@
         _longGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressedEvent:)];
     }
     return _longGesture;
+}
+
+- (CALayer *)flashLayer {
+    if (!_flashLayer) {
+        _flashLayer = [[CALayer alloc] init];
+        _flashLayer.frame = CGRectMake(0, 0, MAX(MIN(4.0f, self.pointPadding), 2.0), MAX(MIN(4.0f, self.pointPadding), 2.0));
+        _flashLayer.cornerRadius = _flashLayer.frame.size.height/2.0;
+        _flashLayer.backgroundColor = self.flashPointColor.CGColor;
+        _flashLayer.hidden = YES;
+        [self.layer addSublayer:_flashLayer];
+    }
+    return _flashLayer;
 }
 
 #pragma mark - setters

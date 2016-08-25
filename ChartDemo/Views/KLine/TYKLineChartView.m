@@ -123,6 +123,8 @@
     
     self.yAxisTitleIsChange = YES;
     
+    self.saveDecimalPlaces = 2;
+    
     self.maxKLineWidth = 25.0f;
     self.minKLineWidth = 1.5;
     
@@ -180,27 +182,31 @@
     self.contexts = data[kCandlerstickChartsContext];
     self.dates = data[kCandlerstickChartsDate];
     
-    //更具宽度和间距确定要画多少个k线柱形图
-    self.kLineDrawNum = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - _kLinePadding) / (self.kLineWidth + self.kLinePadding)));
-    
-    //确定从第几个开始画
-    self.startDrawIndex = self.contexts.count > 0 ? self.contexts.count - self.kLineDrawNum : 0;
-    
     /**
      *  最高价,最低价
      */
-    if (!self.yAxisTitleIsChange) {
-        self.maxHighValue = [data[kCandlerstickChartsMaxHigh] floatValue];
-        self.minLowValue = [data[kCandlerstickChartsMinLow] floatValue];
-    } else {
-        [self resetMaxAndMin];
-    }
+    self.maxHighValue = [data[kCandlerstickChartsMaxHigh] floatValue];
+    self.minLowValue = [data[kCandlerstickChartsMinLow] floatValue];
     
     /**
      *  成交量最大之，最小值
      */
     self.maxVolValue = [data[kCandlerstickChartsMaxVol] floatValue];
     self.minVolValue = [data[kCandlerstickChartsMinVol] floatValue];
+    
+    CGFloat maxValue = self.maxVolValue > self.maxHighValue ? self.maxVolValue : self.maxHighValue;
+    
+    NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[self dealDecimalWithNum:@(maxValue)] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
+    CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
+    self.leftMargin = size.width + 4.0f;
+    
+    //更具宽度和间距确定要画多少个k线柱形图
+    self.kLineDrawNum = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - _kLinePadding) / (self.kLineWidth + self.kLinePadding)));
+    
+    //确定从第几个开始画
+    self.startDrawIndex = self.contexts.count > 0 ? self.contexts.count - self.kLineDrawNum : 0;
+    
+    [self resetMaxAndMin];
     
     [self setNeedsDisplay];
 }
@@ -363,7 +369,7 @@
     CGFloat avgHeight = strokeRect.size.height/5.0;
     for (int i = 1; i <= 4; i ++) {
         CGContextSetLineWidth(context, self.separatorWidth);
-        double lengths[] = {5,5};
+        CGFloat lengths[] = {5,5};
         CGContextSetStrokeColorWithColor(context, self.separatorColor.CGColor);
         CGContextSetLineDash(context, 0, lengths, 2);  //画虚线
         
@@ -381,7 +387,7 @@
     CGFloat avgValue = (self.maxHighValue - self.minLowValue) / 5.0;
     for (int i = 0; i < 6; i ++) {
         float yAxisValue = i == 5 ? self.minLowValue : self.maxHighValue - avgValue*i;
-        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", yAxisValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
+        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[self dealDecimalWithNum:@(yAxisValue)] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
         [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.topMargin + avgHeight*i - (i == 5 ? size.height - 1 : size.height/2.0), size.width, size.height)];
@@ -394,7 +400,7 @@
         strokeRect = CGRectMake(self.leftMargin, self.yAxisHeight + self.topMargin + 20.0f, self.xAxisWidth, rect.size.height - self.yAxisHeight - self.topMargin - 20.0f);
         CGContextStrokeRect(context, strokeRect);
         
-        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", self.maxVolValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
+        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[self dealDecimalWithNum:@(self.maxVolValue)] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
         [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.yAxisHeight + self.topMargin + 20.0f - 2, size.width, size.height)];
@@ -578,6 +584,29 @@
     }
 }
 
+- (NSString *)dealDecimalWithNum:(NSNumber *)num {
+    NSString *dealString;
+    
+    switch (self.saveDecimalPlaces) {
+        case 0: {
+            dealString = [NSString stringWithFormat:@"%ld", (long)floor(num.doubleValue)];
+        }
+            break;
+        case 1: {
+            dealString = [NSString stringWithFormat:@"%.1f", num.doubleValue];
+        }
+            break;
+        case 2: {
+            dealString = [NSString stringWithFormat:@"%.2f", num.doubleValue];
+        }
+            break;
+        default:
+            break;
+    }
+    
+    return dealString;
+}
+
 #pragma mark -  public methods
 
 - (void)clear {
@@ -617,7 +646,7 @@
 
 - (KLineTipBoardView *)tipBoard {
     if (!_tipBoard) {
-        _tipBoard = [[KLineTipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 130, 60.0f)];
+        _tipBoard = [[KLineTipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 130.0f, 60.0f)];
         _tipBoard.backgroundColor = [UIColor clearColor];
         [self addSubview:_tipBoard];
     }
@@ -626,7 +655,7 @@
 
 - (MATipView *)maTipView {
     if (!_maTipView) {
-        _maTipView = [[MATipView alloc] initWithFrame:CGRectMake(self.leftMargin + 100, self.topMargin - 18.0f, self.frame.size.width - self.leftMargin - self.rightMargin - 100, 13.0f)];
+        _maTipView = [[MATipView alloc] initWithFrame:CGRectMake(self.leftMargin + 20, self.topMargin - 18.0f, self.frame.size.width - self.leftMargin - self.rightMargin - 20, 13.0f)];
         _maTipView.layer.masksToBounds = YES;
         _maTipView.layer.cornerRadius = 7.0f;
         _maTipView.backgroundColor = [UIColor colorWithWhite:0.35 alpha:1.0];

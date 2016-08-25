@@ -103,6 +103,11 @@
 @property (nonatomic, strong) UIFont *yAxisTitleFont;
 
 /**
+ *  y坐标轴标题颜色
+ */
+@property (nonatomic, strong) UIColor *yAxisTitleColor;
+
+/**
  *  x坐标轴字体
  */
 @property (nonatomic, strong) UIFont *xAxisTitleFont;
@@ -113,11 +118,6 @@
 @property (nonatomic, strong) UIColor *xAxisTitleColor;
 
 /**
- *  y坐标轴标题颜色
- */
-@property (nonatomic, strong) UIColor *yAxisTitleColor;
-
-/**
  *  坐标轴边框颜色
  */
 @property (nonatomic, strong) UIColor *axisShadowColor;
@@ -126,6 +126,11 @@
  *  坐标轴边框宽度
  */
 @property (nonatomic, assign) CGFloat axisShadowWidth;
+
+/**
+ *  分割线个数
+ */
+@property (nonatomic, assign) NSInteger separatorNum;
 
 /**
  *  分割线大小
@@ -166,6 +171,11 @@
  *  YES表示：Y坐标的值根据视图中呈现的k线图的最大值最小值变化而变化；NO表示：Y坐标的最大和最小值初始设定多少就多少，不管k线图呈现如何都不会变化。默认YES
  */
 @property (nonatomic, assign) BOOL yAxisTitleIsChange;
+
+/**
+ *  保留小数点位数，默认保留两位(最多两位)
+ */
+@property (nonatomic, assign) NSInteger  saveDecimalPlaces;
 
 /**
  *  k线最大宽度

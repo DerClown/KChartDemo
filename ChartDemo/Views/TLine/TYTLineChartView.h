@@ -115,6 +115,15 @@
  */
 @property (nonatomic, assign) BOOL smoothPath;
 
+/**
+ *  闪烁点颜色
+ */
+@property (nonatomic, strong) UIColor *flashPointColor;
+
+/**
+ *  闪烁点，默认不显示
+ */
+@property (nonatomic, assign) BOOL flashPoint;
 
 - (void)drawChartWithData:(NSDictionary *)data;
 
