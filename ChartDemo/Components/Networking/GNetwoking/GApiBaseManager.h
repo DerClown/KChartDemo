@@ -61,7 +61,7 @@ typedef NS_ENUM(NSUInteger, GAPIManagerRequestHandlerType) {
     /**
      *  无网络，发起请求的时候会判断当前网络是否通畅
      */
-    GAPIManagerRequestHandlerTypeNoNetWok,
+    GAPIManagerRequestHandlerTypeNoNetWork,
 };
 
 /**

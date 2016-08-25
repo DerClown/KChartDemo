@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1E7B58C71D621010005BF850 /* TYTLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TYTLineChartView.m */; };
 		1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */; };
+		1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EECF1B11D6E9AD300E52D10 /* StatusView.m */; };
 		1EF4CEA51D5D5FA600221294 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEA41D5D5FA600221294 /* main.m */; };
 		1EF4CEA81D5D5FA600221294 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEA71D5D5FA600221294 /* AppDelegate.m */; };
 		1EF4CEAB1D5D5FA600221294 /* KLineViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEAA1D5D5FA600221294 /* KLineViewController.m */; };
@@ -60,6 +61,8 @@
 		1E7B58C61D621010005BF850 /* TYTLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TYTLineChartView.m; sourceTree = "<group>"; };
 		1EEC1A4A1D5DC4600063A205 /* UIBezierPath+curved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBezierPath+curved.h"; sourceTree = "<group>"; };
 		1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIBezierPath+curved.m"; sourceTree = "<group>"; };
+		1EECF1B01D6E9AD300E52D10 /* StatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatusView.h; sourceTree = "<group>"; };
+		1EECF1B11D6E9AD300E52D10 /* StatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StatusView.m; sourceTree = "<group>"; };
 		1EF4CEA01D5D5FA600221294 /* ChartDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChartDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1EF4CEA41D5D5FA600221294 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		1EF4CEA61D5D5FA600221294 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -161,6 +164,15 @@
 			path = "UIBezierPath+curved";
 			sourceTree = "<group>";
 		};
+		1EECF1AF1D6E9AC000E52D10 /* StatusView */ = {
+			isa = PBXGroup;
+			children = (
+				1EECF1B01D6E9AD300E52D10 /* StatusView.h */,
+				1EECF1B11D6E9AD300E52D10 /* StatusView.m */,
+			);
+			path = StatusView;
+			sourceTree = "<group>";
+		};
 		1EF4CE971D5D5FA600221294 = {
 			isa = PBXGroup;
 			children = (
@@ -232,6 +244,7 @@
 		1EF4CED81D5D5FFF00221294 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				1EECF1AF1D6E9AC000E52D10 /* StatusView */,
 				1EFDDC6F1D69ED9D00A39786 /* TipViews */,
 				1EF4CF331D5D67C200221294 /* KLine */,
 				1E7B58C41D621010005BF850 /* TLine */,
@@ -575,6 +588,7 @@
 				1EF83FC91D6C420200798643 /* MATipView.m in Sources */,
 				1EF4CF231D5D63B400221294 /* GApiConfig.m in Sources */,
 				1EF4CF221D5D63B400221294 /* GApiCachedObject.m in Sources */,
+				1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */,
 				1EF4CF1E1D5D63B400221294 /* NSString+md5.m in Sources */,
 				1EF4CF1D1D5D63B400221294 /* NSDictionary+NetWorkingMehods.m in Sources */,
 				1EF4CF391D5D67C200221294 /* TYKLineChartView.m in Sources */,
@@ -721,7 +735,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = ChartDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.ftamt.ChartDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xdliu.ChartDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -733,7 +747,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = ChartDemo/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.ftamt.ChartDemo;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xdliu.ChartDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

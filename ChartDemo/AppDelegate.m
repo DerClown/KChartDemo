@@ -18,7 +18,7 @@
 
 - (void)apiConfig {
     GApiConfig *_config = [GApiConfig sharedInstance];
-    _config.baseUrl = @"";
+    _config.baseUrl = @"http://www.ftamt.com";
     //根据需求设置
     _config.acceptableContentTypes = [NSSet setWithObjects:@"application/json",@"text/json", @"text/plain", @"text/html",@"text/csv", nil];
     

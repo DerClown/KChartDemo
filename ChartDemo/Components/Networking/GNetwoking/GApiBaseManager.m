@@ -7,6 +7,8 @@
 //
 
 #import "GApiBaseManager.h"
+#import <netinet/in.h>
+
 #import "GApiCache.h"
 #import "AFNetworkReachabilityManager.h"
 #import "GApiAgent.h"
@@ -79,7 +81,7 @@
                 
                 return requestId;
             } else {
-                [self handleFailureRequestResult:nil withRequestHandlerType:GAPIManagerRequestHandlerTypeNoNetWok];
+                [self handleFailureRequestResult:nil withRequestHandlerType:GAPIManagerRequestHandlerTypeNoNetWork];
             }
         }
     } else {
@@ -307,17 +309,27 @@
 }
 
 - (BOOL)isReachable {
-    BOOL isReachability;
-    if ([AFNetworkReachabilityManager sharedManager].networkReachabilityStatus == AFNetworkReachabilityStatusUnknown) {
-        isReachability = YES;
-    } else {
-        isReachability = [[AFNetworkReachabilityManager sharedManager] isReachable];
+    struct sockaddr_in address;
+    bzero(&address, sizeof(address));
+    address.sin_len = sizeof(address);
+    address.sin_family = AF_INET;
+    
+    SCNetworkReachabilityRef reachabilityRed = SCNetworkReachabilityCreateWithAddress(NULL, (struct sockaddr *)&address);
+    SCNetworkReachabilityFlags flags;
+    BOOL retrieveFlags = SCNetworkReachabilityGetFlags(reachabilityRed, &flags);
+    CFRelease(reachabilityRed);
+    if (!retrieveFlags) {
+        return NO;
     }
     
+    BOOL flagsReachable = flags & kSCNetworkFlagsReachable;
+    BOOL flagsConnection = flags & kSCNetworkFlagsConnectionRequired;
+    
+    BOOL isReachability = flagsReachable && !flagsConnection ? YES : NO;
+   
     if (!isReachability) {
-        _requestHandleType = GAPIManagerRequestHandlerTypeNoNetWok;
+        _requestHandleType = GAPIManagerRequestHandlerTypeNoNetWork;
     }
-    
     return isReachability;
 }
 

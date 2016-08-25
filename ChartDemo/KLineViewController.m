@@ -11,6 +11,7 @@
 #import "TYTLineChartView.h"
 #import "KLineListManager.h"
 #import "KLineListTransformer.h"
+#import "StatusView.h"
 
 @interface KLineViewController ()<GAPIBaseManagerRequestCallBackDelegate>
 
@@ -18,6 +19,8 @@
 @property (nonatomic, strong) KLineListTransformer *lineListTransformer;
 @property (nonatomic, strong) TYKLineChartView *kLineChartView;
 @property (nonatomic, strong) TYTLineChartView *tLineChartView;
+
+@property (nonatomic, strong) StatusView *kStatusView;
 
 @end
 
@@ -28,6 +31,7 @@
     
     [self.view addSubview:self.kLineChartView];
     [self.view addSubview:self.tLineChartView];
+    [self.kLineChartView addSubview:self.kStatusView];
     
     //发起请求
     self.chartApi.dateType = @"d";
@@ -41,10 +45,29 @@
     NSDictionary *lineData = [self.chartApi fetchDataWithTransformer:self.lineListTransformer];
     [self.kLineChartView drawChartWithData:lineData];
     [self.tLineChartView drawChartWithData:lineData];
+    
+    self.kStatusView.status = StatusStyleSuccess;
+    self.kStatusView.hidden = YES;
 }
 
 - (void)managerApiCallBackDidFailed:(__kindof GApiBaseManager *)manager {
-    
+    switch (manager.requestHandleType) {
+        case GAPIManagerRequestHandlerTypeSuccess: {
+            break;
+        }
+        case GAPIManagerRequestHandlerTypeDefault:
+        case GAPIManagerRequestHandlerTypeFailure:
+        case GAPIManagerRequestHandlerTypeParamsError:
+        case GAPIManagerRequestHandlerTypeNoContent:
+        case GAPIManagerRequestHandlerTypeTimeout: {
+            self.kStatusView.status = StatusStyleFailed;
+            break;
+        }
+        case GAPIManagerRequestHandlerTypeNoNetWork: {
+            self.kStatusView.status = StatusStyleNoNetWork;
+            break;
+        }
+    }
 }
 
 #pragma mark - getters
@@ -75,6 +98,13 @@
         //_tLineChartView.smoothPath = NO;
     }
     return _tLineChartView;
+}
+
+- (StatusView *)kStatusView {
+    if (!_kStatusView) {
+        _kStatusView = [[StatusView alloc] initWithFrame:_kLineChartView.bounds];
+    }
+    return _kStatusView;
 }
 
 - (KLineListManager *)chartApi {
