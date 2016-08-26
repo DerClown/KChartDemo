@@ -13,6 +13,9 @@
 #import "UIColor+Ext.h"
 #import "TLineTipBoardView.h"
 
+NSString *const TLineKeyStartUserInterfaceNotification = @"TLineKeyStartUserInterfaceNotification";
+NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInterfaceNotification";
+
 @interface TYTLineChartView ()
 
 @property (nonatomic, strong) NSArray *contexts;
@@ -115,6 +118,11 @@
 #pragma mark - reponse events
 
 - (void)longPressedEvent:(UILongPressGestureRecognizer *)longGesture {
+    [self postNotificationWithGestureRecognizerStatee:longGesture.state];
+    
+    if (self.contexts.count == 0 || !self.contexts) {
+        return;
+    }
     if (longGesture.state == UIGestureRecognizerStateEnded) {
         self.vtlCrossLine.hidden = YES;
         [self.tipBox hide];
@@ -150,6 +158,21 @@
                 }
             }
         }];
+    }
+}
+
+- (void)postNotificationWithGestureRecognizerStatee:(UIGestureRecognizerState)state {
+    switch (state) {
+        case UIGestureRecognizerStateBegan: {
+            [[NSNotificationCenter defaultCenter] postNotificationName:TLineKeyStartUserInterfaceNotification object:nil];
+            break;
+        }
+        case UIGestureRecognizerStateEnded: {
+            [[NSNotificationCenter defaultCenter] postNotificationName:TLineKeyEndOfUserInterfaceNotification object:nil];
+            break;
+        }
+        default:
+            break;
     }
 }
 

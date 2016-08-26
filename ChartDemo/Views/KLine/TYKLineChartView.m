@@ -14,8 +14,6 @@
 #import "UIColor+Ext.h"
 #import "MATipView.h"
 
-#define KLineRGB(r, g, b)    [UIColor colorWithRed:(r/255.0f) green:(g/255.0f) blue:(b/255.0f) alpha:1.0]
-
 NSString *const KLineKeyStartUserInterfaceNotification = @"KLineKeyStartUserInterfaceNotification";
 NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInterfaceNotification";
 
@@ -289,6 +287,10 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 - (void)longPressEvent:(UILongPressGestureRecognizer *)longGesture {
     [self postNotificationWithGestureRecognizerStatee:longGesture.state];
+    
+    if (self.contexts.count == 0 || !self.contexts) {
+        return;
+    }
     if (longGesture.state == UIGestureRecognizerStateEnded) {
         self.horizontalCrossLine.hidden = YES;
         self.verticalCrossLine.hidden = YES;

@@ -125,6 +125,17 @@
  */
 @property (nonatomic, assign) BOOL flashPoint;
 
+// 注意、注意、注意（重要的事情要说三遍）！！！：为了配合实时数据，timer OR socket有实时数据过来，就需要避免和交互产生冲突，利用这两个通知可以很好的解决问题。
+/**
+ *  开始交互通知
+ */
+UIKIT_EXTERN NSString *const TLineKeyStartUserInterfaceNotification __TVOS_PROHIBITED;
+
+/**
+ *  结束交互通知
+ */
+UIKIT_EXTERN NSString *const TLineKeyEndOfUserInterfaceNotification __TVOS_PROHIBITED;
+
 - (void)drawChartWithData:(NSDictionary *)data;
 
 @end
