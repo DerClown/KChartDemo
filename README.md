@@ -13,7 +13,7 @@
 
 2.我相信看完整个demo以后，可能会很大一部分开发者都觉得疑惑或者吐槽，这个传值也隐藏的太深了吧，然而传值过程怎么不是一个Entity。（如果需要换成Entity模式，可以自行修改就可以了）
 
-2如果不明白为什么不用model，而是用extren key方式，可以看一看大神 **casatwy** 博客的两篇文章：
+2如果不明白为什么不用model，而是用extern key方式，可以看一看大神 **casatwy** 博客的两篇文章：
  **《model化和数据对象》** 🔗<http://casatwy.com/OOP_nomodel.html>、
  **《iOS应用架构谈 网络层设计方案》**:
 🔗<http://casatwy.com/iosying-yong-jia-gou-tan-wang-luo-ceng-she-ji-fang-an.html>
