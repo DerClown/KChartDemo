@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 #import "KLineViewController.h"
 #import "GApiConfig.h"
+#import "AFNetworking.h"
 
 @interface AppDelegate ()
 
@@ -32,10 +33,58 @@
     [_config setApiRequestHeaderFieldValueDictionary:@{@"Content-Type":@"application/x-www-form-urlencoded", @"Accept-Language":@"en-US;q=1"}];
 }
 
+- (void)networkMonitor {
+    AFNetworkReachabilityManager *manager = [AFNetworkReachabilityManager sharedManager];
+    
+    [manager setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
+        switch (status) {
+                case AFNetworkReachabilityStatusUnknown: {
+                NSLog(@"unknown networking");
+                break;
+            }
+            case AFNetworkReachabilityStatusNotReachable: {
+                NSLog(@"no network");
+                break;
+            }
+            case AFNetworkReachabilityStatusReachableViaWWAN: {
+                NSLog(@"wwan");
+                break;
+            }
+            case AFNetworkReachabilityStatusReachableViaWiFi: {
+                NSLog(@"wifi");
+                break;
+            }
+        }
+    }];
+    [manager startMonitoring];
+    
+    switch (manager.networkReachabilityStatus) {
+        case AFNetworkReachabilityStatusUnknown: {
+            NSLog(@"unknown networking");
+            break;
+        }
+        case AFNetworkReachabilityStatusNotReachable: {
+            NSLog(@"no network");
+            break;
+        }
+        case AFNetworkReachabilityStatusReachableViaWWAN: {
+            NSLog(@"wwan");
+            break;
+        }
+        case AFNetworkReachabilityStatusReachableViaWiFi: {
+            NSLog(@"wifi");
+            break;
+        }
+    }
+}
+
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // 网络配置
     [self apiConfig];
+    
+    //网络监听
+    [self networkMonitor];
     
     UIWindow *window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     window.backgroundColor = [UIColor whiteColor];

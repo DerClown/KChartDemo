@@ -22,9 +22,38 @@
 
 @property (nonatomic, strong) StatusView *kStatusView;
 
+/**
+ *  (模拟)实时测试
+ */
+@property (nonatomic, strong) NSMutableDictionary *data;
+@property (nonatomic, copy) NSString *lastDate;
+@property (nonatomic, strong) NSArray *lastItem;
+@property (nonatomic, strong) CADisplayLink *displayLink;
+@property (nonatomic, assign) NSInteger cutdown;
+
 @end
 
 @implementation KLineViewController
+
+#pragma mark - life cycle
+
+- (void)dealloc {
+    [self stopDisplayLink];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (id)init {
+    if (self = [super init]) {
+        _cutdown = 20;
+        [self registerObserver];
+    }
+    return self;
+}
+
+- (void)registerObserver {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(kLineStartTouchNotification:) name:KLineKeyStartUserInterfaceNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(kLineEndOfTouchNotification:) name:KLineKeyEndOfUserInterfaceNotification object:nil];
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -39,15 +68,58 @@
     [self.chartApi startRequest];
 }
 
+#pragma mark - private methods
+
+- (void)startDisplayLink {
+    [self stopDisplayLink];
+    
+    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(realTimeData:)];
+    [_displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    _displayLink.frameInterval = 60.0;}
+
+- (void)stopDisplayLink {
+    if (_displayLink) {
+        [_displayLink invalidate];
+    }
+    
+    _displayLink = nil;
+}
+
+- (void)realTimeData:(id)timer {
+    NSMutableArray *dates = [self.data[kCandlerstickChartsDate] mutableCopy];
+    NSMutableArray *contexts = [self.data[kCandlerstickChartsContext] mutableCopy];
+    
+    [dates addObject:self.lastDate];
+    [contexts addObject:self.lastItem];
+    self.data[kCandlerstickChartsDate] = dates;
+    self.data[kCandlerstickChartsContext] = contexts;
+    
+    [self.kLineChartView drawChartWithData:self.data];
+    [self.tLineChartView drawChartWithData:self.data];
+    _cutdown --;
+    if (_cutdown == 0) {
+        [self stopDisplayLink];
+    }
+}
+
 #pragma mark - GAPIBaseManagerRequestCallBackDelegate
 
 - (void)managerApiCallBackDidSuccess:(__kindof GApiBaseManager *)manager {
-    NSDictionary *lineData = [self.chartApi fetchDataWithTransformer:self.lineListTransformer];
-    [self.kLineChartView drawChartWithData:lineData];
-    [self.tLineChartView drawChartWithData:lineData];
+    self.data = [[self.chartApi fetchDataWithTransformer:self.lineListTransformer] mutableCopy];
+    
+    NSArray *dates = self.data[kCandlerstickChartsDate];
+    NSArray *contexts = self.data[kCandlerstickChartsContext];
+    
+    self.lastDate = [dates lastObject];
+    self.lastItem = [contexts lastObject];
+    
+    [self.kLineChartView drawChartWithData:self.data];
+    [self.tLineChartView drawChartWithData:self.data];
     
     self.kStatusView.status = StatusStyleSuccess;
     self.kStatusView.hidden = YES;
+    
+    [self startDisplayLink];
 }
 
 - (void)managerApiCallBackDidFailed:(__kindof GApiBaseManager *)manager {
@@ -67,6 +139,18 @@
             self.kStatusView.status = StatusStyleNoNetWork;
             break;
         }
+    }
+}
+
+#pragma mark - notification events
+
+- (void)kLineStartTouchNotification:(NSNotification *)notification {
+    [self stopDisplayLink];
+}
+
+- (void)kLineEndOfTouchNotification:(NSNotification *)notificaiton {
+    if (_cutdown != 0) {
+        [self startDisplayLink];
     }
 }
 

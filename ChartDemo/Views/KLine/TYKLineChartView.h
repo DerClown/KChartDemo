@@ -98,6 +98,16 @@
 @property (nonatomic, strong) UIColor *movingAverageLineMA20Color;
 
 /**
+ *  交易量阳线颜色
+ */
+@property (nonatomic, strong) UIColor *positiveVolColor;
+
+/**
+ *  交易量阴线颜色
+ */
+@property (nonatomic, strong) UIColor *negativeVolColor;
+
+/**
  *  y坐标轴字体
  */
 @property (nonatomic, strong) UIFont *yAxisTitleFont;
@@ -186,6 +196,18 @@
  *  k线最小宽度
  */
 @property (nonatomic, assign) CGFloat minKLineWidth;
+
+
+// 注意、注意、注意（重要的事情要说三遍）！！！：为了配合实时数据，timer OR socket有实时数据过来，就需要避免和交互产生冲突，利用这两个通知可以很好的解决问题。
+/**
+ *  开始交互通知
+ */
+UIKIT_EXTERN NSString *const KLineKeyStartUserInterfaceNotification __TVOS_PROHIBITED;
+
+/**
+ *  结束交互通知
+ */
+UIKIT_EXTERN NSString *const KLineKeyEndOfUserInterfaceNotification __TVOS_PROHIBITED;
 
 - (void)drawChartWithData:(NSDictionary *)data;
 

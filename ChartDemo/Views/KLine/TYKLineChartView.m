@@ -14,7 +14,10 @@
 #import "UIColor+Ext.h"
 #import "MATipView.h"
 
-#define RGB(r, g, b)    [UIColor colorWithRed:(r/255.0f) green:(g/255.0f) blue:(b/255.0f) alpha:1.0]
+#define KLineRGB(r, g, b)    [UIColor colorWithRed:(r/255.0f) green:(g/255.0f) blue:(b/255.0f) alpha:1.0]
+
+NSString *const KLineKeyStartUserInterfaceNotification = @"KLineKeyStartUserInterfaceNotification";
+NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInterfaceNotification";
 
 @interface TYKLineChartView ()
 
@@ -90,8 +93,8 @@
 }
 
 - (void)_setup {
-    self.positiveLineColor = [UIColor colorWithRed:(252/255.0f) green:(80.0f/255.0f) blue:(92.0f/255.0f) alpha:1.0];
-    self.negativeLineColor = [UIColor colorWithRed:(56.0f/255.0f) green:(185.0f/255.0f) blue:(30/255.0f) alpha:1.0];
+    self.positiveLineColor = [UIColor colorWithRed:(31/255.0f) green:(185/255.0f) blue:(63.0f/255.0f) alpha:1.0];
+    self.negativeLineColor = [UIColor colorWithRed:(232/255.0f) green:(50.0f/255.0f) blue:(52.0f/255.0f) alpha:1.0];
     
     self.upperShadowColor = self.positiveLineColor;
     self.lowerShadowColor = self.negativeLineColor;
@@ -101,6 +104,9 @@
     self.movingAverageLineMA5Color = [UIColor colorWithHexString:@"#019FFD"];
     self.movingAverageLineMA10Color = [UIColor colorWithHexString:@"#FF99OO"];
     self.movingAverageLineMA20Color = [UIColor colorWithHexString:@"#FF00FF"];
+    
+    self.positiveVolColor = self.positiveLineColor;
+    self.negativeVolColor =  self.negativeLineColor;
     
     self.axisShadowColor = [UIColor colorWithRed:223/255.0f green:223/255.0f blue:223/255.0f alpha:1.0];
     self.axisShadowWidth = 0.8;
@@ -218,6 +224,8 @@
 }
 
 - (void)panEvent:(UIPanGestureRecognizer *)panGesture {
+    [self postNotificationWithGestureRecognizerStatee:panGesture.state];
+    
     if (!self.scrollEnable || self.contexts.count == 0) {
         return;
     }
@@ -238,6 +246,8 @@
 }
 
 - (void)pinchEvent:(UIPinchGestureRecognizer *)pinchEvent {
+    [self postNotificationWithGestureRecognizerStatee:pinchEvent.state];
+    
     if (!self.zoomEnable || self.contexts.count == 0) {
         return;
     }
@@ -278,6 +288,7 @@
 }
 
 - (void)longPressEvent:(UILongPressGestureRecognizer *)longGesture {
+    [self postNotificationWithGestureRecognizerStatee:longGesture.state];
     if (longGesture.state == UIGestureRecognizerStateEnded) {
         self.horizontalCrossLine.hidden = YES;
         self.verticalCrossLine.hidden = YES;
@@ -286,16 +297,16 @@
         [self.tipBoard hide];
     } else {
         CGPoint touchPoint = [longGesture locationInView:self];
-        [self.xAxisContext enumerateKeysAndObjectsUsingBlock:^(NSNumber *key, NSNumber *obj, BOOL *stop) {
-            if (_kLinePadding+_kLineWidth >= ([obj floatValue] - touchPoint.x) && ([obj floatValue] - touchPoint.x) > 0) {
-                NSInteger index = [key integerValue];
+        [self.xAxisContext enumerateKeysAndObjectsUsingBlock:^(NSNumber *xAxisKey, NSNumber *indexObject, BOOL *stop) {
+            if (_kLinePadding+_kLineWidth >= ([xAxisKey floatValue] - touchPoint.x) && ([xAxisKey floatValue] - touchPoint.x) > 0) {
+                NSInteger index = [indexObject integerValue];
                 
                 // 获取对应的k线数据
                 NSArray *line = _contexts[index];
                 CGFloat open = [line[0] floatValue];
                 CGFloat close = [line[3] floatValue];
                 CGFloat scale = (self.maxHighValue - self.minLowValue) / self.yAxisHeight;
-                CGFloat xAxis = [obj floatValue] - _kLineWidth / 2.0 + self.leftMargin;
+                CGFloat xAxis = [xAxisKey floatValue] - _kLineWidth / 2.0 + self.leftMargin;
                 CGFloat yAxis = self.yAxisHeight - (open - self.minLowValue)/scale + self.topMargin;
                 
                 if ([line[1] floatValue] > [line[2] floatValue]) {
@@ -349,6 +360,21 @@
     [self bringSubviewToFront:self.verticalCrossLine];
     [self bringSubviewToFront:self.barVerticalLine];
     [self bringSubviewToFront:self.tipBoard];
+}
+
+- (void)postNotificationWithGestureRecognizerStatee:(UIGestureRecognizerState)state {
+    switch (state) {
+        case UIGestureRecognizerStateBegan: {
+            [[NSNotificationCenter defaultCenter] postNotificationName:KLineKeyStartUserInterfaceNotification object:nil];
+            break;
+        }
+        case UIGestureRecognizerStateEnded: {
+            [[NSNotificationCenter defaultCenter] postNotificationName:KLineKeyEndOfUserInterfaceNotification object:nil];
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 #pragma mark - private methods
@@ -428,12 +454,12 @@
     [self.xAxisContext removeAllObjects];
     
     for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
-        [self.xAxisContext setObject:@(xAxis + _kLineWidth) forKey:@([_contexts indexOfObject:line])];
-        
+        [self.xAxisContext setObject:@([_contexts indexOfObject:line]) forKey:@(xAxis + _kLineWidth)];
+        NSLog(@"%@", @([_contexts indexOfObject:line]));
         //通过开盘价、收盘价判断颜色
         CGFloat open = [line[0] floatValue];
         CGFloat close = [line[3] floatValue];
-        UIColor *fillColor = open > close ? RGB(31, 185, 63.0f) : RGB(232, 50.0f, 52.0f);
+        UIColor *fillColor = open > close ? self.positiveLineColor : self.negativeLineColor;
         CGContextSetFillColorWithColor(context, fillColor.CGColor);
         
         CGFloat diffValue = fabs(open - close);
@@ -540,7 +566,7 @@
     for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
         CGFloat open = [line[0] floatValue];
         CGFloat close = [line[3] floatValue];
-        UIColor *fillColor = open > close ? RGB(31, 185, 63.0f) : RGB(232, 50.0f, 52.0f);
+        UIColor *fillColor = open > close ? self.positiveVolColor : self.negativeVolColor;
         CGContextSetFillColorWithColor(context, fillColor.CGColor);
         
         CGFloat height = [line[4] floatValue]/scale == 0 ? 1.0 : [line[4] floatValue]/scale;
