@@ -10,6 +10,10 @@
 
 @interface TipBoardView : UIView
 
+@property (nonatomic, strong) UIColor *strockColor;
+
+@property (nonatomic, strong) UIColor *fillColor;
+
 /**
  *  三角形宽度
  */

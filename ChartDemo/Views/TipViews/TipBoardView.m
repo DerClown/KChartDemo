@@ -22,44 +22,44 @@
 
 @implementation TipBoardView
 
-#pragma mark - private methods
+#pragma mark - public methods
 
-- (void)getDrawPath:(CGContextRef)context {
+- (void)drawInContext {
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
     CGRect rrect = CGRectMake(0.5, 0.5, self.bounds.size.width-1, self.bounds.size.height-1);
     
     CGFloat minx = CGRectGetMinX(rrect), maxx = CGRectGetMaxX(rrect);
     CGFloat miny = CGRectGetMinY(rrect), midy = CGRectGetMidY(rrect), maxy = CGRectGetMaxY(rrect);
     
     CGFloat startMoveX = !self.arrowInLeft ? self.triangleWidth : maxx - self.triangleWidth;
-    CGContextMoveToPoint(context, startMoveX, midy - self.triangleWidth);
-    CGContextAddLineToPoint(context, (!self.arrowInLeft ? minx : maxx), midy);
-    CGContextAddLineToPoint(context, startMoveX, midy + self.triangleWidth);
+    CGMutablePathRef path = CGPathCreateMutable();;
+    CGPathMoveToPoint(path, NULL, startMoveX, midy - self.triangleWidth);
+    CGPathAddLineToPoint(path, NULL, (!self.arrowInLeft ? minx : maxx), midy);
+    CGPathAddLineToPoint(path, NULL, startMoveX, midy + self.triangleWidth);
     
-    CGPoint p1 = !self.arrowInLeft ? CGPointMake(self.triangleWidth, maxy) : CGPointMake(maxx - self.triangleWidth, miny);
-    CGPoint p2 = !self.arrowInLeft ? CGPointMake(maxx, maxy) : CGPointMake(minx, miny);
-    CGPoint p3 = !self.arrowInLeft ? CGPointMake(maxx, miny) : CGPointMake(minx, maxy);
-    CGPoint p4 = !self.arrowInLeft ? CGPointMake(self.triangleWidth, miny) : CGPointMake(maxx - self.triangleWidth, maxy);
-    CGPoint p5 = !self.arrowInLeft ? CGPointMake(self.triangleWidth, midy) : CGPointMake(maxx - self.triangleWidth, miny);
-    NSArray *points = @[NSStringFromCGPoint(p1), NSStringFromCGPoint(p2),NSStringFromCGPoint(p3),NSStringFromCGPoint(p4),NSStringFromCGPoint(p5)];
+    CGPoint p1 = !self.arrowInLeft ? CGPointMake(self.triangleWidth, midy + self.triangleWidth) : CGPointMake(maxx - self.triangleWidth, midy + self.triangleWidth);
+    CGPoint p2 = !self.arrowInLeft ? CGPointMake(self.triangleWidth, maxy) : CGPointMake(maxx - self.triangleWidth, maxy);
+    CGPoint p3 = !self.arrowInLeft ? CGPointMake(maxx, maxy) : CGPointMake(minx, maxy);
+    CGPoint p4 = !self.arrowInLeft ? CGPointMake(maxx, miny) : CGPointMake(minx, miny);
+    CGPoint p5 = !self.arrowInLeft ? CGPointMake(self.triangleWidth, miny) : CGPointMake(maxx - self.triangleWidth, miny);
+    CGPoint p6 = !self.arrowInLeft ? CGPointMake(self.triangleWidth, midy - self.triangleWidth) : CGPointMake(maxx - self.triangleWidth, midy - self.triangleWidth);
+    NSArray *points = @[NSStringFromCGPoint(p1), NSStringFromCGPoint(p2),NSStringFromCGPoint(p3),NSStringFromCGPoint(p4),NSStringFromCGPoint(p5), NSStringFromCGPoint(p6)];
     
     for (int i = 0; i < points.count - 1; i ++) {
         p1 = CGPointFromString(points[i]);
         p2 = CGPointFromString(points[i + 1]);
-        CGContextAddArcToPoint(context, p1.x, p1.y, p2.x, p2.y, self.radius);
+        CGPathAddArcToPoint(path, NULL, p1.x, p1.y, p2.x, p2.y, self.radius);
     }
-    CGContextClosePath(context);
-}
-
-#pragma mark - public methods
-
-- (void)drawInContext {
-    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGPathCloseSubpath(path);
+    CGContextAddPath(context, path);
+    
     CGContextSetLineWidth(context, 1.0);
-    CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0.35 alpha:0.9].CGColor);
-    CGContextSetStrokeColorWithColor(context, [UIColor blueColor].CGColor);
-    [self getDrawPath:context];
-    CGContextFillPath(context);
-    CGContextStrokePath(context);
+    CGContextSetFillColorWithColor(context, self.fillColor.CGColor);
+    CGContextSetStrokeColorWithColor(context, self.strockColor.CGColor);
+    
+    CGContextDrawPath(context, kCGPathFillStroke);
+    CGPathRelease(path);
 }
 
 - (void)showWithTipPoint:(CGPoint)point {
@@ -97,8 +97,7 @@
         
     }
     
-    frame.origin.y = point.y;//(point.y - frame.size.height - 2.0) < rect.origin.y ? rect.origin.y : point.y - frame.size.height - 2.0;
-    
+    frame.origin.y = point.y;    
     self.tipPoint = point;
     self.frame = frame;
     [self setNeedsDisplay];
@@ -112,6 +111,16 @@
     animation.endProgress = 0.35;
     [self.layer addAnimation:animation forKey:nil];
     self.hidden = YES;
+}
+
+#pragma mark - getters 
+
+- (UIColor *)fillColor {
+    return !_fillColor ? [UIColor colorWithWhite:1.0 alpha:0.65] : _fillColor;
+}
+
+- (UIColor *)strockColor {
+    return _strockColor ? _strockColor : [UIColor clearColor];
 }
 
 @end

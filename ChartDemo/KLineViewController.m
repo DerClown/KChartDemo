@@ -45,7 +45,7 @@
 - (id)init {
     if (self = [super init]) {
         _cutdown = 20;
-        [self registerObserver];
+        //[self registerObserver];
     }
     return self;
 }
@@ -119,7 +119,7 @@
     self.kStatusView.status = StatusStyleSuccess;
     self.kStatusView.hidden = YES;
     
-    [self startDisplayLink];
+    //[self startDisplayLink];
 }
 
 - (void)managerApiCallBackDidFailed:(__kindof GApiBaseManager *)manager {

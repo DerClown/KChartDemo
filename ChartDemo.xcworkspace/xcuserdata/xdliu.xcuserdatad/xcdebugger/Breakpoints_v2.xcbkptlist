@@ -68,12 +68,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ChartDemo/Views/KLine/TYKLineChartView.m"
-            timestampString = "493919181.229908"
+            timestampString = "493919379.008636"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "301"
-            endingLineNumber = "301"
-            landmarkName = "-longPressEvent:"
+            startingLineNumber = "454"
+            endingLineNumber = "454"
+            landmarkName = "-drawKLine"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -83,13 +83,13 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "ChartDemo/Views/KLine/TYKLineChartView.m"
-            timestampString = "493919379.008636"
+            filePath = "ChartDemo/Views/TipViews/TipBoardView.m"
+            timestampString = "494152356.876012"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "454"
-            endingLineNumber = "454"
-            landmarkName = "-drawKLine"
+            startingLineNumber = "41"
+            endingLineNumber = "41"
+            landmarkName = "-drawInContext"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

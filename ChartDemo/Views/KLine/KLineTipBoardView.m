@@ -34,6 +34,7 @@
 }
 
 - (void)_setup {
+    self.strockColor = [UIColor redColor];
     self.triangleWidth = 5.0;
     self.radius = 4.0;
     self.hideDuration = 2.5;
@@ -43,10 +44,10 @@
     self.high = @"0.0";
     self.low = @"0.0";
     
-    self.openColor = [UIColor whiteColor];
-    self.closeColor = [UIColor whiteColor];
-    self.highColor = [UIColor whiteColor];
-    self.lowColor = [UIColor whiteColor];
+    self.openColor = [UIColor colorWithWhite:0.35 alpha:1.0];
+    self.closeColor = [UIColor colorWithWhite:0.35 alpha:1.0];
+    self.highColor = [UIColor colorWithWhite:0.35 alpha:1.0];
+    self.lowColor = [UIColor colorWithWhite:0.35 alpha:1.0];
     
     self.font = [UIFont systemFontOfSize:8.0f];
 }
