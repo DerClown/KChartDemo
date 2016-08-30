@@ -39,7 +39,8 @@
     self.hideDuration = 2.5;
     
     self.font = [UIFont systemFontOfSize:10.0f];
-    self.contentColor = [UIColor whiteColor];
+    self.contentColor = [UIColor colorWithWhite:0.35 alpha:0.9];
+    self.strockColor = [UIColor redColor];
 }
 
 - (void)drawRect:(CGRect)rect {

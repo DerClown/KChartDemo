@@ -63,6 +63,17 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 @property (nonatomic, strong) MATipView *maTipView;
 
+//实时数据提示按钮
+@property (nonatomic, strong) UIButton *realDataTipBtn;
+
+//交互中， 默认NO
+@property (nonatomic, assign) BOOL interactive;
+//更新临时存储
+@property (nonatomic, strong) NSMutableArray *updateTempContexts;
+@property (nonatomic, strong) NSMutableArray *updateTempDates;
+@property (nonatomic, assign) CGFloat updateTempMaxHigh;
+@property (nonatomic, assign) CGFloat updateTempMaxVol;
+
 @end
 
 @implementation TYKLineChartView
@@ -138,9 +149,13 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.lastPanScale = 1.0;
     
     self.xAxisContext = [NSMutableDictionary new];
+    self.updateTempDates = [NSMutableArray new];
+    self.updateTempContexts = [NSMutableArray new];
     
     //添加手势
     [self addGestures];
+    
+    [self registerObserver];
 }
 
 /**
@@ -154,6 +169,16 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     [self addGestureRecognizer:self.pinchGesture];
     
     [self addGestureRecognizer:self.longGesture];
+}
+
+/**
+ *  通知
+ */
+- (void)registerObserver {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startTouchNotification:) name:KLineKeyStartUserInterfaceNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(endOfTouchNotification:) name:KLineKeyEndOfUserInterfaceNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
 }
 
 - (void)drawRect:(CGRect)rect {
@@ -198,7 +223,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.maxVolValue = [data[kCandlerstickChartsMaxVol] floatValue];
     self.minVolValue = [data[kCandlerstickChartsMinVol] floatValue];
     
-    CGFloat maxValue = self.maxVolValue > self.maxHighValue ? self.maxVolValue : self.maxHighValue;
+    CGFloat maxValue = self.showBarChart ? (self.maxVolValue > self.maxHighValue ? self.maxVolValue : self.maxHighValue) : self.maxHighValue;
     
     NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[self dealDecimalWithNum:@(maxValue)] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
     CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
@@ -217,19 +242,23 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 #pragma mark - event reponse
 
+- (void)updateChartPressed:(UIButton *)button {
+    self.startDrawIndex = self.contexts.count - self.kLineDrawNum;
+    [self dynamicUpdateChart];
+}
+
 - (void)tapEvent:(UITapGestureRecognizer *)tapGesture {
     //[self longPressEvent:nil];
 }
 
 - (void)panEvent:(UIPanGestureRecognizer *)panGesture {
-    [self postNotificationWithGestureRecognizerStatee:panGesture.state];
-    
-    if (!self.scrollEnable || self.contexts.count == 0) {
-        return;
-    }
-    
     CGPoint touchPoint = [panGesture translationInView:self];
     NSInteger offsetIndex = fabs(touchPoint.x/8.0);
+    
+    [self postNotificationWithGestureRecognizerStatus:panGesture.state];
+    if (!self.scrollEnable || self.contexts.count == 0 || offsetIndex == 0) {
+        return;
+    }
     
     if (touchPoint.x > 0) {
         self.startDrawIndex = self.startDrawIndex - offsetIndex < 0 ? 0 : self.startDrawIndex - offsetIndex;
@@ -239,20 +268,16 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     [self resetMaxAndMin];
     
+    [panGesture setTranslation:CGPointZero inView:self];
     [self setNeedsDisplay];
-    [panGesture setTranslation:CGPointMake(0, 0) inView:self];
 }
 
 - (void)pinchEvent:(UIPinchGestureRecognizer *)pinchEvent {
-    [self postNotificationWithGestureRecognizerStatee:pinchEvent.state];
-    
-    if (!self.zoomEnable || self.contexts.count == 0) {
-        return;
-    }
-    
     CGFloat scale = pinchEvent.scale - self.lastPanScale + 1;
+
+    [self postNotificationWithGestureRecognizerStatus:pinchEvent.state];
     
-    if (scale == 1) {
+    if (!self.zoomEnable || self.contexts.count == 0 || scale == 1.0) {
         return;
     }
     
@@ -286,11 +311,12 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 }
 
 - (void)longPressEvent:(UILongPressGestureRecognizer *)longGesture {
-    [self postNotificationWithGestureRecognizerStatee:longGesture.state];
+    [self postNotificationWithGestureRecognizerStatus:longGesture.state];
     
     if (self.contexts.count == 0 || !self.contexts) {
         return;
     }
+    
     if (longGesture.state == UIGestureRecognizerStateEnded) {
         self.horizontalCrossLine.hidden = YES;
         self.verticalCrossLine.hidden = YES;
@@ -364,7 +390,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     [self bringSubviewToFront:self.tipBoard];
 }
 
-- (void)postNotificationWithGestureRecognizerStatee:(UIGestureRecognizerState)state {
+- (void)postNotificationWithGestureRecognizerStatus:(UIGestureRecognizerState)state {
     switch (state) {
         case UIGestureRecognizerStateBegan: {
             [[NSNotificationCenter defaultCenter] postNotificationName:KLineKeyStartUserInterfaceNotification object:nil];
@@ -457,7 +483,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
         [self.xAxisContext setObject:@([_contexts indexOfObject:line]) forKey:@(xAxis + _kLineWidth)];
-        NSLog(@"%@", @([_contexts indexOfObject:line]));
         //通过开盘价、收盘价判断颜色
         CGFloat open = [line[0] floatValue];
         CGFloat close = [line[3] floatValue];
@@ -580,11 +605,67 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     }
 }
 
-- (void)resetMaxAndMin {
-    if (!self.yAxisTitleIsChange) {
+- (void)dynamicUpdateChart {
+    if (self.updateTempContexts.count == 0) {
         return;
     }
-    NSArray *drawContext = [self.contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)];
+    
+    if ((!self.interactive && (self.startDrawIndex + self.kLineDrawNum) == self.contexts.count) || self.dynamicUpdateIsNew) {
+        self.contexts = [self.contexts arrayByAddingObjectsFromArray:self.updateTempContexts];
+        self.dates = [self.dates arrayByAddingObjectsFromArray:self.updateTempDates];
+        self.maxVolValue = self.maxVolValue > self.updateTempMaxVol ? self.maxVolValue : self.updateTempMaxVol;
+        self.maxHighValue = self.maxHighValue > self.updateTempMaxHigh ? self.maxHighValue : self.updateTempMaxHigh;
+        
+        [self resetLeftMargin];
+        
+        //更具宽度和间距确定要画多少个k线柱形图
+        self.kLineDrawNum = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - _kLinePadding) / (self.kLineWidth + self.kLinePadding)));
+        
+        //确定从第几个开始画
+        self.startDrawIndex = self.contexts.count > 0 ? self.contexts.count - self.kLineDrawNum : 0;
+        
+        [self resetMaxAndMin];
+        
+        [self setNeedsDisplay];
+        self.realDataTipBtn.hidden = YES;
+        [self.realDataTipBtn.layer removeAllAnimations];
+        [self.updateTempDates removeAllObjects];
+        [self.updateTempContexts removeAllObjects];
+        self.updateTempMaxHigh = 0.0;
+        self.updateTempMaxVol = 0.0;
+    } else {
+        //提示有新数据
+        NSLog(@"has new data!");
+        if (self.realDataTipBtn.hidden) {
+            self.realDataTipBtn.hidden = NO;
+            CAKeyframeAnimation* animation = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
+            animation.duration = 2.5;
+            animation.repeatCount = 99999;
+            
+            NSMutableArray *values = [NSMutableArray array];
+            [values addObject:[NSValue valueWithCATransform3D:CATransform3DMakeScale(0.65, 0.65, 1.0)]];
+            [values addObject:[NSValue valueWithCATransform3D:CATransform3DMakeScale(1.05, 1.05, 1.0)]];
+            [values addObject:[NSValue valueWithCATransform3D:CATransform3DMakeScale(0.65, 0.65, 1.0)]];
+            animation.values = values;
+            [self.realDataTipBtn.layer addAnimation:animation forKey:nil];
+        }
+    }
+}
+
+- (void)resetLeftMargin {
+    CGFloat maxValue = self.showBarChart ? (self.maxVolValue > self.maxHighValue ? self.maxVolValue : self.maxHighValue) : self.maxHighValue;
+    
+    NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[self dealDecimalWithNum:@(maxValue)] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
+    CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
+    self.leftMargin = size.width + 4.0f;
+}
+
+- (void)resetMaxAndMin {
+    NSArray *drawContext = self.contexts;
+    if (self.yAxisTitleIsChange) {
+        drawContext = [self.contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)];
+    }
+    
     for (int i = 0; i < drawContext.count; i++) {
         NSArray<NSString *> *item = drawContext[i];
         if (i == 0) {
@@ -637,10 +718,44 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 #pragma mark -  public methods
 
+- (void)updateChartWithData:(NSDictionary *)data {
+    if (data.count == 0 || !data) {
+        return;
+    }
+    self.realDataTipBtn.hidden = YES;
+    [self.updateTempDates addObjectsFromArray:data[kCandlerstickChartsDate]];
+    [self.updateTempContexts addObjectsFromArray:data[kCandlerstickChartsContext]];
+    
+    if ([data[kCandlerstickChartsMaxVol] floatValue] > self.updateTempMaxVol) {
+        self.updateTempMaxVol = [data[kCandlerstickChartsMaxVol] floatValue];
+    }
+    
+    if ([data[kCandlerstickChartsMaxHigh] floatValue] > self.updateTempMaxHigh) {
+        self.updateTempMaxHigh = [data[kCandlerstickChartsMaxHigh] floatValue];
+    }
+    
+    [self dynamicUpdateChart];
+}
+
 - (void)clear {
     self.contexts = nil;
     self.dates = nil;
     [self setNeedsDisplay];
+}
+
+#pragma mark - notificaiton events
+
+- (void)startTouchNotification:(NSNotification *)notification {
+    self.interactive = YES;
+}
+
+- (void)endOfTouchNotification:(NSNotification *)notification {
+    self.interactive = NO;
+    [self dynamicUpdateChart];
+}
+
+- (void)deviceOrientationDidChangeNotification:(NSNotification *)notificaiton {
+    
 }
 
 #pragma mark - getters
@@ -690,6 +805,22 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         [self addSubview:_maTipView];
     }
     return _maTipView;
+}
+
+- (UIButton *)realDataTipBtn {
+    if (!_realDataTipBtn) {
+        _realDataTipBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+        [_realDataTipBtn setTitle:@"New Data" forState:UIControlStateNormal];
+        [_realDataTipBtn setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+        _realDataTipBtn.titleLabel.font = [UIFont systemFontOfSize:12.0f];
+        _realDataTipBtn.frame = CGRectMake(self.frame.size.width - self.rightMargin - 60.0f, self.topMargin + 10.0f, 60.0f, 25.0f);
+        [_realDataTipBtn addTarget:self action:@selector(updateChartPressed:) forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:_realDataTipBtn];
+        _realDataTipBtn.layer.borderWidth = 1.0;
+        _realDataTipBtn.layer.borderColor = [UIColor redColor].CGColor;
+        _realDataTipBtn.hidden = YES;
+    }
+    return _realDataTipBtn;
 }
 
 - (UITapGestureRecognizer *)tapGesture {

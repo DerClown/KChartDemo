@@ -26,10 +26,7 @@
  *  (模拟)实时测试
  */
 @property (nonatomic, strong) NSMutableDictionary *data;
-@property (nonatomic, copy) NSString *lastDate;
-@property (nonatomic, strong) NSArray *lastItem;
-@property (nonatomic, strong) CADisplayLink *displayLink;
-@property (nonatomic, assign) NSInteger cutdown;
+@property (nonatomic, strong) NSTimer *timer;
 
 @end
 
@@ -38,21 +35,8 @@
 #pragma mark - life cycle
 
 - (void)dealloc {
-    [self stopDisplayLink];
+    [self stopTimer];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
-- (id)init {
-    if (self = [super init]) {
-        _cutdown = 20;
-        //[self registerObserver];
-    }
-    return self;
-}
-
-- (void)registerObserver {
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(kLineStartTouchNotification:) name:KLineKeyStartUserInterfaceNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(kLineEndOfTouchNotification:) name:KLineKeyEndOfUserInterfaceNotification object:nil];
 }
 
 - (void)viewDidLoad {
@@ -70,36 +54,30 @@
 
 #pragma mark - private methods
 
-- (void)startDisplayLink {
-    [self stopDisplayLink];
+- (void)startTimer {
+    [self stopTimer];
     
-    _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(realTimeData:)];
-    [_displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-    _displayLink.frameInterval = 60.0;}
+    _timer = [NSTimer scheduledTimerWithTimeInterval:(arc4random() % 5) + 10 target:self selector:@selector(realTimeData:) userInfo:nil repeats:YES];
+}
 
-- (void)stopDisplayLink {
-    if (_displayLink) {
-        [_displayLink invalidate];
+- (void)stopTimer {
+    if (_timer && [_timer isValid]) {
+        [_timer setFireDate:[NSDate distantFuture]];
     }
-    
-    _displayLink = nil;
+    _timer = nil;
 }
 
 - (void)realTimeData:(id)timer {
     NSMutableArray *dates = [self.data[kCandlerstickChartsDate] mutableCopy];
     NSMutableArray *contexts = [self.data[kCandlerstickChartsContext] mutableCopy];
+    NSInteger randomIndex = arc4random()%(dates.count);
+    NSMutableDictionary *tempDict = [NSMutableDictionary new];
+    tempDict[kCandlerstickChartsDate] = @[[dates objectAtIndex:randomIndex]];
+    tempDict[kCandlerstickChartsContext] = @[[contexts objectAtIndex:randomIndex]];
+    tempDict[kCandlerstickChartsMaxHigh] = @(0.0);
+    tempDict[kCandlerstickChartsMaxVol] = @(0.0);
     
-    [dates addObject:self.lastDate];
-    [contexts addObject:self.lastItem];
-    self.data[kCandlerstickChartsDate] = dates;
-    self.data[kCandlerstickChartsContext] = contexts;
-    
-    [self.kLineChartView drawChartWithData:self.data];
-    [self.tLineChartView drawChartWithData:self.data];
-    _cutdown --;
-    if (_cutdown == 0) {
-        [self stopDisplayLink];
-    }
+    [self.kLineChartView updateChartWithData:tempDict];
 }
 
 #pragma mark - GAPIBaseManagerRequestCallBackDelegate
@@ -107,19 +85,14 @@
 - (void)managerApiCallBackDidSuccess:(__kindof GApiBaseManager *)manager {
     self.data = [[self.chartApi fetchDataWithTransformer:self.lineListTransformer] mutableCopy];
     
-    NSArray *dates = self.data[kCandlerstickChartsDate];
-    NSArray *contexts = self.data[kCandlerstickChartsContext];
-    
-    self.lastDate = [dates lastObject];
-    self.lastItem = [contexts lastObject];
-    
     [self.kLineChartView drawChartWithData:self.data];
     [self.tLineChartView drawChartWithData:self.data];
     
     self.kStatusView.status = StatusStyleSuccess;
     self.kStatusView.hidden = YES;
     
-    //[self startDisplayLink];
+    //动态数据测试
+    [self startTimer];
 }
 
 - (void)managerApiCallBackDidFailed:(__kindof GApiBaseManager *)manager {
@@ -142,18 +115,6 @@
     }
 }
 
-#pragma mark - notification events
-
-- (void)kLineStartTouchNotification:(NSNotification *)notification {
-    [self stopDisplayLink];
-}
-
-- (void)kLineEndOfTouchNotification:(NSNotification *)notificaiton {
-    if (_cutdown != 0) {
-        [self startDisplayLink];
-    }
-}
-
 #pragma mark - getters
 
 - (TYKLineChartView *)kLineChartView {
@@ -165,6 +126,9 @@
         _kLineChartView.rightMargin = 1.0;
         _kLineChartView.bottomMargin = 80.0f;
         //_kLineChartView.yAxisTitleIsChange = YES;
+        
+        // 及时更新k线图
+        //_kLineChartView.dynamicUpdateIsNew = YES;
     }
     return _kLineChartView;
 }
