@@ -722,7 +722,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     if (data.count == 0 || !data) {
         return;
     }
-    self.realDataTipBtn.hidden = YES;
+    
     [self.updateTempDates addObjectsFromArray:data[kCandlerstickChartsDate]];
     [self.updateTempContexts addObjectsFromArray:data[kCandlerstickChartsContext]];
     

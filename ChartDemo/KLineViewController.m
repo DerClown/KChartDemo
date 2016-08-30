@@ -57,7 +57,7 @@
 - (void)startTimer {
     [self stopTimer];
     
-    _timer = [NSTimer scheduledTimerWithTimeInterval:(arc4random() % 5) + 10 target:self selector:@selector(realTimeData:) userInfo:nil repeats:YES];
+    _timer = [NSTimer scheduledTimerWithTimeInterval:(arc4random() % 3) target:self selector:@selector(realTimeData:) userInfo:nil repeats:YES];
 }
 
 - (void)stopTimer {
