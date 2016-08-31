@@ -7,8 +7,8 @@
 //
 
 #import "KLineViewController.h"
-#import "TYKLineChartView.h"
-#import "TYTLineChartView.h"
+#import "KLineChartView.h"
+#import "TLineChartView.h"
 #import "KLineListManager.h"
 #import "KLineListTransformer.h"
 #import "StatusView.h"
@@ -17,8 +17,8 @@
 
 @property (nonatomic, strong) KLineListManager *chartApi;
 @property (nonatomic, strong) KLineListTransformer *lineListTransformer;
-@property (nonatomic, strong) TYKLineChartView *kLineChartView;
-@property (nonatomic, strong) TYTLineChartView *tLineChartView;
+@property (nonatomic, strong) KLineChartView *kLineChartView;
+@property (nonatomic, strong) TLineChartView *tLineChartView;
 
 @property (nonatomic, strong) StatusView *kStatusView;
 
@@ -95,7 +95,7 @@
     self.kStatusView.hidden = YES;
     
     //动态数据测试
-    [self startTimer];
+    //[self startTimer];
 }
 
 - (void)managerApiCallBackDidFailed:(__kindof GApiBaseManager *)manager {
@@ -120,9 +120,9 @@
 
 #pragma mark - getters
 
-- (TYKLineChartView *)kLineChartView {
+- (KLineChartView *)kLineChartView {
     if (!_kLineChartView) {
-        _kLineChartView = [[TYKLineChartView alloc] initWithFrame:CGRectMake(20, 50, self.view.frame.size.width - 40.0f, 300.0f)];
+        _kLineChartView = [[KLineChartView alloc] initWithFrame:CGRectMake(20, 50, self.view.frame.size.width - 40.0f, 300.0f)];
         _kLineChartView.backgroundColor = [UIColor whiteColor];
         _kLineChartView.topMargin = 20.0f;
         _kLineChartView.leftMargin = 50.0f;
@@ -136,9 +136,9 @@
     return _kLineChartView;
 }
 
-- (TYTLineChartView *)tLineChartView {
+- (TLineChartView *)tLineChartView {
     if (!_tLineChartView) {
-        _tLineChartView = [[TYTLineChartView alloc] initWithFrame:CGRectMake(20, 380.0f, self.view.frame.size.width - 40.0f, 180.0f)];
+        _tLineChartView = [[TLineChartView alloc] initWithFrame:CGRectMake(20, 380.0f, self.view.frame.size.width - 40.0f, 180.0f)];
         _tLineChartView.backgroundColor = [UIColor whiteColor];
         _tLineChartView.topMargin = 5.0f;
         _tLineChartView.leftMargin = 50.0;

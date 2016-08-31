@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1E7B58C71D621010005BF850 /* TYTLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TYTLineChartView.m */; };
+		1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TLineChartView.m */; };
 		1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */; };
 		1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EECF1B11D6E9AD300E52D10 /* StatusView.m */; };
 		1EF4CEA51D5D5FA600221294 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEA41D5D5FA600221294 /* main.m */; };
@@ -30,7 +30,7 @@
 		1EF4CF2B1D5D64AE00221294 /* UIColor+Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF2A1D5D64AE00221294 /* UIColor+Ext.m */; };
 		1EF4CF2E1D5D650400221294 /* KLineListManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF2D1D5D650400221294 /* KLineListManager.m */; };
 		1EF4CF321D5D659500221294 /* KLineListTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF311D5D659500221294 /* KLineListTransformer.m */; };
-		1EF4CF391D5D67C200221294 /* TYKLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF351D5D67C200221294 /* TYKLineChartView.m */; };
+		1EF4CF391D5D67C200221294 /* KLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF351D5D67C200221294 /* KLineChartView.m */; };
 		1EF83FC31D6C300900798643 /* KLineTipBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF83FC21D6C300900798643 /* KLineTipBoardView.m */; };
 		1EF83FC61D6C335300798643 /* TLineTipBoardView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF83FC51D6C335300798643 /* TLineTipBoardView.m */; };
 		1EF83FC91D6C420200798643 /* MATipView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF83FC81D6C420200798643 /* MATipView.m */; };
@@ -57,8 +57,8 @@
 
 /* Begin PBXFileReference section */
 		094B6C9633E09A521CD38E54 /* Pods-ChartDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChartDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ChartDemo/Pods-ChartDemo.debug.xcconfig"; sourceTree = "<group>"; };
-		1E7B58C51D621010005BF850 /* TYTLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TYTLineChartView.h; sourceTree = "<group>"; };
-		1E7B58C61D621010005BF850 /* TYTLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TYTLineChartView.m; sourceTree = "<group>"; };
+		1E7B58C51D621010005BF850 /* TLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLineChartView.h; sourceTree = "<group>"; };
+		1E7B58C61D621010005BF850 /* TLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TLineChartView.m; sourceTree = "<group>"; };
 		1EEC1A4A1D5DC4600063A205 /* UIBezierPath+curved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBezierPath+curved.h"; sourceTree = "<group>"; };
 		1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIBezierPath+curved.m"; sourceTree = "<group>"; };
 		1EECF1B01D6E9AD300E52D10 /* StatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatusView.h; sourceTree = "<group>"; };
@@ -104,8 +104,8 @@
 		1EF4CF2D1D5D650400221294 /* KLineListManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineListManager.m; sourceTree = "<group>"; };
 		1EF4CF301D5D659500221294 /* KLineListTransformer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineListTransformer.h; sourceTree = "<group>"; };
 		1EF4CF311D5D659500221294 /* KLineListTransformer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineListTransformer.m; sourceTree = "<group>"; };
-		1EF4CF341D5D67C200221294 /* TYKLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TYKLineChartView.h; sourceTree = "<group>"; };
-		1EF4CF351D5D67C200221294 /* TYKLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TYKLineChartView.m; sourceTree = "<group>"; };
+		1EF4CF341D5D67C200221294 /* KLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineChartView.h; sourceTree = "<group>"; };
+		1EF4CF351D5D67C200221294 /* KLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineChartView.m; sourceTree = "<group>"; };
 		1EF83FC11D6C300900798643 /* KLineTipBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineTipBoardView.h; sourceTree = "<group>"; };
 		1EF83FC21D6C300900798643 /* KLineTipBoardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineTipBoardView.m; sourceTree = "<group>"; };
 		1EF83FC41D6C335300798643 /* TLineTipBoardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLineTipBoardView.h; sourceTree = "<group>"; };
@@ -147,8 +147,8 @@
 		1E7B58C41D621010005BF850 /* TLine */ = {
 			isa = PBXGroup;
 			children = (
-				1E7B58C51D621010005BF850 /* TYTLineChartView.h */,
-				1E7B58C61D621010005BF850 /* TYTLineChartView.m */,
+				1E7B58C51D621010005BF850 /* TLineChartView.h */,
+				1E7B58C61D621010005BF850 /* TLineChartView.m */,
 				1EF83FC41D6C335300798643 /* TLineTipBoardView.h */,
 				1EF83FC51D6C335300798643 /* TLineTipBoardView.m */,
 			);
@@ -358,8 +358,8 @@
 		1EF4CF331D5D67C200221294 /* KLine */ = {
 			isa = PBXGroup;
 			children = (
-				1EF4CF341D5D67C200221294 /* TYKLineChartView.h */,
-				1EF4CF351D5D67C200221294 /* TYKLineChartView.m */,
+				1EF4CF341D5D67C200221294 /* KLineChartView.h */,
+				1EF4CF351D5D67C200221294 /* KLineChartView.m */,
 				1EF83FC71D6C420200798643 /* MATipView.h */,
 				1EF83FC81D6C420200798643 /* MATipView.m */,
 				1EF83FC11D6C300900798643 /* KLineTipBoardView.h */,
@@ -578,7 +578,7 @@
 				1EF4CEAB1D5D5FA600221294 /* KLineViewController.m in Sources */,
 				1EF4CF2B1D5D64AE00221294 /* UIColor+Ext.m in Sources */,
 				1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */,
-				1E7B58C71D621010005BF850 /* TYTLineChartView.m in Sources */,
+				1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */,
 				1EF4CF201D5D63B400221294 /* GApiBaseManager.m in Sources */,
 				1EF4CF1F1D5D63B400221294 /* GApiAgent.m in Sources */,
 				1EF83FC31D6C300900798643 /* KLineTipBoardView.m in Sources */,
@@ -591,7 +591,7 @@
 				1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */,
 				1EF4CF1E1D5D63B400221294 /* NSString+md5.m in Sources */,
 				1EF4CF1D1D5D63B400221294 /* NSDictionary+NetWorkingMehods.m in Sources */,
-				1EF4CF391D5D67C200221294 /* TYKLineChartView.m in Sources */,
+				1EF4CF391D5D67C200221294 /* KLineChartView.m in Sources */,
 				1EF4CF251D5D63B400221294 /* GApiResponse.m in Sources */,
 				1EF4CEA81D5D5FA600221294 /* AppDelegate.m in Sources */,
 				1EF4CF241D5D63B400221294 /* GApiLogger.m in Sources */,

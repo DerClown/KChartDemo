@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TYTLineChartView : UIView
+@interface TLineChartView : UIView
 
 /**
  *  顶部距离

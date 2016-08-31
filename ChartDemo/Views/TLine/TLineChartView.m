@@ -7,7 +7,7 @@
 //  Copyright © 2016年 liuxd. All rights reserved.
 //
 
-#import "TYTLineChartView.h"
+#import "TLineChartView.h"
 #import "KLineListTransformer.h"
 #import "UIBezierPath+curved.h"
 #import "UIColor+Ext.h"
@@ -16,7 +16,7 @@
 NSString *const TLineKeyStartUserInterfaceNotification = @"TLineKeyStartUserInterfaceNotification";
 NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInterfaceNotification";
 
-@interface TYTLineChartView ()
+@interface TLineChartView ()
 
 @property (nonatomic, strong) NSArray *contexts;
 
@@ -52,7 +52,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 @end
 
-@implementation TYTLineChartView
+@implementation TLineChartView
 
 #pragma mark - life cycle
 

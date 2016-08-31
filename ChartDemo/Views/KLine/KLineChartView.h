@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TYKLineChartView : UIView
+@interface KLineChartView : UIView
 
 /************************************************************************************/
 /*                                          |                                       */
@@ -83,19 +83,19 @@
 @property (nonatomic, strong) UIColor *lowerShadowColor;
 
 /**
- *  5日
+ *  最小均线颜色（默认：5日）
  */
-@property (nonatomic, strong) UIColor *movingAverageLineMA5Color;
+@property (nonatomic, strong) UIColor *minMALineColor;
 
 /**
- *  顿号10
+ *  中间均线颜色（默认：顿号10）
  */
-@property (nonatomic, strong) UIColor *movingAverageLineMA10Color;
+@property (nonatomic, strong) UIColor *midMALineColor;
 
 /**
- *  日顿号20
+ *  最大均线值（默认：日顿号20）
  */
-@property (nonatomic, strong) UIColor *movingAverageLineMA20Color;
+@property (nonatomic, strong) UIColor *maxMALineColor;
 
 /**
  *  交易量阳线颜色
@@ -201,7 +201,7 @@
 /**
  *  动态更新显示最新, 默认不开启。
  *
- *  注意⚠️ ：
+ *  注意⚠️
  1. 有新数据过来，新数据会呈现高亮状态提示为最新数据
  2. 开启，有新数据过来，会以最新数据显示为准绘制在UI；优先级优于用户操作；忽略用户操作的结果。
  3. 不开启，优先级低于手势，处理完手势，才会处理最新数据，用户的操作为准。
@@ -210,7 +210,7 @@
 
 /*
  * self.data 的格式为 @{kCandlerstickChartsDate:dates,             // 日期 @[@"date", @"date", ...]
-                        kCandlerstickChartsContext:context,       // 内容数据 @[NSArray, NSArray, ...]; NSArray = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
+                         kCandlerstickChartsContext:context,       // 内容数据 @[NSArray, NSArray, ...]; NSArray = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
                         kCandlerstickChartsMaxHigh:@(maxHigh),    // 最高价
                         kCandlerstickChartsMinLow:@(minLow),      // 最低价
                         kCandlerstickChartsMaxVol:@(maxVol),      // 最大交易量

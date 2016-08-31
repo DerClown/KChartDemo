@@ -7,7 +7,7 @@
 //  Copyright © 2016年 liuxd. All rights reserved.
 //
 
-#import "TYKLineChartView.h"
+#import "KLineChartView.h"
 #import "KLineListTransformer.h"
 #import "UIBezierPath+curved.h"
 #import "KLineTipBoardView.h"
@@ -17,7 +17,7 @@
 NSString *const KLineKeyStartUserInterfaceNotification = @"KLineKeyStartUserInterfaceNotification";
 NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInterfaceNotification";
 
-@interface TYKLineChartView ()
+@interface KLineChartView ()
 
 @property (nonatomic, assign) CGFloat yAxisHeight;
 
@@ -76,7 +76,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 @end
 
-@implementation TYKLineChartView
+@implementation KLineChartView
 
 #pragma mark - life cycle
 
@@ -110,9 +110,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     self.movingAvgLineWidth = 0.8;
     
-    self.movingAverageLineMA5Color = [UIColor colorWithHexString:@"#019FFD"];
-    self.movingAverageLineMA10Color = [UIColor colorWithHexString:@"#FF99OO"];
-    self.movingAverageLineMA20Color = [UIColor colorWithHexString:@"#FF00FF"];
+    self.minMALineColor = [UIColor colorWithHexString:@"#019FFD"];
+    self.midMALineColor = [UIColor colorWithHexString:@"#FF99OO"];
+    self.maxMALineColor = [UIColor colorWithHexString:@"#FF00FF"];
     
     self.positiveVolColor = self.positiveLineColor;
     self.negativeVolColor =  self.negativeLineColor;
@@ -140,7 +140,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     self.saveDecimalPlaces = 2;
     
-    self.maxKLineWidth = 25.0f;
+    self.maxKLineWidth = 24;
     self.minKLineWidth = 1.5;
     
     self.kLineWidth = 8.0;
@@ -229,6 +229,8 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
     self.leftMargin = size.width + 4.0f;
     
+    //self.maxKLineWidth = self.maxKLineWidth
+    
     //更具宽度和间距确定要画多少个k线柱形图
     self.kLineDrawNum = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - _kLinePadding) / (self.kLineWidth + self.kLinePadding)));
     
@@ -274,37 +276,38 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 - (void)pinchEvent:(UIPinchGestureRecognizer *)pinchEvent {
     CGFloat scale = pinchEvent.scale - self.lastPanScale + 1;
-
+    
     [self postNotificationWithGestureRecognizerStatus:pinchEvent.state];
     
-    if (!self.zoomEnable || self.contexts.count == 0 || scale == 1.0) {
+    if (!self.zoomEnable || self.contexts.count == 0) {
         return;
     }
     
-    self.kLineWidth = self.kLineWidth*scale;
+    self.kLineWidth = _kLineWidth*scale;
     
-    self.kLineDrawNum = floor((self.frame.size.width - self.leftMargin - self.rightMargin) / (self.kLineWidth + self.kLinePadding));
-
-    CGFloat forwardDrawInde = self.startDrawIndex;
-    self.startDrawIndex = self.contexts.count > 0 ? self.contexts.count - self.kLineDrawNum : 0;
+    CGFloat forwardDrawCount = self.kLineDrawNum;
+    _kLineDrawNum = floor((self.frame.size.width - self.leftMargin - self.rightMargin) / (self.kLineWidth + self.kLinePadding));
     
-    if (forwardDrawInde == self.startDrawIndex) {
+    if (forwardDrawCount == self.kLineDrawNum && self.maxKLineWidth != self.kLineWidth) {
         return;
     }
     
-    NSInteger diffCount = fabs(self.startDrawIndex - forwardDrawInde);
+    NSInteger diffCount = fabs(self.kLineDrawNum - forwardDrawCount);
     
-    if (forwardDrawInde > self.startDrawIndex) {
+    if (forwardDrawCount > self.startDrawIndex) {
         // 放大
         self.startDrawIndex += ceil(diffCount/2.0);
-        self.startDrawIndex = self.startDrawIndex + self.kLineDrawNum > self.contexts.count ? self.contexts.count - self.kLineDrawNum : self.startDrawIndex;
     } else {
+        // 缩小
         self.startDrawIndex -= floor(diffCount/2.0);
         self.startDrawIndex = self.startDrawIndex < 0 ? 0 : self.startDrawIndex;
     }
     
+    self.startDrawIndex = self.startDrawIndex + self.kLineDrawNum > self.contexts.count ? self.contexts.count - self.kLineDrawNum : self.startDrawIndex;
+    
     [self resetMaxAndMin];
     
+    pinchEvent.scale = scale;
     self.lastPanScale = pinchEvent.scale;
     
     [self setNeedsDisplay];
@@ -522,7 +525,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         return;
     }
     
-    NSArray<UIColor *> *colors = @[self.movingAverageLineMA5Color, self.movingAverageLineMA10Color, self.movingAverageLineMA20Color];
+    NSArray<UIColor *> *colors = @[self.minMALineColor, self.midMALineColor, self.maxMALineColor];
     
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(context, self.movingAvgLineWidth);
@@ -879,7 +882,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 - (void)setMaxKLineWidth:(CGFloat)maxKLineWidth {
     if (maxKLineWidth < _minKLineWidth) {
-        maxKLineWidth = maxKLineWidth;
+        maxKLineWidth = _minKLineWidth;
     }
     
     CGFloat realAxisWidth = (self.frame.size.width - self.leftMargin - self.rightMargin - _kLinePadding);
@@ -887,6 +890,12 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     maxKLineWidth = realAxisWidth/maxKLineCount - _kLinePadding;
     
     _maxKLineWidth = maxKLineWidth;
+}
+
+- (void)setLeftMargin:(CGFloat)leftMargin {
+    _leftMargin = leftMargin;
+    
+    self.maxKLineWidth = _maxKLineWidth;
 }
 
 @end
