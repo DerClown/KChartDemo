@@ -125,17 +125,20 @@
  */
 @property (nonatomic, assign) BOOL flashPoint;
 
-// 注意、注意、注意（重要的事情要说三遍）！！！：为了配合实时数据，timer OR socket有实时数据过来，就需要避免和交互产生冲突，利用这两个通知可以很好的解决问题。
-/**
- *  开始交互通知
+/*
+ * self.data 的格式为 @{kCandlerstickChartsDate:dates,            // 日期 @[@"date", @"date", ...]
+                       kCandlerstickChartsContext:context,       // 内容数据 @[NSArray, NSArray, ...]; NSArray = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
+                       kCandlerstickChartsMaxHigh:@(maxHigh),    // 最高价
+                       kCandlerstickChartsMinLow:@(minLow),      // 最低价
+                       kCandlerstickChartsMaxVol:@(maxVol),      // 最大交易量
+                       kCandlerstickChartsMinVol:@(minVol)       // 最小交易量
+                     };
+ *
+ *  注意⚠️：传输的数据格式是可以修改，具体可看 KLineListTransformer ； 使用NSDictionary 还是 Entity 按照自己需求配置。
  */
-UIKIT_EXTERN NSString *const TLineKeyStartUserInterfaceNotification __TVOS_PROHIBITED;
-
-/**
- *  结束交互通知
- */
-UIKIT_EXTERN NSString *const TLineKeyEndOfUserInterfaceNotification __TVOS_PROHIBITED;
 
 - (void)drawChartWithData:(NSDictionary *)data;
+
+- (void)updateChartWithData:(NSDictionary *)data;
 
 @end

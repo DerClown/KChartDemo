@@ -57,7 +57,7 @@
 - (void)startTimer {
     [self stopTimer];
     
-    _timer = [NSTimer scheduledTimerWithTimeInterval:(arc4random() % 3) target:self selector:@selector(realTimeData:) userInfo:nil repeats:YES];
+    _timer = [NSTimer scheduledTimerWithTimeInterval:10 target:self selector:@selector(realTimeData:) userInfo:nil repeats:YES];
 }
 
 - (void)stopTimer {
@@ -77,7 +77,10 @@
     tempDict[kCandlerstickChartsMaxHigh] = @(0.0);
     tempDict[kCandlerstickChartsMaxVol] = @(0.0);
     
+    //k线图
     [self.kLineChartView updateChartWithData:tempDict];
+    //时分图
+    [self.tLineChartView updateChartWithData:tempDict];
 }
 
 #pragma mark - GAPIBaseManagerRequestCallBackDelegate

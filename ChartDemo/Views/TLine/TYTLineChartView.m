@@ -42,6 +42,14 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 @property (nonatomic, strong) CALayer *flashLayer;
 
+//交互中， 默认NO
+@property (nonatomic, assign) BOOL interactive;
+
+//数据更新
+@property (nonatomic, strong) NSMutableArray *updateTempContexts;
+@property (nonatomic, assign) CGFloat updateTempMaxValue;
+@property (nonatomic, assign) CGFloat updateTempMinValue;
+
 @end
 
 @implementation TYTLineChartView
@@ -92,7 +100,19 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     self.flashPointColor = [UIColor redColor];
     
+    self.updateTempContexts = [NSMutableArray new];
+    
     [self addGestureRecognizer:self.longGesture];
+}
+
+/**
+ *  通知
+ */
+- (void)registerObserver {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startTouchNotification:) name:TLineKeyStartUserInterfaceNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(endOfTouchNotification:) name:TLineKeyEndOfUserInterfaceNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
 }
 
 - (void)drawRect:(CGRect)rect {
@@ -176,26 +196,43 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     }
 }
 
-#pragma mark - public methods
+#pragma mark - public method
 
 - (void)drawChartWithData:(NSDictionary *)data {
     self.contexts = data[kCandlerstickChartsContext];
     //最大、最小 交易量
     self.maxValue = [data[kCandlerstickChartsMaxVol] floatValue];
     self.minValue = [data[kCandlerstickChartsMinVol] floatValue];
-
+    
     CGFloat offsetValue = (self.maxValue - self.minValue)/12.0f;
     self.maxValue += offsetValue;
     self.minValue = self.minValue - offsetValue < 0 ? 0 : self.minValue - offsetValue;
+
+    [self drawSetting];
     
+    [self setNeedsDisplay];
+}
+
+- (void)updateChartWithData:(NSDictionary *)data {
+    if ([data[kCandlerstickChartsContext] count] == 0) {
+        return;
+    }
+    
+    [self.updateTempContexts addObjectsFromArray:data[kCandlerstickChartsContext]];
+    //更新 最大、最小 交易量
+    self.updateTempMaxValue = [data[kCandlerstickChartsMaxVol] floatValue] > self.updateTempMaxValue ? [data[kCandlerstickChartsMaxVol] floatValue] : self.updateTempMaxValue;
+    self.updateTempMinValue = [data[kCandlerstickChartsMinVol] floatValue] < self.updateTempMinValue ? [data[kCandlerstickChartsMinVol] floatValue] : self.updateTempMinValue;
+    
+    [self dynamicUpdateChart];
+}
+
+- (void)drawSetting {
     NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", self.maxValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
     CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
     self.leftMargin = size.width + 4.0f;
     
     //绘制点数
     self.kGraphDrawCount = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - self.pointPadding) / self.pointPadding));
-    
-    [self setNeedsDisplay];
 }
 
 #pragma mark - private methods
@@ -318,8 +355,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     if (!self.flashPoint) {
         return;
     }
+    [self stopFlashAnimation];
     
-    self.flashLayer.hidden = NO;
     CGRect frame = self.flashLayer.frame;
     CGPoint lastPoint = CGPointFromString([self.points lastObject]);
     frame.origin.x = lastPoint.x - frame.size.width/2.0;
@@ -350,8 +387,49 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     if (!self.flashPoint) {
         return;
     }
-    self.flashLayer.hidden = YES;
-    [self.flashLayer removeAllAnimations];
+    [self.flashLayer removeFromSuperlayer];
+    _flashLayer = nil;
+}
+
+- (void)dynamicUpdateChart {
+    if (self.interactive) {
+        return;
+    }
+    
+    self.contexts = [self.contexts arrayByAddingObjectsFromArray:self.updateTempContexts];
+    
+    CGFloat forwardMaxValue = self.maxValue;
+    
+    self.maxValue = self.maxValue > self.updateTempMaxValue ? self.maxValue : self.updateTempMaxValue;
+    self.minValue = self.minValue < self.updateTempMinValue ? self.minValue : self.updateTempMinValue;
+    
+    if (forwardMaxValue != self.maxValue) {
+        CGFloat offsetValue = (self.maxValue - self.minValue)/12.0f;
+        self.maxValue += offsetValue;
+        self.minValue = self.minValue - offsetValue < 0 ? 0 : self.minValue - offsetValue;
+    }
+    
+    [self drawSetting];
+    [self setNeedsDisplay];
+    [self startFlashAnimation];
+    [self.updateTempContexts removeAllObjects];
+    self.updateTempMinValue = 0.0;
+    self.updateTempMaxValue = 0.0;
+}
+
+#pragma mark - notificaiton events
+
+- (void)startTouchNotification:(NSNotification *)notification {
+    self.interactive = YES;
+}
+
+- (void)endOfTouchNotification:(NSNotification *)notification {
+    self.interactive = NO;
+    [self dynamicUpdateChart];
+}
+
+- (void)deviceOrientationDidChangeNotification:(NSNotification *)notificaiton {
+    
 }
 
 #pragma mark - getters
@@ -389,7 +467,6 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         _flashLayer.frame = CGRectMake(0, 0, MAX(MIN(4.0f, self.pointPadding), 2.0), MAX(MIN(4.0f, self.pointPadding), 2.0));
         _flashLayer.cornerRadius = _flashLayer.frame.size.height/2.0;
         _flashLayer.backgroundColor = self.flashPointColor.CGColor;
-        _flashLayer.hidden = YES;
         [self.layer addSublayer:_flashLayer];
     }
     return _flashLayer;
