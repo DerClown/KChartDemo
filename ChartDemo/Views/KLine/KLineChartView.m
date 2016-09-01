@@ -63,6 +63,11 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 @property (nonatomic, strong) MATipView *maTipView;
 
+//时间
+@property (nonatomic, strong) UILabel *timeLbl;
+//价格
+@property (nonatomic, strong) UILabel *priceLbl;
+
 //实时数据提示按钮
 @property (nonatomic, strong) UIButton *realDataTipBtn;
 
@@ -126,6 +131,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.yAxisTitleFont = [UIFont systemFontOfSize:8.0];
     self.yAxisTitleColor = [UIColor colorWithRed:(130/255.0f) green:(130/255.0f) blue:(130/255.0f) alpha:1.0];
     
+    self.xAxisTitleFont = [UIFont systemFontOfSize:8.0];
+    self.xAxisTitleColor = [UIColor colorWithRed:(130/255.0f) green:(130/255.0f) blue:(130/255.0f) alpha:1.0];
+    
     self.crossLineColor = [UIColor colorWithHexString:@"#C9C9C9"];
     
     self.scrollEnable = YES;
@@ -139,6 +147,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.yAxisTitleIsChange = YES;
     
     self.saveDecimalPlaces = 2;
+    
+    self.timeAndPriceTipsBackgroundColor = [UIColor colorWithHexString:@"D70002"];
+    self.timeAndPriceTextColor = [UIColor colorWithWhite:1.0 alpha:0.95];
     
     self.maxKLineWidth = 24;
     self.minKLineWidth = 1.5;
@@ -286,8 +297,16 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.kLineWidth = _kLineWidth*scale;
     
     CGFloat forwardDrawCount = self.kLineDrawNum;
+    
     _kLineDrawNum = floor((self.frame.size.width - self.leftMargin - self.rightMargin) / (self.kLineWidth + self.kLinePadding));
     
+    //容差处理
+    CGFloat diffWidth = (self.frame.size.width - self.leftMargin - self.rightMargin) - (self.kLineWidth + self.kLinePadding)*_kLineDrawNum;
+    if (diffWidth > 4*(self.kLineWidth + self.kLinePadding)/5.0) {
+        _kLineDrawNum = _kLineDrawNum + 1;
+    }
+    
+    _kLineDrawNum = self.contexts.count > 0 && _kLineDrawNum < self.contexts.count ? _kLineDrawNum : self.contexts.count;
     if (forwardDrawCount == self.kLineDrawNum && self.maxKLineWidth != self.kLineWidth) {
         return;
     }
@@ -325,13 +344,14 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         self.verticalCrossLine.hidden = YES;
         self.barVerticalLine.hidden = YES;
         self.maTipView.hidden = YES;
+        self.priceLbl.hidden = YES;
+        self.timeLbl.hidden = YES;
         [self.tipBoard hide];
     } else {
         CGPoint touchPoint = [longGesture locationInView:self];
         [self.xAxisContext enumerateKeysAndObjectsUsingBlock:^(NSNumber *xAxisKey, NSNumber *indexObject, BOOL *stop) {
             if (_kLinePadding+_kLineWidth >= ([xAxisKey floatValue] - touchPoint.x) && ([xAxisKey floatValue] - touchPoint.x) > 0) {
                 NSInteger index = [indexObject integerValue];
-                
                 // 获取对应的k线数据
                 NSArray *line = _contexts[index];
                 CGFloat open = [line[0] floatValue];
@@ -353,6 +373,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 }
 
 - (void)configUIWithLine:(NSArray *)line atPoint:(CGPoint)point {
+    //十字线
     self.verticalCrossLine.hidden = NO;
     CGRect frame = self.verticalCrossLine.frame;
     frame.origin.x = point.x;
@@ -367,11 +388,12 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     frame = self.barVerticalLine.frame;
     frame.origin.x = point.x;
     self.barVerticalLine.frame = frame;
+    //均值
     self.maTipView.hidden = NO;
-    self.maTipView.movingAverage5 = [NSString stringWithFormat:@"%.2f", [line[5] doubleValue]];
-    self.maTipView.movingAverage10 = [NSString stringWithFormat:@"%.2f", [line[6] doubleValue]];
-    self.maTipView.movingAverage20 = [NSString stringWithFormat:@"%.2f", [line[7] doubleValue]];
-    
+    self.maTipView.minAvgPrice = [NSString stringWithFormat:@"MA5：%.2f", [line[5] doubleValue]];
+    self.maTipView.midAvgPrice = [NSString stringWithFormat:@"MA10：%.2f", [line[6] doubleValue]];
+    self.maTipView.maxAvgPrice = [NSString stringWithFormat:@"MA20：%.2f", [line[7] doubleValue]];
+    //提示版
     self.tipBoard.open = line[0];
     self.tipBoard.close = line[3];
     self.tipBoard.high = line[1];
@@ -387,10 +409,19 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     [self.tipBoard showWithTipPoint:CGPointMake(point.x, point.y)];
     
-    [self bringSubviewToFront:self.horizontalCrossLine];
-    [self bringSubviewToFront:self.verticalCrossLine];
-    [self bringSubviewToFront:self.barVerticalLine];
-    [self bringSubviewToFront:self.tipBoard];
+    //时间，价额
+    self.priceLbl.hidden = NO;
+    self.priceLbl.text = [line[0] floatValue] > [line[3] floatValue] ? [self dealDecimalWithNum:@([line[0] floatValue])] :[self dealDecimalWithNum:@([line[3] floatValue])] ;
+    self.priceLbl.frame = CGRectMake(0, self.horizontalCrossLine.frame.origin.y - (20 - self.separatorWidth*2)/2.0, self.leftMargin - self.separatorWidth, 20 - self.separatorWidth*2);
+    
+    NSString *date = self.dates[[self.contexts indexOfObject:line]];
+    self.timeLbl.text = date;
+    self.timeLbl.hidden = date.length > 0 ? NO : YES;
+    if (date.length > 0) {
+        CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
+        CGFloat originX = MIN(MAX(self.leftMargin, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
+        self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, 20 - self.separatorWidth*2);
+    }
 }
 
 - (void)postNotificationWithGestureRecognizerStatus:(UIGestureRecognizerState)state {
@@ -824,6 +855,30 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         _realDataTipBtn.hidden = YES;
     }
     return _realDataTipBtn;
+}
+
+- (UILabel *)timeLbl {
+    if (!_timeLbl) {
+        _timeLbl = [UILabel new];
+        _timeLbl.backgroundColor = self.timeAndPriceTipsBackgroundColor;
+        _timeLbl.textAlignment = NSTextAlignmentCenter;
+        _timeLbl.font = self.yAxisTitleFont;
+        _timeLbl.textColor = self.timeAndPriceTextColor;
+        [self addSubview:_timeLbl];
+    }
+    return _timeLbl;
+}
+
+- (UILabel *)priceLbl {
+    if (!_priceLbl) {
+        _priceLbl = [UILabel new];
+        _priceLbl.backgroundColor = self.timeAndPriceTipsBackgroundColor;
+        _priceLbl.textAlignment = NSTextAlignmentCenter;
+        _priceLbl.font = self.xAxisTitleFont;
+        _priceLbl.textColor = self.timeAndPriceTextColor;
+        [self addSubview:_priceLbl];
+    }
+    return _priceLbl;
 }
 
 - (UITapGestureRecognizer *)tapGesture {

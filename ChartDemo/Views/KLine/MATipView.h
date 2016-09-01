@@ -12,16 +12,16 @@
 
 @property (nonatomic, strong) UIFont *font;
 
-@property (nonatomic, strong) UIColor *movingAverage5Color;
+@property (nonatomic, strong) UIColor *minAvgPriceColor;
 
-@property (nonatomic, strong) UIColor *movingAverage10Color;
+@property (nonatomic, strong) UIColor *midAvgPriceColor;
 
-@property (nonatomic, strong) UIColor *movingAverage20Color;
+@property (nonatomic, strong) UIColor *maxAvgPriceColor;
 
-@property (nonatomic, copy) NSString *movingAverage5;
+@property (nonatomic, copy) NSString *minAvgPrice;
 
-@property (nonatomic, copy) NSString *movingAverage10;
+@property (nonatomic, copy) NSString *midAvgPrice;
 
-@property (nonatomic, copy) NSString *movingAverage20;
+@property (nonatomic, copy) NSString *maxAvgPrice;
 
 @end

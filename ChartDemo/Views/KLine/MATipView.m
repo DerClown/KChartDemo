@@ -12,11 +12,11 @@
 
 @interface MATipView ()
 
-@property (nonatomic, strong) UILabel *movingAverage5Lbl;
+@property (nonatomic, strong) UILabel *minAvgPriceLbl;
 
-@property (nonatomic, strong) UILabel *movingAverage10Lbl;
+@property (nonatomic, strong) UILabel *midAvgPriceLbl;
 
-@property (nonatomic, strong) UILabel *movingAverage20Lbl;
+@property (nonatomic, strong) UILabel *maxAvgPriceLbl;
 
 @end
 
@@ -52,29 +52,29 @@
 - (void)setup {
     self.font = [UIFont systemFontOfSize:10.0f];
     
-    self.movingAverage5Color = [UIColor colorWithHexString:@"#019FFD"];
-    self.movingAverage10Color = [UIColor colorWithHexString:@"#FF99OO"];
-    self.movingAverage20Color = [UIColor colorWithHexString:@"#FF00FF"];
+    self.minAvgPriceColor = [UIColor colorWithHexString:@"#019FFD"];
+    self.midAvgPriceColor = [UIColor colorWithHexString:@"#FF99OO"];
+    self.maxAvgPriceColor = [UIColor colorWithHexString:@"#FF00FF"];
 }
 
 - (void)addPageSubviews {
-    [self addSubview:self.movingAverage5Lbl];
-    [self addSubview:self.movingAverage10Lbl];
-    [self addSubview:self.movingAverage20Lbl];
+    [self addSubview:self.minAvgPriceLbl];
+    [self addSubview:self.midAvgPriceLbl];
+    [self addSubview:self.maxAvgPriceLbl];
 }
 
 - (void)layoutPageSubviews {
-    [self.movingAverage5Lbl mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.minAvgPriceLbl mas_makeConstraints:^(MASConstraintMaker *make) {
         make.leading.equalTo(@5.0f);
         make.centerY.equalTo(self.mas_centerY);
     }];
     
-    [self.movingAverage10Lbl mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.midAvgPriceLbl mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerX.equalTo(self.mas_centerX);
         make.centerY.equalTo(self.mas_centerY);
     }];
     
-    [self.movingAverage20Lbl mas_makeConstraints:^(MASConstraintMaker *make) {
+    [self.maxAvgPriceLbl mas_makeConstraints:^(MASConstraintMaker *make) {
         make.trailing.equalTo(self.mas_trailing).with.offset(-5.0f);
         make.centerY.equalTo(self.mas_centerY);
     }];
@@ -82,45 +82,45 @@
 
 #pragma mark - getters
 
-- (UILabel *)movingAverage5Lbl {
-    if (!_movingAverage5Lbl) {
-        _movingAverage5Lbl = [UILabel new];
-        _movingAverage5Lbl.font = self.font;
-        _movingAverage5Lbl.textColor = self.movingAverage5Color;
+- (UILabel *)minAvgPriceLbl {
+    if (!_minAvgPriceLbl) {
+        _minAvgPriceLbl = [UILabel new];
+        _minAvgPriceLbl.font = self.font;
+        _minAvgPriceLbl.textColor = self.minAvgPriceColor;
     }
-    return _movingAverage5Lbl;
+    return _minAvgPriceLbl;
 }
 
-- (UILabel *)movingAverage10Lbl {
-    if (!_movingAverage10Lbl) {
-        _movingAverage10Lbl = [UILabel new];
-        _movingAverage10Lbl.font = self.font;
-        _movingAverage10Lbl.textColor = self.movingAverage10Color;
+- (UILabel *)midAvgPriceLbl {
+    if (!_midAvgPriceLbl) {
+        _midAvgPriceLbl = [UILabel new];
+        _midAvgPriceLbl.font = self.font;
+        _midAvgPriceLbl.textColor = self.midAvgPriceColor;
     }
-    return _movingAverage10Lbl;
+    return _midAvgPriceLbl;
 }
 
-- (UILabel *)movingAverage20Lbl {
-    if (!_movingAverage20Lbl) {
-        _movingAverage20Lbl = [UILabel new];
-        _movingAverage20Lbl.font = self.font;
-        _movingAverage20Lbl.textColor = self.movingAverage20Color;
+- (UILabel *)maxAvgPriceLbl {
+    if (!_maxAvgPriceLbl) {
+        _maxAvgPriceLbl = [UILabel new];
+        _maxAvgPriceLbl.font = self.font;
+        _maxAvgPriceLbl.textColor = self.maxAvgPriceColor;
     }
-    return _movingAverage20Lbl;
+    return _maxAvgPriceLbl;
 }
 
 #pragma mark - setters
 
-- (void)setMovingAverage5:(NSString *)movingAverage5 {
-    _movingAverage5Lbl.text = movingAverage5 == nil ? @"MA5：0.00" : [@"MA5：" stringByAppendingString:movingAverage5];
+- (void)setMinAvgPrice:(NSString *)minAvgPrice {
+    _minAvgPriceLbl.text = minAvgPrice == nil || minAvgPrice.length == 0 ? @"MA5：0.00" : minAvgPrice;
 }
 
-- (void)setMovingAverage10:(NSString *)movingAverage10 {
-    _movingAverage10Lbl.text = movingAverage10 == nil ? @"MA10：0.00" : [@"MA10：" stringByAppendingString:movingAverage10];
+- (void)setMidAvgPrice:(NSString *)midAvgPrice {
+    _midAvgPriceLbl.text = midAvgPrice == nil || midAvgPrice.length == 0 ? @"MA10：0.00" : midAvgPrice;
 }
 
-- (void)setMovingAverage20:(NSString *)movingAverage20 {
-    _movingAverage20Lbl.text = movingAverage20 == nil ? @"MA20：0.00" : [@"MA20：" stringByAppendingString:movingAverage20];
+- (void)setMaxAvgPrice:(NSString *)maxAvgPrice {
+    _maxAvgPriceLbl.text = maxAvgPrice == nil || maxAvgPrice.length == 0 ? @"MA20：0.00" : maxAvgPrice;
 }
 
 @end
