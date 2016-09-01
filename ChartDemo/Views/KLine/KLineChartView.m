@@ -108,7 +108,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 - (void)_setup {
     self.timeAxisHeigth = 20.0;
-    self.timeIntervalCount = 8;
     
     self.positiveLineColor = [UIColor colorWithRed:(31/255.0f) green:(185/255.0f) blue:(63.0f/255.0f) alpha:1.0];
     self.negativeLineColor = [UIColor colorWithRed:(232/255.0f) green:(50.0f/255.0f) blue:(52.0f/255.0f) alpha:1.0];
@@ -539,7 +538,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         NSInteger timeIndex = i*avgDrawCount + self.startDrawIndex;
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.dates[timeIndex] attributes:@{NSFontAttributeName:self.xAxisTitleFont, NSForegroundColorAttributeName:self.xAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.xAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
-        CGFloat originX = MIN(xAxis - (i == 0 ? (_kLineWidth/2.0 + _kLinePadding) : size.width/2.0), self.frame.size.width - self.rightMargin - size.width);
+        CGFloat originX = MIN(xAxis - (i == 0 ? (_kLineWidth/2.0 + _kLinePadding) : 0), self.frame.size.width - self.rightMargin - size.width);
         [attString drawInRect:CGRectMake(originX, self.topMargin + self.yAxisHeight + 2.0, size.width, size.height)];
         
         if (drawAxisWdith < avgDrawCount*(_kLinePadding + _kLineWidth) && timeAxisDrawCount == 2) {

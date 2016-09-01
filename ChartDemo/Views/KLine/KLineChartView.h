@@ -66,11 +66,6 @@
 @property (nonatomic, assign) CGFloat kLinePadding;
 
 /**
- *  显示时间间隔个数（默认每隔6个k线显示一次）
- */
-@property (nonatomic, assign) NSInteger timeIntervalCount;
-
-/**
  *  均线宽度
  */
 @property (nonatomic, assign) CGFloat movingAvgLineWidth;
