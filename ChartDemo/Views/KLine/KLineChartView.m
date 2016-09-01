@@ -151,6 +151,8 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.timeAndPriceTipsBackgroundColor = [UIColor colorWithHexString:@"D70002"];
     self.timeAndPriceTextColor = [UIColor colorWithWhite:1.0 alpha:0.95];
     
+    self.supportGesture = YES;
+    
     self.maxKLineWidth = 24;
     self.minKLineWidth = 1.5;
     
@@ -173,6 +175,10 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
  *  添加手势
  */
 - (void)addGestures {
+    if (!self.supportGesture) {
+        return;
+    }
+    
     [self addGestureRecognizer:self.tapGesture];
     
     [self addGestureRecognizer:self.panGesture];
@@ -240,8 +246,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
     self.leftMargin = size.width + 4.0f;
     
-    //self.maxKLineWidth = self.maxKLineWidth
-    
     //更具宽度和间距确定要画多少个k线柱形图
     self.kLineDrawNum = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - _kLinePadding) / (self.kLineWidth + self.kLinePadding)));
     
@@ -266,7 +270,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 - (void)panEvent:(UIPanGestureRecognizer *)panGesture {
     CGPoint touchPoint = [panGesture translationInView:self];
-    NSInteger offsetIndex = fabs(touchPoint.x/8.0);
+    NSInteger offsetIndex = fabs(touchPoint.x/(self.kLineWidth > self.maxKLineWidth/2.0 ? 16.0f : 8.0));
     
     [self postNotificationWithGestureRecognizerStatus:panGesture.state];
     if (!self.scrollEnable || self.contexts.count == 0 || offsetIndex == 0) {
@@ -951,6 +955,14 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     _leftMargin = leftMargin;
     
     self.maxKLineWidth = _maxKLineWidth;
+}
+
+- (void)setSupportGesture:(BOOL)supportGesture {
+    _supportGesture = supportGesture;
+    
+    if (!supportGesture) {
+        self.gestureRecognizers = nil;
+    }
 }
 
 @end

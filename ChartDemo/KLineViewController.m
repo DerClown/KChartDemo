@@ -125,13 +125,15 @@
         _kLineChartView = [[KLineChartView alloc] initWithFrame:CGRectMake(20, 50, self.view.frame.size.width - 40.0f, 300.0f)];
         _kLineChartView.backgroundColor = [UIColor whiteColor];
         _kLineChartView.topMargin = 20.0f;
-        _kLineChartView.leftMargin = 50.0f;
         _kLineChartView.rightMargin = 1.0;
         _kLineChartView.bottomMargin = 80.0f;
         //_kLineChartView.yAxisTitleIsChange = YES;
         
         // 及时更新k线图
         //_kLineChartView.dynamicUpdateIsNew = YES;
+        
+        //是否支持手势
+        //_kLineChartView.supportGesture = NO;
     }
     return _kLineChartView;
 }
