@@ -44,10 +44,10 @@
     self.high = @"0.0";
     self.low = @"0.0";
     
-    self.openColor = [UIColor colorWithWhite:0.35 alpha:1.0];
-    self.closeColor = [UIColor colorWithWhite:0.35 alpha:1.0];
-    self.highColor = [UIColor colorWithWhite:0.35 alpha:1.0];
-    self.lowColor = [UIColor colorWithWhite:0.35 alpha:1.0];
+    self.openColor = [UIColor colorWithWhite:0.15 alpha:1.0];
+    self.closeColor = [UIColor colorWithWhite:0.15 alpha:1.0];
+    self.highColor = [UIColor colorWithWhite:0.15 alpha:1.0];
+    self.lowColor = [UIColor colorWithWhite:0.15 alpha:1.0];
     
     self.font = [UIFont systemFontOfSize:8.0f];
 }

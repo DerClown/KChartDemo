@@ -107,6 +107,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 }
 
 - (void)_setup {
+    self.timeAxisHeigth = 20.0;
+    self.timeIntervalCount = 8;
+    
     self.positiveLineColor = [UIColor colorWithRed:(31/255.0f) green:(185/255.0f) blue:(63.0f/255.0f) alpha:1.0];
     self.negativeLineColor = [UIColor colorWithRed:(232/255.0f) green:(50.0f/255.0f) blue:(52.0f/255.0f) alpha:1.0];
     
@@ -211,6 +214,8 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     //坐标轴
     [self drawAxisInRect:rect];
+    
+    [self drawTimeAxis];
     
     //k线
     [self drawKLine];
@@ -416,7 +421,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     //时间，价额
     self.priceLbl.hidden = NO;
     self.priceLbl.text = [line[0] floatValue] > [line[3] floatValue] ? [self dealDecimalWithNum:@([line[0] floatValue])] :[self dealDecimalWithNum:@([line[3] floatValue])] ;
-    self.priceLbl.frame = CGRectMake(0, self.horizontalCrossLine.frame.origin.y - (20 - self.separatorWidth*2)/2.0, self.leftMargin - self.separatorWidth, 20 - self.separatorWidth*2);
+    self.priceLbl.frame = CGRectMake(0, self.horizontalCrossLine.frame.origin.y - (self.timeAxisHeigth - self.separatorWidth*2)/2.0, self.leftMargin - self.separatorWidth, self.timeAxisHeigth - self.separatorWidth*2);
     
     NSString *date = self.dates[[self.contexts indexOfObject:line]];
     self.timeLbl.text = date;
@@ -424,7 +429,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     if (date.length > 0) {
         CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
         CGFloat originX = MIN(MAX(self.leftMargin, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
-        self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, 20 - self.separatorWidth*2);
+        self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeigth - self.separatorWidth*2);
     }
 }
 
@@ -489,19 +494,61 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         //交易量边框
         CGContextSetLineWidth(context, self.axisShadowWidth);
         CGContextSetStrokeColorWithColor(context, self.axisShadowColor.CGColor);
-        strokeRect = CGRectMake(self.leftMargin, self.yAxisHeight + self.topMargin + 20.0f, self.xAxisWidth, rect.size.height - self.yAxisHeight - self.topMargin - 20.0f);
+        strokeRect = CGRectMake(self.leftMargin, self.yAxisHeight + self.topMargin + self.timeAxisHeigth, self.xAxisWidth, rect.size.height - self.yAxisHeight - self.topMargin - self.timeAxisHeigth);
         CGContextStrokeRect(context, strokeRect);
         
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[self dealDecimalWithNum:@(self.maxVolValue)] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
-        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.yAxisHeight + self.topMargin + 20.0f - 2, size.width, size.height)];
+        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.yAxisHeight + self.topMargin + self.timeAxisHeigth - 2, size.width, size.height)];
         
         attString = [[NSAttributedString alloc] initWithString:@"万" attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
         [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, rect.size.height - size.height, size.width, size.height)];
     }
+}
+
+- (void)drawTimeAxis {
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    CGFloat quarteredWidth = self.xAxisWidth/4.0;
+    NSInteger avgDrawCount = ceil(quarteredWidth/(_kLinePadding + _kLineWidth));
+    NSInteger timeAxisDrawCount = 4;
+    CGFloat drawAxisWdith = self.kLineDrawNum*(self.kLineWidth + self.kLinePadding);
+    if (drawAxisWdith > 2*quarteredWidth && drawAxisWdith < 3*quarteredWidth) {
+        timeAxisDrawCount = 4;
+    } else if (drawAxisWdith < 2*quarteredWidth && drawAxisWdith > quarteredWidth) {
+        timeAxisDrawCount = 2;
+    } else if (drawAxisWdith < quarteredWidth) {
+        timeAxisDrawCount = 1;
+    }
+    
+    CGFloat xAxis = self.leftMargin + _kLineWidth/2.0 + _kLinePadding;
+    for (int i = 0; i < timeAxisDrawCount; i ++) {
+        CGContextSetLineWidth(context, self.separatorWidth);
+        CGFloat lengths[] = {5,5};
+        CGContextSetStrokeColorWithColor(context, self.separatorColor.CGColor);
+        CGContextSetLineDash(context, 0, lengths, 2);  //画虚线
+        CGContextBeginPath(context);
+        CGContextMoveToPoint(context, xAxis, self.topMargin + 1.25);    //开始画线
+        CGContextAddLineToPoint(context, xAxis, self.topMargin + self.yAxisHeight - 1.25);
+        CGContextStrokePath(context);
+        
+        //x轴坐标
+        NSInteger timeIndex = i*avgDrawCount + self.startDrawIndex;
+        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.dates[timeIndex] attributes:@{NSFontAttributeName:self.xAxisTitleFont, NSForegroundColorAttributeName:self.xAxisTitleColor}];
+        CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.xAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
+        CGFloat originX = MIN(xAxis - (i == 0 ? (_kLineWidth/2.0 + _kLinePadding) : size.width/2.0), self.frame.size.width - self.rightMargin - size.width);
+        [attString drawInRect:CGRectMake(originX, self.topMargin + self.yAxisHeight + 2.0, size.width, size.height)];
+        
+        if (drawAxisWdith < avgDrawCount*(_kLinePadding + _kLineWidth) && timeAxisDrawCount == 2) {
+            xAxis += self.kLineDrawNum*(_kLinePadding + _kLineWidth);
+        } else {
+            xAxis += avgDrawCount*(_kLinePadding + _kLineWidth);
+        }
+    }
+    CGContextSetLineDash(context, 0, 0, 0);
 }
 
 /**
@@ -624,7 +671,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     CGFloat xAxis = _kLinePadding + _leftMargin;
     
-    CGFloat boxYOrigin = self.topMargin + self.yAxisHeight + 20.0;
+    CGFloat boxYOrigin = self.topMargin + self.yAxisHeight + self.timeAxisHeigth;
     CGFloat boxHeight = rect.size.height - boxYOrigin;
     CGFloat scale = self.maxVolValue/boxHeight;
     
@@ -818,7 +865,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 - (UIView *)barVerticalLine {
     if (!_barVerticalLine) {
-        _barVerticalLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin + self.yAxisHeight + 20.0f, 0.5, self.frame.size.height - (self.topMargin + self.yAxisHeight + 20.0f))];
+        _barVerticalLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin + self.yAxisHeight + self.timeAxisHeigth, 0.5, self.frame.size.height - (self.topMargin + self.yAxisHeight + self.timeAxisHeigth))];
         _barVerticalLine.backgroundColor = self.crossLineColor;
         [self addSubview:_barVerticalLine];
     }
@@ -963,6 +1010,10 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     if (!supportGesture) {
         self.gestureRecognizers = nil;
     }
+}
+
+- (void)setBottomMargin:(CGFloat)bottomMargin {
+    _bottomMargin = bottomMargin < _timeAxisHeigth ? _timeAxisHeigth : bottomMargin;
 }
 
 @end

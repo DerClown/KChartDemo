@@ -20,7 +20,7 @@ NSString *const kCandlerstickChartsMinVol  = @"kCandlerstickChartsMinVol";
 }
 
 - (id)manager:(GApiBaseManager *)manager transformData:(id)data {
-    _kCount = 100;
+    _kCount = 150;
     NSString *content = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     if (content.length == 0 || !content) {
         return nil;

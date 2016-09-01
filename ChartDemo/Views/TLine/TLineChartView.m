@@ -20,6 +20,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 @property (nonatomic, strong) NSArray *contexts;
 
+@property (nonatomic, strong) NSArray *dates;
+
 @property (nonatomic, assign) CGFloat xAxisWidth;
 
 @property (nonatomic, assign) CGFloat yAxisHeight;
@@ -47,8 +49,6 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 //数据更新
 @property (nonatomic, strong) NSMutableArray *updateTempContexts;
-@property (nonatomic, assign) CGFloat updateTempMaxValue;
-@property (nonatomic, assign) CGFloat updateTempMinValue;
 
 @end
 
@@ -89,6 +89,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     self.yAxisTitleFont = [UIFont systemFontOfSize:8.0];
     self.yAxisTitleColor = [UIColor colorWithRed:(130/255.0f) green:(130/255.0f) blue:(130/255.0f) alpha:1.0];
     
+    self.timeAxisHeigth = 20.0;
+    
     self.axisShadowColor = [UIColor colorWithRed:223/255.0f green:223/255.0f blue:223/255.0f alpha:1.0];
     self.axisShadowWidth = 0.5;
     
@@ -99,6 +101,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     self.crossLineColor = [UIColor colorWithHexString:@"#C9C9C9"];
     
     self.flashPointColor = [UIColor redColor];
+    
+    self.yAxisTitleIsChange = YES;
     
     self.updateTempContexts = [NSMutableArray new];
     
@@ -170,7 +174,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
                     NSInteger index = (point.x - self.leftMargin)/self.pointPadding - 1;
                     NSArray<NSArray *> *line = [self.contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
                     
-                    self.tipBox.content = [NSString stringWithFormat:@"%.2f", [[line[index] objectAtIndex:4] floatValue]];
+                    self.tipBox.content = [NSString stringWithFormat:@"%.2f", [[line[index] objectAtIndex:3] floatValue]];
                     [self.tipBox showWithTipPoint:point];
                     [self bringSubviewToFront:self.tipBox];
                     
@@ -203,10 +207,6 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     //最大、最小 交易量
     self.maxValue = [data[kCandlerstickChartsMaxVol] floatValue];
     self.minValue = [data[kCandlerstickChartsMinVol] floatValue];
-    
-    CGFloat offsetValue = (self.maxValue - self.minValue)/12.0f;
-    self.maxValue += offsetValue;
-    self.minValue = self.minValue - offsetValue < 0 ? 0 : self.minValue - offsetValue;
 
     [self drawSetting];
     
@@ -219,9 +219,6 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     }
     
     [self.updateTempContexts addObjectsFromArray:data[kCandlerstickChartsContext]];
-    //更新 最大、最小 交易量
-    self.updateTempMaxValue = [data[kCandlerstickChartsMaxVol] floatValue] > self.updateTempMaxValue ? [data[kCandlerstickChartsMaxVol] floatValue] : self.updateTempMaxValue;
-    self.updateTempMinValue = [data[kCandlerstickChartsMinVol] floatValue] < self.updateTempMinValue ? [data[kCandlerstickChartsMinVol] floatValue] : self.updateTempMinValue;
     
     [self dynamicUpdateChart];
 }
@@ -233,6 +230,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     //绘制点数
     self.kGraphDrawCount = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - self.pointPadding) / self.pointPadding));
+    
+    [self resetMinAndMax];
 }
 
 #pragma mark - private methods
@@ -317,10 +316,10 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     CGFloat scale = (self.maxValue - self.minValue) / self.yAxisHeight;
     
     if (scale != 0) {
-        NSArray *contentValue = [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
+        NSArray *drawContexts = [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
         NSMutableArray *contentPoints = [NSMutableArray new];
-        for (NSArray *line in contentValue) {
-            CGFloat volValue = [line[4] floatValue];
+        for (NSArray *line in drawContexts) {
+            CGFloat volValue = [line[3] floatValue];
             CGFloat yAxis = self.yAxisHeight - (volValue - self.minValue)/scale + self.topMargin;
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
             if (yAxis < self.topMargin) {
@@ -398,23 +397,36 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     self.contexts = [self.contexts arrayByAddingObjectsFromArray:self.updateTempContexts];
     
-    CGFloat forwardMaxValue = self.maxValue;
-    
-    self.maxValue = self.maxValue > self.updateTempMaxValue ? self.maxValue : self.updateTempMaxValue;
-    self.minValue = self.minValue < self.updateTempMinValue ? self.minValue : self.updateTempMinValue;
-    
-    if (forwardMaxValue != self.maxValue) {
-        CGFloat offsetValue = (self.maxValue - self.minValue)/12.0f;
-        self.maxValue += offsetValue;
-        self.minValue = self.minValue - offsetValue < 0 ? 0 : self.minValue - offsetValue;
-    }
-    
     [self drawSetting];
     [self setNeedsDisplay];
     [self startFlashAnimation];
     [self.updateTempContexts removeAllObjects];
-    self.updateTempMinValue = 0.0;
-    self.updateTempMaxValue = 0.0;
+}
+
+- (void)resetMinAndMax {
+    NSArray<NSArray *> *drawContexts = self.contexts;
+    if (self.yAxisTitleIsChange) {
+        drawContexts = [self.contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
+    }
+    
+    for (int i = 0; i < drawContexts.count; i++) {
+        if (i == 0) {
+            self.maxValue = [drawContexts[i][3] floatValue];
+            self.minValue = [drawContexts[i][3] floatValue];
+        } else {
+            if (self.maxValue < [drawContexts[i][3] floatValue]) {
+                self.maxValue = [drawContexts[i][3] floatValue];
+            }
+            
+            if (self.minValue > [drawContexts[i][3] floatValue] || i == 0) {
+                self.minValue = [drawContexts[i][3] floatValue];
+            }
+        }
+    }
+    
+    CGFloat offsetValue = (self.maxValue - self.minValue)/10.0f;
+    self.maxValue += offsetValue;
+    self.minValue = self.minValue - offsetValue < 0 ? 0 : self.minValue - offsetValue;
 }
 
 #pragma mark - notificaiton events
@@ -486,6 +498,10 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     self.startDrawIndex = self.contexts.count > kGraphDrawCount ? self.contexts.count - kGraphDrawCount : 0;
     
     _kGraphDrawCount = kGraphDrawCount;
+}
+
+- (void)setBottomMargin:(CGFloat)bottomMargin {
+    _bottomMargin = bottomMargin < _timeAxisHeigth ? _timeAxisHeigth : bottomMargin;
 }
 
 @end

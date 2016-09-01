@@ -66,6 +66,11 @@
 @property (nonatomic, assign) CGFloat kLinePadding;
 
 /**
+ *  显示时间间隔个数（默认每隔6个k线显示一次）
+ */
+@property (nonatomic, assign) NSInteger timeIntervalCount;
+
+/**
  *  均线宽度
  */
 @property (nonatomic, assign) CGFloat movingAvgLineWidth;
@@ -134,6 +139,11 @@
  *  x坐标轴标题颜色
  */
 @property (nonatomic, strong) UIColor *xAxisTitleColor;
+
+/**
+ *   时间轴高度（默认20.0f）
+ */
+@property (nonatomic, assign) CGFloat timeAxisHeigth;
 
 /**
  *  坐标轴边框颜色

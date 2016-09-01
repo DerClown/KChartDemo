@@ -26,7 +26,7 @@
 @property (nonatomic, assign) CGFloat rightMargin;
 
 /**
- *  底部距离
+ *  底部距离 必须 >= timeAxisHeigth
  */
 @property (nonatomic, assign) CGFloat bottomMargin;
 
@@ -86,6 +86,11 @@
 @property (nonatomic, strong) UIColor *xAxisTitleColor;
 
 /**
+ *   时间轴高度（默认20.0f）
+ */
+@property (nonatomic, assign) CGFloat timeAxisHeigth;
+
+/**
  *  分割线条数, 默认4条
  */
 @property (nonatomic, assign) NSInteger separatorNum;
@@ -124,6 +129,11 @@
  *  闪烁点，默认不显示
  */
 @property (nonatomic, assign) BOOL flashPoint;
+
+/**
+ *  YES表示：Y坐标的值根据视图中呈现的k线图的最大值最小值变化而变化；NO表示：Y坐标的最大和最小值初始设定多少就多少，不管k线图呈现如何都不会变化。默认YES
+ */
+@property (nonatomic, assign) BOOL yAxisTitleIsChange;
 
 /*
  * self.data 的格式为 @{kCandlerstickChartsDate:dates,            // 日期 @[@"date", @"date", ...]
