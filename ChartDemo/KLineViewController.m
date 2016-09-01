@@ -46,6 +46,11 @@
     [self.view addSubview:self.tLineChartView];
     [self.kLineChartView addSubview:self.kStatusView];
     
+    __block typeof(self) weakSelf = self;
+    self.kStatusView.reloadBlock = ^(){
+        [weakSelf.chartApi startRequest];
+    };
+    
     //发起请求
     self.chartApi.dateType = @"d";
     self.chartApi.kLineID = @"601888.SS";
@@ -99,10 +104,8 @@
 }
 
 - (void)managerApiCallBackDidFailed:(__kindof GApiBaseManager *)manager {
+    self.kStatusView.hidden = NO;
     switch (manager.requestHandleType) {
-        case GAPIManagerRequestHandlerTypeSuccess: {
-            break;
-        }
         case GAPIManagerRequestHandlerTypeDefault:
         case GAPIManagerRequestHandlerTypeFailure:
         case GAPIManagerRequestHandlerTypeParamsError:
@@ -115,6 +118,7 @@
             self.kStatusView.status = StatusStyleNoNetWork;
             break;
         }
+        default:break;
     }
 }
 
@@ -127,7 +131,7 @@
         _kLineChartView.topMargin = 20.0f;
         _kLineChartView.rightMargin = 1.0;
         _kLineChartView.bottomMargin = 80.0f;
-        //_kLineChartView.yAxisTitleIsChange = YES;
+        //_kLineChartView.yAxisTitleIsChange = NO;
         
         // 及时更新k线图
         //_kLineChartView.dynamicUpdateIsNew = YES;

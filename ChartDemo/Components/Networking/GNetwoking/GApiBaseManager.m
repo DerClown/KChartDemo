@@ -228,7 +228,6 @@
 }
 
 - (void)beforPerformFailureWithResult:(GApiResponse *)response {
-    self.requestHandleType = GAPIManagerRequestHandlerTypeFailure;
     if (self.interceptor != self && [self.interceptor respondsToSelector:@selector(manager:beforePerformFailWithResult:)]) {
         [self.interceptor manager:self beforePerformFailWithResult:response];
     }

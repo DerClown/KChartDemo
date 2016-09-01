@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+typedef void(^ReloadDataBlock)();
+
 typedef NS_ENUM(NSInteger, StatusStyle) {
     StatusStyleLoading = 0,         //请求
     StatusStyleSuccess,             //成功
@@ -46,5 +48,10 @@ typedef NS_ENUM(NSInteger, StatusStyle) {
  *  状态 default: StatusStyleLoading
  */
 @property (nonatomic, assign) StatusStyle status;
+
+/**
+ *  出错加载
+ */
+@property (nonatomic, copy) ReloadDataBlock reloadBlock;
 
 @end

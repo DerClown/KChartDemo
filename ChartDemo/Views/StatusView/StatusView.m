@@ -50,6 +50,9 @@
     self.indicatorColor = [UIColor grayColor];
     self.indicatorSize = CGSizeMake(30.0f, 30.0f);
     self.status = StatusStyleLoading;
+    
+    UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(reloadPressEvent:)];
+    [self addGestureRecognizer:tapGesture];
 }
 
 - (void)addPageSubviews {
@@ -69,6 +72,23 @@
         make.centerY.equalTo(self.mas_centerY);
         make.centerX.equalTo(self.mas_centerX).with.offset(self.indicatorSize.width/2.0);
     }];
+}
+
+#pragma mark - reponse events
+
+- (void)reloadPressEvent:(id)sender {
+    switch (self.aStatus) {
+        case StatusStyleNoNetWork:
+        case StatusStyleFailed: {
+            self.status = StatusStyleLoading;
+            if (self.reloadBlock) {
+                self.reloadBlock();
+            }
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 #pragma mark - getters
