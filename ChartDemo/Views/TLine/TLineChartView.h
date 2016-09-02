@@ -135,6 +135,16 @@
  */
 @property (nonatomic, assign) BOOL yAxisTitleIsChange;
 
+/**
+ *  时间和价格提示的字体颜色
+ */
+@property (nonatomic, strong) UIColor *timeTipTextColor;
+
+/**
+ *  时间和价格提示背景颜色
+ */
+@property (nonatomic, strong) UIColor *timeTipBackgroundColor;
+
 /*
  * self.data 的格式为 @{kCandlerstickChartsDate:dates,            // 日期 @[@"date", @"date", ...]
                        kCandlerstickChartsContext:context,       // 内容数据 @[NSArray, NSArray, ...]; NSArray = @["开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]

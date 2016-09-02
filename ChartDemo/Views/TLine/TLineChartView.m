@@ -44,6 +44,9 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 @property (nonatomic, strong) CALayer *flashLayer;
 
+//价格
+@property (nonatomic, strong) UILabel *timeLbl;
+
 //交互中， 默认NO
 @property (nonatomic, assign) BOOL interactive;
 
@@ -108,6 +111,9 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     self.yAxisTitleIsChange = YES;
     
+    self.timeTipBackgroundColor = [UIColor colorWithHexString:@"D70002"];
+    self.timeTipTextColor = [UIColor colorWithWhite:1.0 alpha:0.95];
+    
     self.updateTempContexts = [NSMutableArray new];
     self.updateTempDates = [NSMutableArray new];
     
@@ -157,6 +163,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     }
     if (longGesture.state == UIGestureRecognizerStateEnded) {
         self.vtlCrossLine.hidden = YES;
+        self.timeLbl.hidden = YES;
         [self.tipBox hide];
     } else {
         CGPoint touchPoint = [longGesture locationInView:self];
@@ -179,12 +186,27 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
                         point.y = self.topMargin;
                     }
                     
-                    NSInteger index = (point.x - self.leftMargin)/self.pointPadding - 1;
+                    CGFloat graphCount = (point.x - self.leftMargin - self.pointPadding)/self.pointPadding;
+                    NSInteger index = floor(graphCount);
+                    if ((graphCount - index) > self.pointPadding/2.0) {
+                        index = ceil(graphCount);
+                    }
+                    
                     NSArray<NSArray *> *line = [self.contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
                     
                     self.tipBox.content = [NSString stringWithFormat:@"%.2f", [[line[index] objectAtIndex:3] floatValue]];
                     [self.tipBox showWithTipPoint:point];
                     [self bringSubviewToFront:self.tipBox];
+                    
+                    NSString *date = self.dates[index];
+                    self.timeLbl.text = date;
+                    self.timeLbl.hidden = date.length > 0 ? NO : YES;
+                    if (date.length > 0) {
+                        CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
+                        CGFloat originX = MIN(MAX(self.leftMargin, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
+                        self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeigth - self.separatorWidth*2);
+                    }
+
                     
                     *stop = YES;
                 }
@@ -521,6 +543,18 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         [self addSubview:_vtlCrossLine];
     }
     return _vtlCrossLine;
+}
+
+- (UILabel *)timeLbl {
+    if (!_timeLbl) {
+        _timeLbl = [UILabel new];
+        _timeLbl.backgroundColor = self.timeTipBackgroundColor;
+        _timeLbl.textAlignment = NSTextAlignmentCenter;
+        _timeLbl.font = self.yAxisTitleFont;
+        _timeLbl.textColor = self.timeTipTextColor;
+        [self addSubview:_timeLbl];
+    }
+    return _timeLbl;
 }
 
 - (UILongPressGestureRecognizer *)longGesture {
