@@ -420,7 +420,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     //时间，价额
     self.priceLbl.hidden = NO;
     self.priceLbl.text = [line[0] floatValue] > [line[3] floatValue] ? [self dealDecimalWithNum:@([line[0] floatValue])] :[self dealDecimalWithNum:@([line[3] floatValue])] ;
-    self.priceLbl.frame = CGRectMake(0, self.horizontalCrossLine.frame.origin.y - (self.timeAxisHeigth - self.separatorWidth*2)/2.0, self.leftMargin - self.separatorWidth, self.timeAxisHeigth - self.separatorWidth*2);
+    self.priceLbl.frame = CGRectMake(0, MIN(self.horizontalCrossLine.frame.origin.y - (self.timeAxisHeigth - self.separatorWidth*2)/2.0, self.topMargin + self.yAxisHeight - self.timeAxisHeigth), self.leftMargin - self.separatorWidth, self.timeAxisHeigth - self.separatorWidth*2);
     
     NSString *date = self.dates[[self.contexts indexOfObject:line]];
     self.timeLbl.text = date;
@@ -525,6 +525,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     CGFloat xAxis = self.leftMargin + _kLineWidth/2.0 + _kLinePadding;
     for (int i = 0; i < timeAxisDrawCount; i ++) {
+        if (xAxis > self.leftMargin + self.xAxisWidth) {
+            break;
+        }
         CGContextSetLineWidth(context, self.separatorWidth);
         CGFloat lengths[] = {5,5};
         CGContextSetStrokeColorWithColor(context, self.separatorColor.CGColor);
@@ -538,7 +541,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         NSInteger timeIndex = i*avgDrawCount + self.startDrawIndex;
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.dates[timeIndex] attributes:@{NSFontAttributeName:self.xAxisTitleFont, NSForegroundColorAttributeName:self.xAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.xAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
-        CGFloat originX = MIN(xAxis - (i == 0 ? (_kLineWidth/2.0 + _kLinePadding) : 0), self.frame.size.width - self.rightMargin - size.width);
+        CGFloat originX = MIN(xAxis - size.width/2.0, self.frame.size.width - self.rightMargin - size.width);
         [attString drawInRect:CGRectMake(originX, self.topMargin + self.yAxisHeight + 2.0, size.width, size.height)];
         
         if (drawAxisWdith < avgDrawCount*(_kLinePadding + _kLineWidth) && timeAxisDrawCount == 2) {

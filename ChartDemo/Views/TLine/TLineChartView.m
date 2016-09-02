@@ -49,6 +49,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 //数据更新
 @property (nonatomic, strong) NSMutableArray *updateTempContexts;
+@property (nonatomic, strong) NSMutableArray *updateTempDates;
 
 @end
 
@@ -89,6 +90,9 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     self.yAxisTitleFont = [UIFont systemFontOfSize:8.0];
     self.yAxisTitleColor = [UIColor colorWithRed:(130/255.0f) green:(130/255.0f) blue:(130/255.0f) alpha:1.0];
     
+    self.xAxisTitleFont = [UIFont systemFontOfSize:8.0];
+    self.xAxisTitleColor = [UIColor colorWithRed:(130/255.0f) green:(130/255.0f) blue:(130/255.0f) alpha:1.0];
+    
     self.timeAxisHeigth = 20.0;
     
     self.axisShadowColor = [UIColor colorWithRed:223/255.0f green:223/255.0f blue:223/255.0f alpha:1.0];
@@ -105,6 +109,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     self.yAxisTitleIsChange = YES;
     
     self.updateTempContexts = [NSMutableArray new];
+    self.updateTempDates = [NSMutableArray new];
     
     [self addGestureRecognizer:self.longGesture];
 }
@@ -134,6 +139,9 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     //画坐标轴
     [self drawAxisInRect:rect];
+    
+    //时间轴
+    [self drawTimeAxis];
     
     //折线图
     [self drawLineChart];
@@ -204,6 +212,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 - (void)drawChartWithData:(NSDictionary *)data {
     self.contexts = data[kCandlerstickChartsContext];
+    self.dates = data[kCandlerstickChartsDate];
     //最大、最小 交易量
     self.maxValue = [data[kCandlerstickChartsMaxVol] floatValue];
     self.minValue = [data[kCandlerstickChartsMinVol] floatValue];
@@ -219,6 +228,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     }
     
     [self.updateTempContexts addObjectsFromArray:data[kCandlerstickChartsContext]];
+    [self.updateTempDates addObjectsFromArray:data[kCandlerstickChartsDate]];
     
     [self dynamicUpdateChart];
 }
@@ -277,6 +287,51 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         
         [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.topMargin + avgHeight*i - (i == 5 ? size.height - 1 : size.height/2.0), size.width, size.height)];
     }
+}
+
+- (void)drawTimeAxis {
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    CGFloat quarteredWidth = self.xAxisWidth/4.0;
+    NSInteger avgDrawCount = ceil(quarteredWidth/_pointPadding);
+    NSInteger timeAxisDrawCount = 4;
+    CGFloat drawAxisWdith = self.kGraphDrawCount*_pointPadding;
+    if (drawAxisWdith > 2*quarteredWidth && drawAxisWdith < 3*quarteredWidth) {
+        timeAxisDrawCount = 4;
+    } else if (drawAxisWdith < 2*quarteredWidth && drawAxisWdith > quarteredWidth) {
+        timeAxisDrawCount = 2;
+    } else if (drawAxisWdith < quarteredWidth) {
+        timeAxisDrawCount = 1;
+    }
+    
+    CGFloat xAxis = self.leftMargin + _pointPadding;
+    for (int i = 0; i < timeAxisDrawCount; i ++) {
+        if (xAxis > self.leftMargin + self.xAxisWidth) {
+            break;
+        }
+        CGContextSetLineWidth(context, self.separatorWidth);
+        CGFloat lengths[] = {5,5};
+        CGContextSetStrokeColorWithColor(context, self.separatorColor.CGColor);
+        CGContextSetLineDash(context, 0, lengths, 2);  //画虚线
+        CGContextBeginPath(context);
+        CGContextMoveToPoint(context, xAxis, self.topMargin + 1.25);    //开始画线
+        CGContextAddLineToPoint(context, xAxis, self.topMargin + self.yAxisHeight - 1.25);
+        CGContextStrokePath(context);
+        
+        //x轴坐标
+        NSInteger timeIndex = i*avgDrawCount + self.startDrawIndex;
+        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.dates[timeIndex] attributes:@{NSFontAttributeName:self.xAxisTitleFont, NSForegroundColorAttributeName:self.xAxisTitleColor}];
+        CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.xAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
+        CGFloat originX = MIN(xAxis - size.width/2.0, self.frame.size.width - self.rightMargin - size.width);
+        [attString drawInRect:CGRectMake(originX, self.topMargin + self.yAxisHeight + 2.0, size.width, size.height)];
+        
+        if (drawAxisWdith < avgDrawCount*_pointPadding && timeAxisDrawCount == 2) {
+            xAxis += self.kGraphDrawCount*_pointPadding;
+        } else {
+            xAxis += avgDrawCount*_pointPadding;
+        }
+    }
+    CGContextSetLineDash(context, 0, 0, 0);
 }
 
 //折线图
@@ -396,11 +451,13 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     }
     
     self.contexts = [self.contexts arrayByAddingObjectsFromArray:self.updateTempContexts];
+    self.dates = [self.dates arrayByAddingObjectsFromArray:self.updateTempDates];
     
     [self drawSetting];
     [self setNeedsDisplay];
     [self startFlashAnimation];
     [self.updateTempContexts removeAllObjects];
+    [self.updateTempDates removeAllObjects];
 }
 
 - (void)resetMinAndMax {
