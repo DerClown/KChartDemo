@@ -57,25 +57,6 @@
         }
     }];
     [manager startMonitoring];
-    
-    switch (manager.networkReachabilityStatus) {
-        case AFNetworkReachabilityStatusUnknown: {
-            NSLog(@"unknown networking");
-            break;
-        }
-        case AFNetworkReachabilityStatusNotReachable: {
-            NSLog(@"no network");
-            break;
-        }
-        case AFNetworkReachabilityStatusReachableViaWWAN: {
-            NSLog(@"wwan");
-            break;
-        }
-        case AFNetworkReachabilityStatusReachableViaWiFi: {
-            NSLog(@"wifi");
-            break;
-        }
-    }
 }
 
 

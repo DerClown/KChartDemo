@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TLineChartView.m */; };
+		1E84E1AB1D7993EF00384D27 /* UIColor+Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E84E1AA1D7993EF00384D27 /* UIColor+Ext.m */; };
 		1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */; };
 		1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EECF1B11D6E9AD300E52D10 /* StatusView.m */; };
 		1EF4CEA51D5D5FA600221294 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEA41D5D5FA600221294 /* main.m */; };
@@ -27,7 +28,6 @@
 		1EF4CF231D5D63B400221294 /* GApiConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF161D5D63B400221294 /* GApiConfig.m */; };
 		1EF4CF241D5D63B400221294 /* GApiLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF191D5D63B400221294 /* GApiLogger.m */; };
 		1EF4CF251D5D63B400221294 /* GApiResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF1B1D5D63B400221294 /* GApiResponse.m */; };
-		1EF4CF2B1D5D64AE00221294 /* UIColor+Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF2A1D5D64AE00221294 /* UIColor+Ext.m */; };
 		1EF4CF2E1D5D650400221294 /* KLineListManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF2D1D5D650400221294 /* KLineListManager.m */; };
 		1EF4CF321D5D659500221294 /* KLineListTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF311D5D659500221294 /* KLineListTransformer.m */; };
 		1EF4CF391D5D67C200221294 /* KLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF351D5D67C200221294 /* KLineChartView.m */; };
@@ -59,6 +59,8 @@
 		094B6C9633E09A521CD38E54 /* Pods-ChartDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChartDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ChartDemo/Pods-ChartDemo.debug.xcconfig"; sourceTree = "<group>"; };
 		1E7B58C51D621010005BF850 /* TLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLineChartView.h; sourceTree = "<group>"; };
 		1E7B58C61D621010005BF850 /* TLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TLineChartView.m; sourceTree = "<group>"; };
+		1E84E1A91D7993EF00384D27 /* UIColor+Ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIColor+Ext.h"; path = "Categories/UIColor+Ext.h"; sourceTree = "<group>"; };
+		1E84E1AA1D7993EF00384D27 /* UIColor+Ext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIColor+Ext.m"; path = "Categories/UIColor+Ext.m"; sourceTree = "<group>"; };
 		1EEC1A4A1D5DC4600063A205 /* UIBezierPath+curved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBezierPath+curved.h"; sourceTree = "<group>"; };
 		1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIBezierPath+curved.m"; sourceTree = "<group>"; };
 		1EECF1B01D6E9AD300E52D10 /* StatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatusView.h; sourceTree = "<group>"; };
@@ -98,8 +100,6 @@
 		1EF4CF191D5D63B400221294 /* GApiLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GApiLogger.m; sourceTree = "<group>"; };
 		1EF4CF1A1D5D63B400221294 /* GApiResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GApiResponse.h; sourceTree = "<group>"; };
 		1EF4CF1B1D5D63B400221294 /* GApiResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GApiResponse.m; sourceTree = "<group>"; };
-		1EF4CF291D5D64AE00221294 /* UIColor+Ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIColor+Ext.h"; sourceTree = "<group>"; };
-		1EF4CF2A1D5D64AE00221294 /* UIColor+Ext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIColor+Ext.m"; sourceTree = "<group>"; };
 		1EF4CF2C1D5D650400221294 /* KLineListManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineListManager.h; sourceTree = "<group>"; };
 		1EF4CF2D1D5D650400221294 /* KLineListManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineListManager.m; sourceTree = "<group>"; };
 		1EF4CF301D5D659500221294 /* KLineListTransformer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineListTransformer.h; sourceTree = "<group>"; };
@@ -203,6 +203,8 @@
 				1EF4CEA91D5D5FA600221294 /* KLineViewController.h */,
 				1EF4CEAA1D5D5FA600221294 /* KLineViewController.m */,
 				1EF4CF281D5D64AE00221294 /* Categories */,
+				1E84E1A91D7993EF00384D27 /* UIColor+Ext.h */,
+				1E84E1AA1D7993EF00384D27 /* UIColor+Ext.m */,
 				1EF4CF271D5D643F00221294 /* Models */,
 				1EF4CF261D5D642800221294 /* APIs */,
 				1EF4CED81D5D5FFF00221294 /* Views */,
@@ -340,8 +342,6 @@
 			isa = PBXGroup;
 			children = (
 				1EEC1A491D5DC4600063A205 /* UIBezierPath+curved */,
-				1EF4CF291D5D64AE00221294 /* UIColor+Ext.h */,
-				1EF4CF2A1D5D64AE00221294 /* UIColor+Ext.m */,
 			);
 			path = Categories;
 			sourceTree = "<group>";
@@ -575,8 +575,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				1EF83FC61D6C335300798643 /* TLineTipBoardView.m in Sources */,
+				1E84E1AB1D7993EF00384D27 /* UIColor+Ext.m in Sources */,
 				1EF4CEAB1D5D5FA600221294 /* KLineViewController.m in Sources */,
-				1EF4CF2B1D5D64AE00221294 /* UIColor+Ext.m in Sources */,
 				1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */,
 				1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */,
 				1EF4CF201D5D63B400221294 /* GApiBaseManager.m in Sources */,

@@ -107,7 +107,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 }
 
 - (void)_setup {
-    self.timeAxisHeigth = 20.0;
+    self.timeAxisHeight = 20.0;
     
     self.positiveLineColor = [UIColor colorWithRed:(31/255.0f) green:(185/255.0f) blue:(63.0f/255.0f) alpha:1.0];
     self.negativeLineColor = [UIColor colorWithRed:(232/255.0f) green:(50.0f/255.0f) blue:(52.0f/255.0f) alpha:1.0];
@@ -420,7 +420,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     //时间，价额
     self.priceLbl.hidden = NO;
     self.priceLbl.text = [line[0] floatValue] > [line[3] floatValue] ? [self dealDecimalWithNum:@([line[0] floatValue])] :[self dealDecimalWithNum:@([line[3] floatValue])] ;
-    self.priceLbl.frame = CGRectMake(0, MIN(self.horizontalCrossLine.frame.origin.y - (self.timeAxisHeigth - self.separatorWidth*2)/2.0, self.topMargin + self.yAxisHeight - self.timeAxisHeigth), self.leftMargin - self.separatorWidth, self.timeAxisHeigth - self.separatorWidth*2);
+    self.priceLbl.frame = CGRectMake(0, MIN(self.horizontalCrossLine.frame.origin.y - (self.timeAxisHeight - self.separatorWidth*2)/2.0, self.topMargin + self.yAxisHeight - self.timeAxisHeight), self.leftMargin - self.separatorWidth, self.timeAxisHeight - self.separatorWidth*2);
     
     NSString *date = self.dates[[self.contexts indexOfObject:line]];
     self.timeLbl.text = date;
@@ -428,7 +428,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     if (date.length > 0) {
         CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
         CGFloat originX = MIN(MAX(self.leftMargin, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
-        self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeigth - self.separatorWidth*2);
+        self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeight - self.separatorWidth*2);
     }
 }
 
@@ -493,13 +493,13 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         //交易量边框
         CGContextSetLineWidth(context, self.axisShadowWidth);
         CGContextSetStrokeColorWithColor(context, self.axisShadowColor.CGColor);
-        strokeRect = CGRectMake(self.leftMargin, self.yAxisHeight + self.topMargin + self.timeAxisHeigth, self.xAxisWidth, rect.size.height - self.yAxisHeight - self.topMargin - self.timeAxisHeigth);
+        strokeRect = CGRectMake(self.leftMargin, self.yAxisHeight + self.topMargin + self.timeAxisHeight, self.xAxisWidth, rect.size.height - self.yAxisHeight - self.topMargin - self.timeAxisHeight);
         CGContextStrokeRect(context, strokeRect);
         
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[self dealDecimalWithNum:@(self.maxVolValue)] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
-        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.yAxisHeight + self.topMargin + self.timeAxisHeigth - 2, size.width, size.height)];
+        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.yAxisHeight + self.topMargin + self.timeAxisHeight - 2, size.width, size.height)];
         
         attString = [[NSAttributedString alloc] initWithString:@"万" attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
@@ -673,7 +673,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     CGFloat xAxis = _kLinePadding + _leftMargin;
     
-    CGFloat boxYOrigin = self.topMargin + self.yAxisHeight + self.timeAxisHeigth;
+    CGFloat boxYOrigin = self.topMargin + self.yAxisHeight + self.timeAxisHeight;
     CGFloat boxHeight = rect.size.height - boxYOrigin;
     CGFloat scale = self.maxVolValue/boxHeight;
     
@@ -867,7 +867,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 - (UIView *)barVerticalLine {
     if (!_barVerticalLine) {
-        _barVerticalLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin + self.yAxisHeight + self.timeAxisHeigth, 0.5, self.frame.size.height - (self.topMargin + self.yAxisHeight + self.timeAxisHeigth))];
+        _barVerticalLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin + self.yAxisHeight + self.timeAxisHeight, 0.5, self.frame.size.height - (self.topMargin + self.yAxisHeight + self.timeAxisHeight))];
         _barVerticalLine.backgroundColor = self.crossLineColor;
         [self addSubview:_barVerticalLine];
     }
@@ -1015,7 +1015,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 }
 
 - (void)setBottomMargin:(CGFloat)bottomMargin {
-    _bottomMargin = bottomMargin < _timeAxisHeigth ? _timeAxisHeigth : bottomMargin;
+    _bottomMargin = bottomMargin < _timeAxisHeight ? _timeAxisHeight : bottomMargin;
 }
 
 @end
