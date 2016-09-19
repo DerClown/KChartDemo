@@ -131,6 +131,7 @@
         _kLineChartView.topMargin = 20.0f;
         _kLineChartView.rightMargin = 1.0;
         _kLineChartView.bottomMargin = 80.0f;
+        // YES表示：Y坐标的值根据视图中呈现的k线图的最大值最小值变化而变化；NO表示：Y坐标是所有数据中的最大值最小值，不管k线图呈现如何都不会变化。默认YES
         //_kLineChartView.yAxisTitleIsChange = NO;
         
         // 及时更新k线图

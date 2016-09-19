@@ -64,6 +64,13 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     [self stopFlashAnimation];
 }
 
+- (id)init {
+    if (self = [super init]) {
+        [self _setup];
+    }
+    return self;
+}
+
 - (id)initWithCoder:(NSCoder *)aDecoder {
     if (self = [super initWithCoder:aDecoder]) {
         [self _setup];
