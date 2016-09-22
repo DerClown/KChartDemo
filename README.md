@@ -41,6 +41,7 @@
 1. 其他参数设置可以查看`KLineChartView.h` & `TLineChartView.h` 头文件。
 2. 网络请求查看 `KLineListManager.m` 文件。
 3. 数据处理查看 `KLineListTransformer.m` 文件。
+4. 传递到 **k线图** & **时分图** 的数据格式按照自己处理数据格式需改！
 
 >这里有几点有必要说明一下！
 
