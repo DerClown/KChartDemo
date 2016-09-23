@@ -20,12 +20,28 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ChartDemo/Views/TLine/TLineChartView.m"
-            timestampString = "494483113.538204"
+            timestampString = "496292320.808669"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "196"
-            endingLineNumber = "196"
-            landmarkName = "-longPressedEvent:"
+            startingLineNumber = "364"
+            endingLineNumber = "364"
+            landmarkName = "-drawLineChart"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "ChartDemo/Views/TLine/TLineChartView.m"
+            timestampString = "496292320.808669"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "382"
+            endingLineNumber = "382"
+            landmarkName = "-drawLineChart"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>

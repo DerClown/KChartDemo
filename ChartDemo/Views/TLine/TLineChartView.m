@@ -34,7 +34,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 @property (nonatomic, assign) CGFloat minValue;
 
-@property (nonatomic, strong) NSArray *points;
+@property (nonatomic, strong) NSDictionary *points;
 
 @property (nonatomic, strong) TLineTipBoardView *tipBox;
 
@@ -174,50 +174,45 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         [self.tipBox hide];
     } else {
         CGPoint touchPoint = [longGesture locationInView:self];
-        
-        [self.points enumerateObjectsUsingBlock:^(NSString *pointString, NSUInteger idx, BOOL * _Nonnull stop) {
-            CGPoint point = CGPointFromString(pointString);
-            if (touchPoint.x > (self.pointPadding + self.leftMargin) && touchPoint.x < (self.frame.size.width - self.pointPadding - self.rightMargin)) {
-                if (touchPoint.x > (point.x - self.pointPadding/2.0) && touchPoint.x < (point.x + self.pointPadding/2.0)) {
-                    self.vtlCrossLine.hidden = NO;
-                    CGRect frame = self.vtlCrossLine.frame;
-                    frame.origin.x = point.x;
-                    
-                    self.vtlCrossLine.frame = frame;
-                    
-                    self.tipBox.hidden = NO;
-                    
-                    point.y = point.y > (self.frame.size.height - self.topMargin - self.tipBox.frame.size.height/2.0)/2.0 ? (self.frame.size.height - self.topMargin - self.tipBox.frame.size.height/2.0)/2.0 : point.y;
-                    point.y -= self.tipBox.frame.size.height/2.0;
-                    if (point.y < self.topMargin + self.tipBox.frame.size.height/2.0) {
-                        point.y = self.topMargin;
-                    }
-                    
-                    CGFloat graphCount = (point.x - self.leftMargin - self.pointPadding)/self.pointPadding;
-                    NSInteger index = floor(graphCount);
-                    if ((graphCount - index) > self.pointPadding/2.0) {
-                        index = ceil(graphCount);
-                    }
-                    
-                    NSArray<NSArray *> *line = [self.contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
-                    
-                    self.tipBox.content = [NSString stringWithFormat:@"%.2f", [[line[index] objectAtIndex:3] floatValue]];
-                    [self.tipBox showWithTipPoint:point];
-                    [self bringSubviewToFront:self.tipBox];
-                    
-                    NSString *date = self.dates[index];
-                    self.timeLbl.text = date;
-                    self.timeLbl.hidden = date.length > 0 ? NO : YES;
-                    if (date.length > 0) {
-                        CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
-                        CGFloat originX = MIN(MAX(self.leftMargin, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
-                        self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeigth - self.separatorWidth*2);
-                    }
-
-                    
-                    *stop = YES;
-                }
+        [self.points enumerateKeysAndObjectsUsingBlock:^(NSNumber *indexNum, NSString *pointKey, BOOL * _Nonnull stop) {
+            NSInteger touchIndex = MIN(MAX(0, floor((touchPoint.x - self.leftMargin)/self.pointPadding)), self.points.count - 1);
+            if (touchIndex*self.pointPadding - touchPoint.x > 1/2*self.pointPadding) {
+                touchIndex += 1;
             }
+            
+            touchIndex += self.startDrawIndex;
+            
+            CGPoint point = CGPointFromString([_points objectForKey:@(touchIndex)]);
+            self.vtlCrossLine.hidden = NO;
+            CGRect frame = self.vtlCrossLine.frame;
+            frame.origin.x = point.x;
+            
+            self.vtlCrossLine.frame = frame;
+            
+            self.tipBox.hidden = NO;
+            
+            point.y = point.y > (self.frame.size.height - self.topMargin - self.tipBox.frame.size.height/2.0)/2.0 ? (self.frame.size.height - self.topMargin - self.tipBox.frame.size.height/2.0)/2.0 : point.y;
+            point.y -= self.tipBox.frame.size.height/2.0;
+            if (point.y < self.topMargin + self.tipBox.frame.size.height/2.0) {
+                point.y = self.topMargin;
+            }
+            
+            
+            self.tipBox.content = [NSString stringWithFormat:@"%.2f", [[_contexts[touchIndex] objectAtIndex:3] floatValue]];
+            [self.tipBox showWithTipPoint:point];
+            [self bringSubviewToFront:self.tipBox];
+            
+            NSString *date = self.dates[touchIndex];
+            self.timeLbl.text = date;
+            self.timeLbl.hidden = date.length > 0 ? NO : YES;
+            if (date.length > 0) {
+                CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
+                CGFloat originX = MIN(MAX(self.leftMargin, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
+                self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeigth - self.separatorWidth*2);
+            }
+            
+            
+            *stop = YES;
         }];
     }
 }
@@ -366,7 +361,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     CGContextStrokePath(context);
     
     //gradient
-    CGPoint point = CGPointFromString([self.points lastObject]);
+    CGPoint point = CGPointFromString([self.points objectForKey:[self.points.allKeys valueForKeyPath:@"@max.intValue"]]);
     [bPath addLineToPoint:CGPointMake(point.x, self.frame.size.height - self.bottomMargin)];
     [bPath addLineToPoint:CGPointMake(self.leftMargin + self.pointPadding, self.frame.size.height - self.bottomMargin)];
     CGPathRef path = bPath.CGPath;
@@ -394,16 +389,11 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     if (scale != 0) {
         NSArray *drawContexts = [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
-        NSMutableArray *contentPoints = [NSMutableArray new];
+        NSMutableDictionary *contentPoints = [NSMutableDictionary new];
         for (NSArray *line in drawContexts) {
             CGFloat volValue = [line[3] floatValue];
             CGFloat yAxis = self.yAxisHeight - (volValue - self.minValue)/scale + self.topMargin;
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
-            if (yAxis < self.topMargin) {
-                xAxis += self.pointPadding;
-                [contentPoints addObject:NSStringFromCGPoint(CGPointMake(xAxis, self.frame.size.height - self.bottomMargin))];
-                continue;
-            }
             
             if (!path) {
                 path = [UIBezierPath bezierPath];
@@ -412,7 +402,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
                 [path addLineToPoint:maPoint];
             }
             
-            [contentPoints addObject:NSStringFromCGPoint(CGPointMake(xAxis, yAxis))];
+            [contentPoints setObject:NSStringFromCGPoint(CGPointMake(xAxis, yAxis)) forKey:@([_contexts indexOfObject:line])];
             xAxis += self.pointPadding;
         }
         self.points = contentPoints;
@@ -434,7 +424,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     [self stopFlashAnimation];
     
     CGRect frame = self.flashLayer.frame;
-    CGPoint lastPoint = CGPointFromString([self.points lastObject]);
+    CGPoint lastPoint = CGPointFromString([self.points objectForKey:[self.points.allKeys valueForKeyPath:@"@max.intValue"]]);
     frame.origin.x = lastPoint.x - frame.size.width/2.0;
     frame.origin.y = lastPoint.y - frame.size.height/2.0;
     self.flashLayer.frame = frame;
