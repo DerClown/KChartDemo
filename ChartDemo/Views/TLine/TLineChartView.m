@@ -321,20 +321,13 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 - (void)drawTimeAxis {
     CGContextRef context = UIGraphicsGetCurrentContext();
     
+    //四分之一宽需要画多少个点
     CGFloat quarteredWidth = self.xAxisWidth/4.0;
     NSInteger avgDrawCount = ceil(quarteredWidth/_pointPadding);
-    NSInteger timeAxisDrawCount = 4;
-    CGFloat drawAxisWdith = self.kGraphDrawCount*_pointPadding;
-    if (drawAxisWdith > 2*quarteredWidth && drawAxisWdith < 3*quarteredWidth) {
-        timeAxisDrawCount = 4;
-    } else if (drawAxisWdith < 2*quarteredWidth && drawAxisWdith > quarteredWidth) {
-        timeAxisDrawCount = 2;
-    } else if (drawAxisWdith < quarteredWidth) {
-        timeAxisDrawCount = 1;
-    }
     
     CGFloat xAxis = self.leftMargin + _pointPadding;
-    for (int i = 0; i < timeAxisDrawCount; i ++) {
+    //画4条虚线
+    for (int i = 0; i < 4; i ++) {
         if (xAxis > self.leftMargin + self.xAxisWidth) {
             break;
         }
@@ -349,16 +342,16 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         
         //x轴坐标
         NSInteger timeIndex = i*avgDrawCount + self.startDrawIndex;
+        if (timeIndex > self.dates.count - 1) {
+            xAxis += avgDrawCount*_pointPadding;
+            continue;
+        }
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.dates[timeIndex] attributes:@{NSFontAttributeName:self.xAxisTitleFont, NSForegroundColorAttributeName:self.xAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.xAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         CGFloat originX = MIN(xAxis - size.width/2.0, self.frame.size.width - self.rightMargin - size.width);
         [attString drawInRect:CGRectMake(originX, self.topMargin + self.yAxisHeight + 2.0, size.width, size.height)];
         
-        if (drawAxisWdith < avgDrawCount*_pointPadding && timeAxisDrawCount == 2) {
-            xAxis += self.kGraphDrawCount*_pointPadding;
-        } else {
-            xAxis += avgDrawCount*_pointPadding;
-        }
+        xAxis += avgDrawCount*_pointPadding;
     }
     CGContextSetLineDash(context, 0, 0, 0);
 }
