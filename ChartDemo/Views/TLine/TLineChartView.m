@@ -10,8 +10,14 @@
 #import "TLineChartView.h"
 #import "KLineListTransformer.h"
 #import "UIBezierPath+curved.h"
-#import "UIColor+Ext.h"
 #import "TLineTipBoardView.h"
+
+#define HexRGB(rgbValue)\
+                        \
+                        [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 \
+                                        green:((float)((rgbValue & 0xFF00) >> 8))/255.0    \
+                                         blue:((float)(rgbValue & 0xFF))/255.0             \
+                                        alpha:(1.0)]
 
 NSString *const TLineKeyStartUserInterfaceNotification = @"TLineKeyStartUserInterfaceNotification";
 NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInterfaceNotification";
@@ -112,13 +118,13 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     self.smoothPath = YES;
     
-    self.crossLineColor = [UIColor colorWithHexString:@"#C9C9C9"];
+    self.crossLineColor = HexRGB(0xC9C9C9);
     
     self.flashPointColor = [UIColor redColor];
     
     self.yAxisTitleIsChange = YES;
     
-    self.timeTipBackgroundColor = [UIColor colorWithHexString:@"D70002"];
+    self.timeTipBackgroundColor = HexRGB(0xD70002);
     self.timeTipTextColor = [UIColor colorWithWhite:1.0 alpha:0.95];
     
     self.updateTempContexts = [NSMutableArray new];
@@ -263,7 +269,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     self.leftMargin = size.width + 4.0f;
     
     //绘制点数
-    self.kGraphDrawCount = floor(((self.frame.size.width - self.leftMargin - self.rightMargin - self.pointPadding) / self.pointPadding));
+    self.kGraphDrawCount = ceil(((self.frame.size.width - self.leftMargin - self.rightMargin - 0.5) / self.pointPadding));
+    self.pointPadding += fabs((self.frame.size.width - self.leftMargin - self.rightMargin - 0.5) - MAX(0, (self.kGraphDrawCount - 1))*self.pointPadding)/self.kGraphDrawCount;
     
     [self resetMinAndMax];
 }
@@ -309,7 +316,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", yAxisValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
-        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.topMargin + avgHeight*i - (i == 5 ? size.height - 1 : size.height/2.0), size.width, size.height)];
+        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.topMargin + avgHeight*i - (i == (self.separatorNum  + 2 - 1) ? size.height - 1 : (i == 0 ? 0 : size.height)), size.width, size.height)];
     }
 }
 
@@ -320,7 +327,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     CGFloat quarteredWidth = self.xAxisWidth/4.0;
     NSInteger avgDrawCount = ceil(quarteredWidth/_pointPadding);
     
-    CGFloat xAxis = self.leftMargin + _pointPadding;
+    CGFloat xAxis = self.leftMargin + 0.5 + self.pointPadding;
     //画4条虚线
     for (int i = 0; i < 4; i ++) {
         if (xAxis > self.leftMargin + self.xAxisWidth) {
@@ -336,7 +343,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         CGContextStrokePath(context);
         
         //x轴坐标
-        NSInteger timeIndex = i*avgDrawCount + self.startDrawIndex;
+        NSInteger timeIndex = i*avgDrawCount + self.startDrawIndex + 1;
         if (timeIndex > self.dates.count - 1) {
             xAxis += avgDrawCount*_pointPadding;
             continue;
@@ -362,11 +369,11 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     //gradient
     CGPoint point = CGPointFromString([self.points objectForKey:[self.points.allKeys valueForKeyPath:@"@max.intValue"]]);
-    [bPath addLineToPoint:CGPointMake(point.x, self.frame.size.height - self.bottomMargin)];
-    [bPath addLineToPoint:CGPointMake(self.leftMargin + self.pointPadding, self.frame.size.height - self.bottomMargin)];
+    [bPath addLineToPoint:CGPointMake(point.x, self.frame.size.height - self.bottomMargin - 0.5)];
+    [bPath addLineToPoint:CGPointMake(self.leftMargin + 0.5, self.frame.size.height - self.bottomMargin - 0.5)];
     CGPathRef path = bPath.CGPath;
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGFloat locations[] = {0.9, 1.0};
+    CGFloat locations[] = {0.5, 1.0};
     NSArray *colors = @[(__bridge id) self.gradientStartColor.CGColor, (__bridge id) self.gradientEndColor.CGColor];
     CGGradientRef gradient = CGGradientCreateWithColors(colorSpace, (__bridge CFArrayRef) colors, locations);
     CGRect pathRect = CGPathGetBoundingBox(path);
@@ -384,7 +391,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 - (UIBezierPath *)getLineChartPath {
     UIBezierPath *path;
-    CGFloat xAxis = self.leftMargin + self.pointPadding;
+    CGFloat xAxis = self.leftMargin+0.5;
     CGFloat scale = (self.maxValue - self.minValue) / self.yAxisHeight;
     
     if (scale != 0) {

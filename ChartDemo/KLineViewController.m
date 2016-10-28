@@ -151,7 +151,8 @@
         _tLineChartView.leftMargin = 50.0;
         _tLineChartView.bottomMargin = 0.5;
         _tLineChartView.rightMargin = 1.0;
-        _tLineChartView.pointPadding = 2.8;
+        _tLineChartView.pointPadding = 30.0f
+        ;
         _tLineChartView.flashPoint = YES;
         //_tLineChartView.smoothPath = NO;
     }
