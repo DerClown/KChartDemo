@@ -85,6 +85,10 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 #pragma mark - life cycle
 
+- (void)dealloc {
+    [self removeObserver];
+}
+
 - (id)init {
     if (self = [super init]) {
         [self _setup];
@@ -198,6 +202,12 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(endOfTouchNotification:) name:KLineKeyEndOfUserInterfaceNotification object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
+}
+
+- (void)removeObserver {
+    [self removeObserver:self forKeyPath:KLineKeyStartUserInterfaceNotification];
+    [self removeObserver:self forKeyPath:KLineKeyEndOfUserInterfaceNotification];
+    [self removeObserver:self forKeyPath:UIDeviceOrientationDidChangeNotification];
 }
 
 - (void)drawRect:(CGRect)rect {
