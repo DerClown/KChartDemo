@@ -15,6 +15,10 @@ extern NSString *const kCandlerstickChartsMaxHigh;
 extern NSString *const kCandlerstickChartsMinLow;
 extern NSString *const kCandlerstickChartsMaxVol;
 extern NSString *const kCandlerstickChartsMinVol;
+extern NSString *const kCandlerstickChartsRSV9;
+extern NSString *const kCandlerstickChartsKDJ;
+extern NSString *const kCandlerstickChartsMACD;
+
 /**
  *  extern key 可修改为Entity
  */
