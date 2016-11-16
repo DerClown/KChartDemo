@@ -23,6 +23,7 @@ extern NSString *const kCandlerstickChartsBOLL;
 extern NSString *const kCandlerstickChartsDMA;
 extern NSString *const kCandlerstickChartsCCI;
 extern NSString *const kCandlerstickChartsWR;
+extern NSString *const kCandlerstickChartsBIAS;
 
 /**
  *  extern key 可修改为Entity

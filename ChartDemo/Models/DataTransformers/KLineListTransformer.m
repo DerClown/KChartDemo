@@ -22,6 +22,8 @@ NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
 NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
 NSString *const kCandlerstickChartsCCI = @"kCandlerstickChartsCCI";
 NSString *const kCandlerstickChartsWR = @"kCandlerstickChartsWR";
+NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
+
 
 @implementation KLineListTransformer{
     NSInteger _kCount;
@@ -48,6 +50,7 @@ NSString *const kCandlerstickChartsWR = @"kCandlerstickChartsWR";
     NSMutableArray *dmas = [NSMutableArray new];
     NSMutableArray *ccis = [NSMutableArray new];
     NSMutableArray *wrs = [NSMutableArray new];
+    NSMutableArray *biass = [NSMutableArray new];
     float maxHigh = 0.0, minLow = 0.0, maxVol = 0.0, minVol = 0.0;
     for (int i = (int)cutRawData.count; i > 0; i --) {
         //arr = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
@@ -71,6 +74,10 @@ NSString *const kCandlerstickChartsWR = @"kCandlerstickChartsWR";
         CGFloat cci14 = [self cciWithData:lineRawData subWithRange:NSMakeRange(i, 14)];
         
         CGFloat wr14 = [self wrWithData:lineRawData subWithRange:NSMakeRange(i, 14)];
+        
+        CGFloat bias6 = [self biasWithData:lineRawData subWithRange:NSMakeRange(i, 6)];
+        CGFloat bias12 = [self biasWithData:lineRawData subWithRange:NSMakeRange(i, 12)];
+        CGFloat bias24 = [self biasWithData:lineRawData subWithRange:NSMakeRange(i, 24)];
         
         //item = @["开盘价,最高价,最低价,收盘价,成交量, MA5, MA10, MA20"]
         NSMutableArray *item = [[NSMutableArray alloc] initWithCapacity:5];
@@ -107,6 +114,7 @@ NSString *const kCandlerstickChartsWR = @"kCandlerstickChartsWR";
         [dmas addObject:dma];
         [ccis addObject:@(cci14)];
         [wrs addObject:@(wr14)];
+        [biass addObject:@[@(bias6), @(bias12), @(bias24)]];
     }
     
     NSArray *kdj = [self kdjWithRSV9:rsv9s];
@@ -128,6 +136,7 @@ NSString *const kCandlerstickChartsWR = @"kCandlerstickChartsWR";
     [despString appendFormat:@"DMA: \t\t\t\t%@\n\n\n", dmas];
     [despString appendFormat:@"CCI: \t\t\t\t%@\n\n\n", ccis];
     [despString appendFormat:@"WR: \t\t\t\t%@\n\n\n", wrs];
+    [despString appendFormat:@"BIAS: \t\t\t\t%@\n\n\n", biass];
     [despString appendString:@"/************************************************************************/"];
     
     NSLog(@"%@", despString);
@@ -146,7 +155,8 @@ NSString *const kCandlerstickChartsWR = @"kCandlerstickChartsWR";
              kCandlerstickChartsBOLL:bolls,
              kCandlerstickChartsDMA:dmas,
              kCandlerstickChartsCCI:ccis,
-             kCandlerstickChartsWR:wrs
+             kCandlerstickChartsWR:wrs,
+             kCandlerstickChartsBIAS:biass
              };
 }
 
@@ -423,5 +433,28 @@ NSString *const kCandlerstickChartsWR = @"kCandlerstickChartsWR";
     
     return (Hn - close)/(Hn - Ln)*100;
 }
+
+/*
+ BIAS指标的原理和计算方法:
+ BIAS(n) = (C - MA(n)) ÷ MA(n)×100
+ 其中：C为计算日的收盘价，MA(n) N日移动平均数。
+ */
+- (CGFloat)biasWithData:(NSArray *)data subWithRange:(NSRange)range {
+    if (data.count == 0) {
+        return 0.0;
+    }
+    
+    NSArray *rangeData = [data subarrayWithRange:NSMakeRange(range.location, data.count - range.location)];
+    if (data.count - range.location >= range.length) {
+        rangeData = [data subarrayWithRange:range];
+    }
+    
+    float ma = [self maWithData:data subInRange:range];
+    float close = [[rangeData.firstObject componentsSeparatedByString:@","][4] floatValue];
+    
+    return (close - ma)/ma*100.0f;
+}
+
+
 
 @end
