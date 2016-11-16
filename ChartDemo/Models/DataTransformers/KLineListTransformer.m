@@ -17,6 +17,7 @@ NSString *const kCandlerstickChartsMinVol  = @"kCandlerstickChartsMinVol";
 NSString *const kCandlerstickChartsRSV9 = @"kCandlerstickChartsRSV9";
 NSString *const kCandlerstickChartsKDJ = @"kCandlerstickChartsKDJ";
 NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
+NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
 
 @implementation KLineListTransformer{
     NSInteger _kCount;
@@ -38,6 +39,7 @@ NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
     NSMutableArray *context = [NSMutableArray new];
     NSMutableArray *dates = [NSMutableArray new];
     NSMutableArray *rsv9s = [NSMutableArray new];
+    NSMutableArray *rsis = [NSMutableArray new];
     float maxHigh = 0.0, minLow = 0.0, maxVol = 0.0, minVol = 0.0;
     for (int i = (int)cutRawData.count; i > 0; i --) {
         //arr = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
@@ -46,11 +48,13 @@ NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
             continue;
         }
         
-        CGFloat MA5 = [self chartMAWithData:lineRawData sunInRange:NSMakeRange(i, 5)];
-        CGFloat MA10 = [self chartMAWithData:lineRawData sunInRange:NSMakeRange(i, 10)];
-        CGFloat MA20 = [self chartMAWithData:lineRawData sunInRange:NSMakeRange(i, 20)];
+        CGFloat MA5 = [self chartMAWithData:lineRawData subInRange:NSMakeRange(i, 5)];
+        CGFloat MA10 = [self chartMAWithData:lineRawData subInRange:NSMakeRange(i, 10)];
+        CGFloat MA20 = [self chartMAWithData:lineRawData subInRange:NSMakeRange(i, 20)];
         
         CGFloat rsv9 = [self rsv9WithData:lineRawData sunInRange:NSMakeRange(i, 9)];
+        
+        CGFloat rsi = [self rsiWithData:lineRawData subWithRange:NSMakeRange(i, 12)];
         
         //item = @["开盘价,最高价,最低价,收盘价,成交量, MA5, MA10, MA20"]
         NSMutableArray *item = [[NSMutableArray alloc] initWithCapacity:5];
@@ -82,14 +86,15 @@ NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
         [context addObject:item];
         [dates addObject:arr[0]];
         [rsv9s addObject:@(rsv9)];
+        [rsis addObject:@(rsi)];
     }
     
-    NSArray *kdj = [self KDJWithRSV9:rsv9s];
+    NSArray *kdj = [self kdjWithRSV9:rsv9s];
     
-    NSArray *macd = [self MACDWithData:cutRawData];
+    NSArray *macd = [self macdWithData:cutRawData];
     
 #ifdef DEBUG
-    NSMutableString *despString = [[NSMutableString alloc] initWithString:@"/************************************ Data Center Control ************************************/"];
+    NSMutableString *despString = [[NSMutableString alloc] initWithString:@"\n\n\n\n/************************************ Data Center Control ************************************/\n\n\n\n"];
     [despString appendFormat:@"Stock Candlers: \t\t\t\t%@\n\n\n", context];
     [despString appendFormat:@"Stock Dates: \t\t\t\t%@\n\n\n", dates];
     [despString appendFormat:@"MaxHigh: \t\t\t\t%.2f\n\n\n", maxHigh];
@@ -98,6 +103,7 @@ NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
     [despString appendFormat:@"MinVol: \t\t\t\t%.2f\n\n\n", minVol];
     [despString appendFormat:@"KDJ->[K, D, J]: \t\t\t\t%@\n\n\n", kdj];
     [despString appendFormat:@"MACD->[DIFF, DEA, BAR]: \t\t\t\t%@\n\n\n", macd];
+    [despString appendFormat:@"RSI: \t\t\t\t%@\n\n\n", rsis];
     [despString appendString:@"/************************************************************************/"];
     
     NSLog(@"%@", despString);
@@ -112,11 +118,12 @@ NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
              kCandlerstickChartsRSV9:rsv9s,
              kCandlerstickChartsKDJ:kdj,
              kCandlerstickChartsMACD:macd,
+             kCandlerstickChartsRSI:rsis
              };
 }
 
 // MA
-- (CGFloat)chartMAWithData:(NSArray *)data sunInRange:(NSRange)range {
+- (CGFloat)chartMAWithData:(NSArray *)data subInRange:(NSRange)range {
     CGFloat md = 0;
     if (data.count - range.location >= range.length) {
         NSArray *rangeData = [data subarrayWithRange:range];
@@ -162,7 +169,7 @@ NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
 }
 
 // KDJ
-- (NSArray *)KDJWithRSV9:(NSArray *)rsv9s {
+- (NSArray *)kdjWithRSV9:(NSArray *)rsv9s {
     NSMutableArray *kdj_ks = [NSMutableArray new];
     NSMutableArray *kdj_ds = [NSMutableArray new];
     NSMutableArray *kdj_js = [NSMutableArray new];
@@ -200,7 +207,7 @@ NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
     DEA（MACD）= M天的DIF总和/M
     BAR=2×(DIFF－DEA)
  */
-- (NSArray *)MACDWithData:(NSArray *)data {
+- (NSArray *)macdWithData:(NSArray *)data {
     NSMutableArray *diffs = [NSMutableArray new];
     NSMutableArray *deas = [NSMutableArray new];
     NSMutableArray *bars = [NSMutableArray new];
@@ -224,7 +231,60 @@ NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
         prvLongEMA = long_ema;
     }
     
-    return @[diffs, deas, bars];
+    return @[[[diffs reverseObjectEnumerator] allObjects], [[deas reverseObjectEnumerator] allObjects], [[bars reverseObjectEnumerator] allObjects]];
+}
+
+/*
+ 计算公式
+ RSI=100×RS/(1+RS)
+ 
+ 计算RSI的步骤如下：
+ 其中 RS=N天内收市价上涨数之和的平均值 && N天内收市价下跌数之和的平均值
+ 例子：
+ 如果最近14天涨跌情形是： 
+    第一天升2元，第二天跌2元，第三至第五天各升3元；第六天跌4元 第七天升2元，第八天跌5元；第九天跌6元，第十至十二天各升1元；第十三至十四天各跌3元。
+ (一)将14天上升的数目相加，除以14，上例中总共上升16元除以14得1.143(精确到小数点后三位)；
+ (二)将14天下跌的数目相加，除以14，上例中总共下跌23元除以14得1.643(精确到小数点后三位)； 
+ (三)求出相对强度RS，即RS=1.143/1.643=0.696(精确到小数点后三位)；    
+ (四)1+RS=1+0.696=1.696；   
+ (五)以100除以1+RS，即100/1.696=58.962；
+ (六)100-58.962=41.038。   
+ 结果14天的强弱指标RS1为41.038。    
+ 不同日期的14天RSI值当然是不同的，连接不同的点，即成RSI的轨迹。
+ 
+ @param range.length 表示N天
+ */
+- (float)rsiWithData:(NSArray *)data subWithRange:(NSRange)range {
+    // length + 1 获取 N+1 天的数据
+    float sumOfRise = 0.0, sumOfFall = 0.0;
+    NSArray *rangeData;
+    if ((data.count - range.location >= range.length + 1)) {
+        rangeData = [data subarrayWithRange:NSMakeRange(range.location, range.length + 1)];
+    } else {
+        rangeData = [data subarrayWithRange:NSMakeRange(range.location, data.count - range.location)];
+    }
+    
+    if (rangeData.count == 0) {
+        return 0.0;
+    }
+    
+    //如果只有一个数据不全
+    if (rangeData.count == 1) {
+        rangeData = [rangeData arrayByAddingObject:@"0,0,0,0,0,0,0"];
+    }
+    
+    for (int i = 0; i < rangeData.count - 1; i ++) {
+        NSArray *currLineData = [rangeData[i] componentsSeparatedByString:@","];
+        NSArray *prvLineData = [rangeData[i + 1] componentsSeparatedByString:@","];
+        float currClose = [currLineData[4] floatValue], prvClose = [prvLineData[4] floatValue];
+        float diff = currClose - prvClose;
+        sumOfRise += diff > 0 ? diff : 0;
+        sumOfFall += diff < 0 ? fabsf(diff) : 0;
+    }
+    
+    float rs = sumOfFall == 0 ? 0.0 : sumOfRise/sumOfFall;
+    
+    return 100*rs/(1+rs);
 }
 
 @end
