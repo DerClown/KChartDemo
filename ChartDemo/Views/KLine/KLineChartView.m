@@ -172,6 +172,8 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.updateTempDates = [NSMutableArray new];
     self.updateTempContexts = [NSMutableArray new];
     
+    self.numberOfMACount = 3;
+    
     //添加手势
     [self addGestures];
     
@@ -231,7 +233,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     [self drawKLine];
     
     //均线
-    [self drawAvgLine];
+    [self drawMALine];
     
     //交易量
     [self drawVol];
@@ -280,7 +282,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 }
 
 - (void)tapEvent:(UITapGestureRecognizer *)tapGesture {
-    //[self longPressEvent:nil];
+    
 }
 
 - (void)panEvent:(UIPanGestureRecognizer *)panGesture {
@@ -629,7 +631,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 /**
  *  均线图
  */
-- (void)drawAvgLine {
+- (void)drawMALine {
     if (!self.showAvgLine) {
         return;
     }
@@ -639,9 +641,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(context, self.movingAvgLineWidth);
     
-    for (int i = 0; i < 3; i ++) {
+    for (int i = 0; i < self.numberOfMACount; i ++) {
         CGContextSetStrokeColorWithColor(context, colors[i].CGColor);
-        CGPathRef path = [self movingAvgGraphPathForContextAtIndex:(i + 5)];
+        CGPathRef path = [self movingAvgGraphPathForContextAtIndex:i];
         CGContextAddPath(context, path);
         CGContextStrokePath(context);
     }
@@ -658,7 +660,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     if (scale != 0) {
         for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
-            CGFloat maValue = [line[index] floatValue];
+            NSArray *mas = line[5];
+            NSAssert(mas.count == self.numberOfMACount, @"均线显示个数，和设置不一致！");
+            CGFloat maValue = [line[5][index] floatValue];
             CGFloat yAxis = self.yAxisHeight - (maValue - self.minLowValue)/scale + self.topMargin;
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
             if (yAxis < self.topMargin || yAxis > (self.frame.size.height - self.bottomMargin)) {
@@ -1037,6 +1041,10 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     if (!supportGesture) {
         self.gestureRecognizers = nil;
     }
+}
+
+- (void)setNumberOfMACount:(NSInteger)numberOfMACount {
+    _numberOfMACount = numberOfMACount;
 }
 
 - (void)setBottomMargin:(CGFloat)bottomMargin {

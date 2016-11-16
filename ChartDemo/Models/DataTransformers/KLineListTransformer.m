@@ -79,16 +79,17 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
         CGFloat bias12 = [self biasWithData:lineRawData subWithRange:NSMakeRange(i, 12)];
         CGFloat bias24 = [self biasWithData:lineRawData subWithRange:NSMakeRange(i, 24)];
         
-        //item = @["开盘价,最高价,最低价,收盘价,成交量, MA5, MA10, MA20"]
+        //item = @["开盘价,最高价,最低价,收盘价,成交量, @[ma, ma, ...]"]
         NSMutableArray *item = [[NSMutableArray alloc] initWithCapacity:5];
         item[0] = arr[1];
         item[1] = arr[2];
         item[2] = arr[3];
         item[3] = arr[4];
-        item[4] = @([arr[5] floatValue]/10000.00);
-        item[5] = @(MA5);
-        item[6] = @(MA10);
-        item[7] = @(MA20);
+        
+        CGFloat vol = [arr[5] floatValue]/10000.00;
+        item[4] = @(vol);
+        
+        item[5] = @[@(MA5), @(MA10), @(MA20)];
         
         if (maxHigh < [item[1] floatValue]) {
             maxHigh = [item[1] floatValue];
@@ -105,6 +106,8 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
         if (minVol > [item[4] floatValue] || i == (cutRawData.count - 1)) {
             minVol = [item[4] floatValue];
         }
+        
+        
         
         [context addObject:item];
         [dates addObject:arr[0]];

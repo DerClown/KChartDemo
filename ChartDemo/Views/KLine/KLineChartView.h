@@ -226,6 +226,11 @@
 @property (nonatomic, assign) BOOL supportGesture;
 
 /**
+ *  均线个数（默认 3 ma5, ma10, ma20）
+ */
+@property (nonatomic, assign) NSInteger numberOfMACount;
+
+/**
  *  动态更新显示最新, 默认不开启。
  *
  *  注意⚠️
