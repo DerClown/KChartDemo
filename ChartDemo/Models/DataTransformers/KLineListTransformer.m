@@ -21,6 +21,7 @@ NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
 NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
 NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
 NSString *const kCandlerstickChartsCCI = @"kCandlerstickChartsCCI";
+NSString *const kCandlerstickChartsWR = @"kCandlerstickChartsWR";
 
 @implementation KLineListTransformer{
     NSInteger _kCount;
@@ -46,6 +47,7 @@ NSString *const kCandlerstickChartsCCI = @"kCandlerstickChartsCCI";
     NSMutableArray *bolls = [NSMutableArray new];
     NSMutableArray *dmas = [NSMutableArray new];
     NSMutableArray *ccis = [NSMutableArray new];
+    NSMutableArray *wrs = [NSMutableArray new];
     float maxHigh = 0.0, minLow = 0.0, maxVol = 0.0, minVol = 0.0;
     for (int i = (int)cutRawData.count; i > 0; i --) {
         //arr = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
@@ -62,11 +64,13 @@ NSString *const kCandlerstickChartsCCI = @"kCandlerstickChartsCCI";
         
         CGFloat rsi = [self rsiWithData:lineRawData subWithRange:NSMakeRange(i, 12)];
         
-        NSArray *boll = [self bollWithData:lineRawData subWithRange:NSMakeRange(i, 20)];
+        NSArray *boll20 = [self bollWithData:lineRawData subWithRange:NSMakeRange(i, 20)];
         
         NSArray *dma = [self dmaWithData:lineRawData atIndex:i];
         
-        CGFloat cci = [self cciWithData:lineRawData subWithRange:NSMakeRange(i, 14)];
+        CGFloat cci14 = [self cciWithData:lineRawData subWithRange:NSMakeRange(i, 14)];
+        
+        CGFloat wr14 = [self wrWithData:lineRawData subWithRange:NSMakeRange(i, 14)];
         
         //item = @["开盘价,最高价,最低价,收盘价,成交量, MA5, MA10, MA20"]
         NSMutableArray *item = [[NSMutableArray alloc] initWithCapacity:5];
@@ -99,9 +103,10 @@ NSString *const kCandlerstickChartsCCI = @"kCandlerstickChartsCCI";
         [dates addObject:arr[0]];
         [rsv9s addObject:@(rsv9)];
         [rsis addObject:@(rsi)];
-        [bolls addObject:boll];
+        [bolls addObject:boll20];
         [dmas addObject:dma];
-        [ccis addObject:@(cci)];
+        [ccis addObject:@(cci14)];
+        [wrs addObject:@(wr14)];
     }
     
     NSArray *kdj = [self kdjWithRSV9:rsv9s];
@@ -122,6 +127,7 @@ NSString *const kCandlerstickChartsCCI = @"kCandlerstickChartsCCI";
     [despString appendFormat:@"BOLL: \t\t\t\t%@\n\n\n", bolls];
     [despString appendFormat:@"DMA: \t\t\t\t%@\n\n\n", dmas];
     [despString appendFormat:@"CCI: \t\t\t\t%@\n\n\n", ccis];
+    [despString appendFormat:@"WR: \t\t\t\t%@\n\n\n", wrs];
     [despString appendString:@"/************************************************************************/"];
     
     NSLog(@"%@", despString);
@@ -139,7 +145,8 @@ NSString *const kCandlerstickChartsCCI = @"kCandlerstickChartsCCI";
              kCandlerstickChartsRSI:rsis,
              kCandlerstickChartsBOLL:bolls,
              kCandlerstickChartsDMA:dmas,
-             kCandlerstickChartsCCI:ccis
+             kCandlerstickChartsCCI:ccis,
+             kCandlerstickChartsWR:wrs
              };
 }
 
@@ -389,6 +396,32 @@ NSString *const kCandlerstickChartsCCI = @"kCandlerstickChartsCCI";
     }
     
     return (tp - ma)/md/0.015;
+}
+
+/*
+ W&R威廉指标计算公式：
+ wr=（Hn—C）÷（Hn—Ln）×100
+ 其中：C为计算日的收盘价，Ln为N周期内的最低价，Hn为N周期内的最高价，公式中的N为选定的计算时间参数，一般为4或14。
+ */
+- (CGFloat)wrWithData:(NSArray *)data subWithRange:(NSRange)range {
+    if (data.count == 0) {
+        return 0.0;
+    }
+    NSArray *rangeData = [data subarrayWithRange:NSMakeRange(range.location, data.count - range.location)];
+    if (data.count - range.location >= range.length) {
+        rangeData = [data subarrayWithRange:range];
+    }
+    
+    float Ln = MAXFLOAT, Hn = -MAXFLOAT;
+    for (NSString *lineString in rangeData) {
+        NSArray *lineData = [lineString componentsSeparatedByString:@","];  // @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
+        Ln = [lineData[3] floatValue] < Ln ? [lineData[3] floatValue] : Ln;
+        Hn = [lineData[2] floatValue] > Hn ? [lineData[2] floatValue] : Hn;
+    }
+    
+    float close = [[rangeData.firstObject componentsSeparatedByString:@","][4] floatValue];
+    
+    return (Hn - close)/(Hn - Ln)*100;
 }
 
 @end
