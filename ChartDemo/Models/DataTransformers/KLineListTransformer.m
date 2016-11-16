@@ -18,6 +18,7 @@ NSString *const kCandlerstickChartsRSV9 = @"kCandlerstickChartsRSV9";
 NSString *const kCandlerstickChartsKDJ = @"kCandlerstickChartsKDJ";
 NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
 NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
+NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
 
 @implementation KLineListTransformer{
     NSInteger _kCount;
@@ -40,6 +41,7 @@ NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
     NSMutableArray *dates = [NSMutableArray new];
     NSMutableArray *rsv9s = [NSMutableArray new];
     NSMutableArray *rsis = [NSMutableArray new];
+    NSMutableArray *bolls = [NSMutableArray new];
     float maxHigh = 0.0, minLow = 0.0, maxVol = 0.0, minVol = 0.0;
     for (int i = (int)cutRawData.count; i > 0; i --) {
         //arr = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
@@ -55,6 +57,8 @@ NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
         CGFloat rsv9 = [self rsv9WithData:lineRawData sunInRange:NSMakeRange(i, 9)];
         
         CGFloat rsi = [self rsiWithData:lineRawData subWithRange:NSMakeRange(i, 12)];
+        
+        NSArray *boll = [self bollWithData:lineRawData subWithRange:NSMakeRange(i, 20)];
         
         //item = @["开盘价,最高价,最低价,收盘价,成交量, MA5, MA10, MA20"]
         NSMutableArray *item = [[NSMutableArray alloc] initWithCapacity:5];
@@ -87,6 +91,7 @@ NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
         [dates addObject:arr[0]];
         [rsv9s addObject:@(rsv9)];
         [rsis addObject:@(rsi)];
+        [bolls addObject:boll];
     }
     
     NSArray *kdj = [self kdjWithRSV9:rsv9s];
@@ -104,6 +109,7 @@ NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
     [despString appendFormat:@"KDJ->[K, D, J]: \t\t\t\t%@\n\n\n", kdj];
     [despString appendFormat:@"MACD->[DIFF, DEA, BAR]: \t\t\t\t%@\n\n\n", macd];
     [despString appendFormat:@"RSI: \t\t\t\t%@\n\n\n", rsis];
+    [despString appendFormat:@"BOLL: \t\t\t\t%@\n\n\n", bolls];
     [despString appendString:@"/************************************************************************/"];
     
     NSLog(@"%@", despString);
@@ -118,7 +124,8 @@ NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
              kCandlerstickChartsRSV9:rsv9s,
              kCandlerstickChartsKDJ:kdj,
              kCandlerstickChartsMACD:macd,
-             kCandlerstickChartsRSI:rsis
+             kCandlerstickChartsRSI:rsis,
+             kCandlerstickChartsBOLL:bolls
              };
 }
 
@@ -257,11 +264,9 @@ NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
 - (float)rsiWithData:(NSArray *)data subWithRange:(NSRange)range {
     // length + 1 获取 N+1 天的数据
     float sumOfRise = 0.0, sumOfFall = 0.0;
-    NSArray *rangeData;
+    NSArray *rangeData = [data subarrayWithRange:NSMakeRange(range.location, data.count - range.location)];
     if ((data.count - range.location >= range.length + 1)) {
         rangeData = [data subarrayWithRange:NSMakeRange(range.location, range.length + 1)];
-    } else {
-        rangeData = [data subarrayWithRange:NSMakeRange(range.location, data.count - range.location)];
     }
     
     if (rangeData.count == 0) {
@@ -286,5 +291,40 @@ NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
     
     return 100*rs/(1+rs);
 }
+
+/*
+  日BOLL指标的计算过程
+ （1）计算MA 　　         MA=N日内的收盘价之和÷N
+ （2）计算标准差MD 　　    MD=平方根N日的（C－MA）的两次方之和除以N
+ （3）计算MB、UP、DN线 　　MB=（N－1）日的MA 　　UP=MB＋k×MD 　　DN=MB－k×MD
+ */
+- (NSArray *)bollWithData:(NSArray *)data subWithRange:(NSRange)range {
+    NSArray *boll = @[];
+    NSArray *rangeData = [data subarrayWithRange:NSMakeRange(range.location, data.count - range.location)];
+    if (data.count - range.location >= range.length) {
+        rangeData = [data subarrayWithRange:range];
+    }
+    
+    NSMutableArray *closes = [NSMutableArray new];
+    for (int i = 0; i < rangeData.count; i ++) {
+        NSArray *lineData = [rangeData[i] componentsSeparatedByString:@","];
+        [closes addObject:lineData[4]];
+    }
+    
+    float avgClose = [[closes valueForKeyPath:@"@sum.floatValue"] floatValue]/range.length;
+    float sum = 0.0;
+    for (int i = 0; i < closes.count; i ++) {
+        sum += pow(([closes[i] floatValue] - avgClose), 2);
+    }
+    
+    float md = sqrt(sum/range.length);
+    float mid = (avgClose*range.length - [closes.lastObject floatValue]) / (range.length - 1);
+    float up = mid + 2*md, dn = mid - 2*md;
+    
+    boll = @[@(up), @(mid), @(dn)];
+    
+    return boll;
+}
+
 
 @end
