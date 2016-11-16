@@ -19,6 +19,7 @@ NSString *const kCandlerstickChartsKDJ = @"kCandlerstickChartsKDJ";
 NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
 NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
 NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
+NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
 
 @implementation KLineListTransformer{
     NSInteger _kCount;
@@ -42,6 +43,7 @@ NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
     NSMutableArray *rsv9s = [NSMutableArray new];
     NSMutableArray *rsis = [NSMutableArray new];
     NSMutableArray *bolls = [NSMutableArray new];
+    NSMutableArray *dmas = [NSMutableArray new];
     float maxHigh = 0.0, minLow = 0.0, maxVol = 0.0, minVol = 0.0;
     for (int i = (int)cutRawData.count; i > 0; i --) {
         //arr = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
@@ -50,15 +52,17 @@ NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
             continue;
         }
         
-        CGFloat MA5 = [self chartMAWithData:lineRawData subInRange:NSMakeRange(i, 5)];
-        CGFloat MA10 = [self chartMAWithData:lineRawData subInRange:NSMakeRange(i, 10)];
-        CGFloat MA20 = [self chartMAWithData:lineRawData subInRange:NSMakeRange(i, 20)];
+        CGFloat MA5 = [self maWithData:lineRawData subInRange:NSMakeRange(i, 5)];
+        CGFloat MA10 = [self maWithData:lineRawData subInRange:NSMakeRange(i, 10)];
+        CGFloat MA20 = [self maWithData:lineRawData subInRange:NSMakeRange(i, 20)];
         
         CGFloat rsv9 = [self rsv9WithData:lineRawData sunInRange:NSMakeRange(i, 9)];
         
         CGFloat rsi = [self rsiWithData:lineRawData subWithRange:NSMakeRange(i, 12)];
         
         NSArray *boll = [self bollWithData:lineRawData subWithRange:NSMakeRange(i, 20)];
+        
+        NSArray *dma = [self dmaWithData:lineRawData atIndex:i];
         
         //item = @["开盘价,最高价,最低价,收盘价,成交量, MA5, MA10, MA20"]
         NSMutableArray *item = [[NSMutableArray alloc] initWithCapacity:5];
@@ -92,6 +96,7 @@ NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
         [rsv9s addObject:@(rsv9)];
         [rsis addObject:@(rsi)];
         [bolls addObject:boll];
+        [dmas addObject:dma];
     }
     
     NSArray *kdj = [self kdjWithRSV9:rsv9s];
@@ -110,6 +115,7 @@ NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
     [despString appendFormat:@"MACD->[DIFF, DEA, BAR]: \t\t\t\t%@\n\n\n", macd];
     [despString appendFormat:@"RSI: \t\t\t\t%@\n\n\n", rsis];
     [despString appendFormat:@"BOLL: \t\t\t\t%@\n\n\n", bolls];
+    [despString appendFormat:@"DMA: \t\t\t\t%@\n\n\n", dmas];
     [despString appendString:@"/************************************************************************/"];
     
     NSLog(@"%@", despString);
@@ -125,22 +131,26 @@ NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
              kCandlerstickChartsKDJ:kdj,
              kCandlerstickChartsMACD:macd,
              kCandlerstickChartsRSI:rsis,
-             kCandlerstickChartsBOLL:bolls
+             kCandlerstickChartsBOLL:bolls,
+             kCandlerstickChartsDMA:dmas
              };
 }
 
 // MA
-- (CGFloat)chartMAWithData:(NSArray *)data subInRange:(NSRange)range {
+- (CGFloat)maWithData:(NSArray *)data subInRange:(NSRange)range {
     CGFloat md = 0;
+    NSArray *rangeData = [data subarrayWithRange:NSMakeRange(range.location, data.count - range.location)];
     if (data.count - range.location >= range.length) {
-        NSArray *rangeData = [data subarrayWithRange:range];
-        for (NSString *item in rangeData) {
-            NSArray *arr = [item componentsSeparatedByString:@","];
-            md += [[arr objectAtIndex:4] floatValue];
-        }
-        
-        md = md / rangeData.count;
+        rangeData = [data subarrayWithRange:range];
     }
+    
+    for (NSString *item in rangeData) {
+        NSArray *arr = [item componentsSeparatedByString:@","];
+        md += [[arr objectAtIndex:4] floatValue];
+    }
+    
+    md = md / range.length;
+    
     return md;
 }
 
@@ -326,5 +336,21 @@ NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
     return boll;
 }
 
+
+/*
+ DMA
+ 公式：
+ DDD : (MA(CLOSE,SHORT)-MA(CLOSE,LONG));
+ AMA : MA(DDD,M)
+ */
+- (NSArray *)dmaWithData:(NSArray *)data atIndex:(NSInteger)index {
+    //使用默认 SHORT：10 ，LONG：50
+    CGFloat MA10 = [self maWithData:data subInRange:NSMakeRange(index, 10)];
+    CGFloat MA50 = [self maWithData:data subInRange:NSMakeRange(index, 50)];
+    
+    float dma = MA10 - MA50, ama = MA10;
+    
+    return @[@(dma), @(ama)];
+}
 
 @end
