@@ -11,8 +11,9 @@
 #import "KLineListTransformer.h"
 #import "UIBezierPath+curved.h"
 #import "KLineTipBoardView.h"
-#import "UIColor+Ext.h"
 #import "MATipView.h"
+#import "ACMacros.h"
+#import "Global+Helper.h"
 
 NSString *const KLineKeyStartUserInterfaceNotification = @"KLineKeyStartUserInterfaceNotification";
 NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInterfaceNotification";
@@ -121,9 +122,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     self.movingAvgLineWidth = 0.8;
     
-    self.minMALineColor = [UIColor colorWithHexString:@"#019FFD"];
-    self.midMALineColor = [UIColor colorWithHexString:@"#FF99OO"];
-    self.maxMALineColor = [UIColor colorWithHexString:@"#FF00FF"];
+    self.minMALineColor = HexRGB(0x019FFD);
+    self.midMALineColor = HexRGB(0xFF9900);
+    self.maxMALineColor = HexRGB(0xFF00FF);
     
     self.positiveVolColor = self.positiveLineColor;
     self.negativeVolColor =  self.negativeLineColor;
@@ -140,7 +141,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.xAxisTitleFont = [UIFont systemFontOfSize:8.0];
     self.xAxisTitleColor = [UIColor colorWithRed:(130/255.0f) green:(130/255.0f) blue:(130/255.0f) alpha:1.0];
     
-    self.crossLineColor = [UIColor colorWithHexString:@"#C9C9C9"];
+    self.crossLineColor = HexRGB(0xC9C9C9);
     
     self.scrollEnable = YES;
     
@@ -154,7 +155,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     self.saveDecimalPlaces = 2;
     
-    self.timeAndPriceTipsBackgroundColor = [UIColor colorWithHexString:@"D70002"];
+    self.timeAndPriceTipsBackgroundColor = HexRGB(0xD70002);
     self.timeAndPriceTextColor = [UIColor colorWithWhite:1.0 alpha:0.95];
     
     self.supportGesture = YES;
@@ -545,8 +546,8 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
             xAxis += avgDrawCount*(_kLinePadding + _kLineWidth);
             continue;
         }
-        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.dates[timeIndex] attributes:@{NSFontAttributeName:self.xAxisTitleFont, NSForegroundColorAttributeName:self.xAxisTitleColor}];
-        CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.xAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
+        NSAttributedString *attString = [Global_Helper attributeText:self.dates[timeIndex] textColor:self.xAxisTitleColor font:self.xAxisTitleFont];
+        CGSize size = [Global_Helper attributeString:attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.xAxisTitleFont.lineHeight)];
         CGFloat originX = MIN(xAxis - size.width/2.0, self.frame.size.width - self.rightMargin - size.width);
         [attString drawInRect:CGRectMake(originX, self.topMargin + self.yAxisHeight + 2.0, size.width, size.height)];
         
@@ -564,11 +565,15 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         return;
     }
     
+    
+    
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(context, 0.5);
     
     CGFloat xAxis = _kLinePadding;
     [self.xAxisContext removeAllObjects];
+    
+    CGPoint maxPoint, minPoint;
     
     for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
         [self.xAxisContext setObject:@([_contexts indexOfObject:line]) forKey:@(xAxis + _kLineWidth)];
@@ -599,8 +604,26 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         CGContextAddLineToPoint(context, lowPoint.x, lowPoint.y);   //终点坐标
         CGContextStrokePath(context);
         
+        if ([line[1] floatValue] == self.maxHighValue) {
+            maxPoint = highPoint;
+        }
+        
+        if ([line[2] floatValue] == self.minLowValue) {
+            minPoint = lowPoint;
+        }
+        
         xAxis += width + _kLinePadding;
     }
+    
+    NSAttributedString *attString = [Global_Helper attributeText:[self dealDecimalWithNum:@(self.maxHighValue)] textColor:HexRGB(0xFFB54C) font:[UIFont systemFontOfSize:12.0f]];
+    CGSize size = [Global_Helper attributeString:attString boundingRectWithSize:CGSizeMake(100, 100)];
+    float originX = maxPoint.x - size.width - self.kLineWidth - 2 < self.leftMargin + self.kLineWidth + 2.0 ?  maxPoint.x + self.kLineWidth : maxPoint.x - size.width - self.kLineWidth;
+    [attString drawInRect:CGRectMake(originX, maxPoint.y, size.width, size.height)];
+    
+    attString = [Global_Helper attributeText:[self dealDecimalWithNum:@(self.minLowValue)] textColor:HexRGB(0xFFB54C) font:[UIFont systemFontOfSize:12.0f]];
+    size = [Global_Helper attributeString:attString boundingRectWithSize:CGSizeMake(100, 100)];
+    originX = minPoint.x - size.width - self.kLineWidth - 2 < self.leftMargin + self.kLineWidth + 2.0 ?  minPoint.x + self.kLineWidth : minPoint.x - size.width - self.kLineWidth;
+    [attString drawInRect:CGRectMake(originX, self.yAxisHeight - size.height + self.topMargin, size.width, size.height)];
 }
 
 /**

@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1E2AB5681DDC6596002E96B8 /* Global+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E2AB5671DDC6596002E96B8 /* Global+Helper.m */; };
 		1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TLineChartView.m */; };
-		1E84E1AB1D7993EF00384D27 /* UIColor+Ext.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E84E1AA1D7993EF00384D27 /* UIColor+Ext.m */; };
 		1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */; };
 		1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EECF1B11D6E9AD300E52D10 /* StatusView.m */; };
 		1EF4CEA51D5D5FA600221294 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEA41D5D5FA600221294 /* main.m */; };
@@ -57,10 +57,11 @@
 
 /* Begin PBXFileReference section */
 		094B6C9633E09A521CD38E54 /* Pods-ChartDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChartDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ChartDemo/Pods-ChartDemo.debug.xcconfig"; sourceTree = "<group>"; };
+		1E2AB5661DDC6596002E96B8 /* Global+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Global+Helper.h"; sourceTree = "<group>"; };
+		1E2AB5671DDC6596002E96B8 /* Global+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Global+Helper.m"; sourceTree = "<group>"; };
+		1E2AB56A1DDC665B002E96B8 /* ACMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACMacros.h; sourceTree = "<group>"; };
 		1E7B58C51D621010005BF850 /* TLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLineChartView.h; sourceTree = "<group>"; };
 		1E7B58C61D621010005BF850 /* TLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TLineChartView.m; sourceTree = "<group>"; };
-		1E84E1A91D7993EF00384D27 /* UIColor+Ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIColor+Ext.h"; path = "Categories/UIColor+Ext.h"; sourceTree = "<group>"; };
-		1E84E1AA1D7993EF00384D27 /* UIColor+Ext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIColor+Ext.m"; path = "Categories/UIColor+Ext.m"; sourceTree = "<group>"; };
 		1EEC1A4A1D5DC4600063A205 /* UIBezierPath+curved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBezierPath+curved.h"; sourceTree = "<group>"; };
 		1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIBezierPath+curved.m"; sourceTree = "<group>"; };
 		1EECF1B01D6E9AD300E52D10 /* StatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatusView.h; sourceTree = "<group>"; };
@@ -144,6 +145,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1E2AB5651DDC6596002E96B8 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				1E2AB5661DDC6596002E96B8 /* Global+Helper.h */,
+				1E2AB5671DDC6596002E96B8 /* Global+Helper.m */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 		1E7B58C41D621010005BF850 /* TLine */ = {
 			isa = PBXGroup;
 			children = (
@@ -200,11 +210,10 @@
 			children = (
 				1EF4CEA61D5D5FA600221294 /* AppDelegate.h */,
 				1EF4CEA71D5D5FA600221294 /* AppDelegate.m */,
+				1E2AB56A1DDC665B002E96B8 /* ACMacros.h */,
 				1EF4CEA91D5D5FA600221294 /* KLineViewController.h */,
 				1EF4CEAA1D5D5FA600221294 /* KLineViewController.m */,
 				1EF4CF281D5D64AE00221294 /* Categories */,
-				1E84E1A91D7993EF00384D27 /* UIColor+Ext.h */,
-				1E84E1AA1D7993EF00384D27 /* UIColor+Ext.m */,
 				1EF4CF271D5D643F00221294 /* Models */,
 				1EF4CF261D5D642800221294 /* APIs */,
 				1EF4CED81D5D5FFF00221294 /* Views */,
@@ -257,6 +266,7 @@
 		1EF4CF021D5D63B400221294 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				1E2AB5651DDC6596002E96B8 /* Utils */,
 				1EF4CF031D5D63B400221294 /* Networking */,
 			);
 			path = Components;
@@ -575,7 +585,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1EF83FC61D6C335300798643 /* TLineTipBoardView.m in Sources */,
-				1E84E1AB1D7993EF00384D27 /* UIColor+Ext.m in Sources */,
 				1EF4CEAB1D5D5FA600221294 /* KLineViewController.m in Sources */,
 				1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */,
 				1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */,
@@ -589,6 +598,7 @@
 				1EF4CF231D5D63B400221294 /* GApiConfig.m in Sources */,
 				1EF4CF221D5D63B400221294 /* GApiCachedObject.m in Sources */,
 				1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */,
+				1E2AB5681DDC6596002E96B8 /* Global+Helper.m in Sources */,
 				1EF4CF1E1D5D63B400221294 /* NSString+md5.m in Sources */,
 				1EF4CF1D1D5D63B400221294 /* NSDictionary+NetWorkingMehods.m in Sources */,
 				1EF4CF391D5D67C200221294 /* KLineChartView.m in Sources */,

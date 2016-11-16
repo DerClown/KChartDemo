@@ -316,7 +316,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", yAxisValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
-        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.topMargin + avgHeight*i - (i == (self.separatorNum  + 2 - 1) ? size.height - 1 : (i == 0 ? 0 : size.height)), size.width, size.height)];
+        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.topMargin + avgHeight*i - (i == (self.separatorNum  + 2 - 1) ? size.height - 1 : (i == 0 ? 0 : size.height/2.0)), size.width, size.height)];
     }
 }
 

@@ -8,7 +8,7 @@
 
 #import "MATipView.h"
 #import <Masonry.h>
-#import "UIColor+Ext.h"
+#import "ACMacros.h"
 
 @interface MATipView ()
 
@@ -52,9 +52,9 @@
 - (void)setup {
     self.font = [UIFont systemFontOfSize:10.0f];
     
-    self.minAvgPriceColor = [UIColor colorWithHexString:@"#019FFD"];
-    self.midAvgPriceColor = [UIColor colorWithHexString:@"#FF99OO"];
-    self.maxAvgPriceColor = [UIColor colorWithHexString:@"#FF00FF"];
+    self.minAvgPriceColor = HexRGB(0x019FFD);
+    self.midAvgPriceColor = HexRGB(0xFF9900);
+    self.maxAvgPriceColor = HexRGB(0xFF00FF);
 }
 
 - (void)addPageSubviews {
