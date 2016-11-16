@@ -20,11 +20,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ChartDemo/Models/DataTransformers/KLineListTransformer.m"
-            timestampString = "500975690.42048"
+            timestampString = "500977413.191329"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "121"
-            endingLineNumber = "121"
+            startingLineNumber = "127"
+            endingLineNumber = "127"
             landmarkName = "-manager:transformData:"
             landmarkType = "7">
          </BreakpointContent>
@@ -36,11 +36,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ChartDemo/Models/DataTransformers/KLineListTransformer.m"
-            timestampString = "500975690.42048"
+            timestampString = "500977413.191329"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "102"
-            endingLineNumber = "102"
+            startingLineNumber = "107"
+            endingLineNumber = "107"
             landmarkName = "-manager:transformData:"
             landmarkType = "7">
          </BreakpointContent>
@@ -52,12 +52,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ChartDemo/Models/DataTransformers/KLineListTransformer.m"
-            timestampString = "500976035.831011"
+            timestampString = "500977518.156718"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "349"
-            endingLineNumber = "349"
-            landmarkName = "-dmaWithData:atIndex:"
+            startingLineNumber = "391"
+            endingLineNumber = "391"
+            landmarkName = "-cciWithData:subWithRange:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

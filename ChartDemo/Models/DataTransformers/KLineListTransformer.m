@@ -20,6 +20,7 @@ NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
 NSString *const kCandlerstickChartsRSI = @"kCandlerstickChartsRSI";
 NSString *const kCandlerstickChartsBOLL = @"kCandlerstickChartsBOLL";
 NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
+NSString *const kCandlerstickChartsCCI = @"kCandlerstickChartsCCI";
 
 @implementation KLineListTransformer{
     NSInteger _kCount;
@@ -44,6 +45,7 @@ NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
     NSMutableArray *rsis = [NSMutableArray new];
     NSMutableArray *bolls = [NSMutableArray new];
     NSMutableArray *dmas = [NSMutableArray new];
+    NSMutableArray *ccis = [NSMutableArray new];
     float maxHigh = 0.0, minLow = 0.0, maxVol = 0.0, minVol = 0.0;
     for (int i = (int)cutRawData.count; i > 0; i --) {
         //arr = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
@@ -63,6 +65,8 @@ NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
         NSArray *boll = [self bollWithData:lineRawData subWithRange:NSMakeRange(i, 20)];
         
         NSArray *dma = [self dmaWithData:lineRawData atIndex:i];
+        
+        CGFloat cci = [self cciWithData:lineRawData subWithRange:NSMakeRange(i, 14)];
         
         //item = @["开盘价,最高价,最低价,收盘价,成交量, MA5, MA10, MA20"]
         NSMutableArray *item = [[NSMutableArray alloc] initWithCapacity:5];
@@ -97,6 +101,7 @@ NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
         [rsis addObject:@(rsi)];
         [bolls addObject:boll];
         [dmas addObject:dma];
+        [ccis addObject:@(cci)];
     }
     
     NSArray *kdj = [self kdjWithRSV9:rsv9s];
@@ -116,6 +121,7 @@ NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
     [despString appendFormat:@"RSI: \t\t\t\t%@\n\n\n", rsis];
     [despString appendFormat:@"BOLL: \t\t\t\t%@\n\n\n", bolls];
     [despString appendFormat:@"DMA: \t\t\t\t%@\n\n\n", dmas];
+    [despString appendFormat:@"CCI: \t\t\t\t%@\n\n\n", ccis];
     [despString appendString:@"/************************************************************************/"];
     
     NSLog(@"%@", despString);
@@ -132,7 +138,8 @@ NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
              kCandlerstickChartsMACD:macd,
              kCandlerstickChartsRSI:rsis,
              kCandlerstickChartsBOLL:bolls,
-             kCandlerstickChartsDMA:dmas
+             kCandlerstickChartsDMA:dmas,
+             kCandlerstickChartsCCI:ccis
              };
 }
 
@@ -338,8 +345,7 @@ NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
 
 
 /*
- DMA
- 公式：
+ DMA 计算公式：
  DDD : (MA(CLOSE,SHORT)-MA(CLOSE,LONG));
  AMA : MA(DDD,M)
  */
@@ -351,6 +357,38 @@ NSString *const kCandlerstickChartsDMA = @"kCandlerstickChartsDMA";
     float dma = MA10 - MA50, ama = MA10;
     
     return @[@(dma), @(ama)];
+}
+
+/*
+ CCI计算公式：
+ CCI(N日）=（TP－MA)÷MD÷0.015
+ 　 其中，TP=（最高价+最低价+收盘价）÷3
+ 　　MA=近N日收盘价的累计之和÷N
+ 　　MD=近N日（MA－收盘价）的绝对值累计之和÷N
+ 　　0.015为计算系数，N为计算周期
+ */
+- (CGFloat)cciWithData:(NSArray *)data subWithRange:(NSRange)range {
+    float ma = [self maWithData:data subInRange:range];
+    
+    NSArray *rangeData = [data subarrayWithRange:NSMakeRange(range.location, data.count - range.location)];
+    if (data.count - range.location >= range.length) {
+        rangeData = [data subarrayWithRange:range];
+    }
+    
+    float sumOfMD = 0.0, md;
+    for (int i = 0; i < rangeData.count; i ++) {
+        NSArray *lineData = [rangeData[i] componentsSeparatedByString:@","];
+        sumOfMD += fabs(([lineData[4] floatValue] - ma));
+    }
+    md = sumOfMD/range.length;
+    
+    float tp = 0.0;
+    if (rangeData.count != 0) {
+        NSArray *lineData = [rangeData.firstObject componentsSeparatedByString:@","];
+        tp = ([lineData[2] floatValue] + [lineData[3] floatValue] + [lineData[4] floatValue])/3.0f;
+    }
+    
+    return (tp - ma)/md/0.015;
 }
 
 @end
