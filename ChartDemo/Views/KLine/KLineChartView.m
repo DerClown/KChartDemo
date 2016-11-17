@@ -42,8 +42,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 @property (nonatomic, assign) CGFloat minVolValue;
 
 //手势
-@property (nonatomic, strong) UITapGestureRecognizer *tapGesture;
-
 @property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
 
 @property (nonatomic, strong) UIPinchGestureRecognizer *pinchGesture;
@@ -192,8 +190,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         return;
     }
     
-    [self addGestureRecognizer:self.tapGesture];
-    
     [self addGestureRecognizer:self.panGesture];
     
     [self addGestureRecognizer:self.pinchGesture];
@@ -280,10 +276,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 - (void)updateChartPressed:(UIButton *)button {
     self.startDrawIndex = self.contexts.count - self.kLineDrawNum;
     [self dynamicUpdateChart];
-}
-
-- (void)tapEvent:(UITapGestureRecognizer *)tapGesture {
-    
 }
 
 - (void)panEvent:(UIPanGestureRecognizer *)panGesture {
@@ -941,13 +933,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     return _priceLbl;
 }
 
-- (UITapGestureRecognizer *)tapGesture {
-    if (!_tapGesture) {
-        _tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapEvent:)];
-    }
-    return _tapGesture;
-}
-
 - (UIPanGestureRecognizer *)panGesture {
     if (!_panGesture) {
         _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panEvent:)];
@@ -1016,8 +1001,8 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 - (void)setSupportGesture:(BOOL)supportGesture {
     _supportGesture = supportGesture;
     
-    if (!supportGesture) {
-        self.gestureRecognizers = nil;
+    for (UIGestureRecognizer *gesture in self.gestureRecognizers) {
+        gesture.enabled = supportGesture;
     }
 }
 

@@ -66,6 +66,8 @@
  */
 @property (nonatomic, strong) NSArray *bias;
 
+@property (nonatomic, strong) UITapGestureRecognizer *switchGesture;
+
 @end
 
 @implementation VolumnView
@@ -75,6 +77,7 @@
 - (id)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
         [self _setup];
+        [self addGestureRecognizer:self.switchGesture];
     }
     return self;
 }
@@ -295,6 +298,27 @@
     CGContextAddLineToPoint(context, toPoint.x, toPoint.y);
     
     CGContextStrokePath(context);
+}
+
+#pragma mark - events
+
+- (void)switchEvent:(UITapGestureRecognizer *)tapGesture {
+    
+}
+
+#pragma mark - getters
+
+- (UITapGestureRecognizer *)switchGesture {
+    if (!_switchGesture) {
+        _switchGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(switchEvent:)];
+    }
+    return _switchGesture;
+}
+
+#pragma mark - setters
+
+- (void)setGestureEnable:(BOOL)gestureEnable {
+    self.switchGesture.enabled = gestureEnable;
 }
 
 @end
