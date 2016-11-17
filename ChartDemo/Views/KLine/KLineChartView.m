@@ -14,6 +14,7 @@
 #import "MATipView.h"
 #import "ACMacros.h"
 #import "Global+Helper.h"
+#import "VolumnView.h"
 
 NSString *const KLineKeyStartUserInterfaceNotification = @"KLineKeyStartUserInterfaceNotification";
 NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInterfaceNotification";
@@ -62,7 +63,10 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 @property (nonatomic, strong) KLineTipBoardView *tipBoard;
 
-@property (nonatomic, strong) MATipView *maTipView;
+@property (nonatomic, strong) MATipView * maTipView;
+
+// 成交量图
+@property (nonatomic, strong) VolumnView *volView;
 
 //时间
 @property (nonatomic, strong) UILabel *timeLbl;
@@ -245,17 +249,14 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.contexts = data[kCandlerstickChartsContext];
     self.dates = data[kCandlerstickChartsDate];
     
+    if (self.showBarChart) {
+        self.volView.data = data;
+    }
     /**
      *  最高价,最低价
      */
     self.maxHighValue = [data[kCandlerstickChartsMaxHigh] floatValue];
     self.minLowValue = [data[kCandlerstickChartsMinLow] floatValue];
-    
-    /**
-     *  成交量最大之，最小值
-     */
-    self.maxVolValue = [data[kCandlerstickChartsMaxVol] floatValue];
-    self.minVolValue = [data[kCandlerstickChartsMinVol] floatValue];
     
     CGFloat maxValue = self.showBarChart ? (self.maxVolValue > self.maxHighValue ? self.maxVolValue : self.maxHighValue) : self.maxHighValue;
     
@@ -411,9 +412,10 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.barVerticalLine.frame = frame;
     //均值
     self.maTipView.hidden = NO;
-    self.maTipView.minAvgPrice = [NSString stringWithFormat:@"MA5：%.2f", [line[5] doubleValue]];
-    self.maTipView.midAvgPrice = [NSString stringWithFormat:@"MA10：%.2f", [line[6] doubleValue]];
-    self.maTipView.maxAvgPrice = [NSString stringWithFormat:@"MA20：%.2f", [line[7] doubleValue]];
+    NSArray *mas = line[4];
+    self.maTipView.minAvgPrice = [NSString stringWithFormat:@"MA5：%.2f", [mas[0] doubleValue]];
+    self.maTipView.midAvgPrice = [NSString stringWithFormat:@"MA10：%.2f", [mas[1] doubleValue]];
+    self.maTipView.maxAvgPrice = [NSString stringWithFormat:@"MA20：%.2f", [mas[2] doubleValue]];
     //提示版
     self.tipBoard.open = line[0];
     self.tipBoard.close = line[3];
@@ -477,16 +479,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     //k线分割线
     CGFloat avgHeight = strokeRect.size.height/5.0;
     for (int i = 1; i <= 4; i ++) {
-        CGContextSetLineWidth(context, self.separatorWidth);
-        CGFloat lengths[] = {5,5};
-        CGContextSetStrokeColorWithColor(context, self.separatorColor.CGColor);
-        CGContextSetLineDash(context, 0, lengths, 2);  //画虚线
-        
-        CGContextBeginPath(context);
-        CGContextMoveToPoint(context, self.leftMargin + 1.25, self.topMargin + avgHeight*i);    //开始画线
-        CGContextAddLineToPoint(context, rect.size.width  - self.rightMargin - 0.8, self.topMargin + avgHeight*i);
-        
-        CGContextStrokePath(context);
+        [self drawDashLineInContext:context
+                          movePoint:CGPointMake(self.leftMargin + 1.25, self.topMargin + avgHeight*i)
+                            toPoint:CGPointMake(rect.size.width  - self.rightMargin - 0.8, self.topMargin + avgHeight*i)];
     }
     
     //这必须把dash给初始化一次，不然会影响其他线条的绘制
@@ -501,24 +496,20 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         
         [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.topMargin + avgHeight*i - (i == 5 ? size.height - 1 : size.height/2.0), size.width, size.height)];
     }
+}
+
+- (void)drawDashLineInContext:(CGContextRef)context
+                    movePoint:(CGPoint)mPoint toPoint:(CGPoint)toPoint {
+    CGContextSetLineWidth(context, self.separatorWidth);
+    CGFloat lengths[] = {5,5};
+    CGContextSetStrokeColorWithColor(context, self.separatorColor.CGColor);
+    CGContextSetLineDash(context, 0, lengths, 2);  //画虚线
     
-    if (self.showBarChart) {
-        //交易量边框
-        CGContextSetLineWidth(context, self.axisShadowWidth);
-        CGContextSetStrokeColorWithColor(context, self.axisShadowColor.CGColor);
-        strokeRect = CGRectMake(self.leftMargin, self.yAxisHeight + self.topMargin + self.timeAxisHeight, self.xAxisWidth, rect.size.height - self.yAxisHeight - self.topMargin - self.timeAxisHeight);
-        CGContextStrokeRect(context, strokeRect);
-        
-        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[self dealDecimalWithNum:@(self.maxVolValue)] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
-        CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
-        
-        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.yAxisHeight + self.topMargin + self.timeAxisHeight - 2, size.width, size.height)];
-        
-        attString = [[NSAttributedString alloc] initWithString:@"万" attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
-        size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
-        
-        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, rect.size.height - size.height, size.width, size.height)];
-    }
+    CGContextBeginPath(context);
+    CGContextMoveToPoint(context, mPoint.x, mPoint.y);    //开始画线
+    CGContextAddLineToPoint(context, toPoint.x, toPoint.y);
+    
+    CGContextStrokePath(context);
 }
 
 - (void)drawTimeAxis {
@@ -533,15 +524,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         if (xAxis > self.leftMargin + self.xAxisWidth) {
             break;
         }
-        CGContextSetLineWidth(context, self.separatorWidth);
-        CGFloat lengths[] = {5,5};
-        CGContextSetStrokeColorWithColor(context, self.separatorColor.CGColor);
-        CGContextSetLineDash(context, 0, lengths, 2);  //画虚线
-        CGContextBeginPath(context);
-        CGContextMoveToPoint(context, xAxis, self.topMargin + 1.25);    //开始画线
-        CGContextAddLineToPoint(context, xAxis, self.topMargin + self.yAxisHeight - 1.25);
-        CGContextStrokePath(context);
-        
+        [self drawDashLineInContext:context movePoint:CGPointMake(xAxis, self.topMargin + 1.25) toPoint:CGPointMake(xAxis, self.topMargin + self.yAxisHeight - 1.25)];
         //x轴坐标
         NSInteger timeIndex = i*avgDrawCount + self.startDrawIndex;
         if (timeIndex > self.dates.count - 1) {
@@ -660,9 +643,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     if (scale != 0) {
         for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
-            NSArray *mas = line[5];
+            NSArray *mas = line[4];
             NSAssert(mas.count == self.numberOfMACount, @"均线显示个数，和设置不一致！");
-            CGFloat maValue = [line[5][index] floatValue];
+            CGFloat maValue = [mas[index] floatValue];
             CGFloat yAxis = self.yAxisHeight - (maValue - self.minLowValue)/scale + self.topMargin;
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
             if (yAxis < self.topMargin || yAxis > (self.frame.size.height - self.bottomMargin)) {
@@ -700,25 +683,16 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     CGRect rect = self.bounds;
     
-    CGFloat xAxis = _kLinePadding + _leftMargin;
+    CGFloat boxOriginY = self.topMargin + self.yAxisHeight + self.timeAxisHeight;
+    CGFloat boxHeight = rect.size.height - boxOriginY;
+    self.volView.frame = CGRectMake(0, boxOriginY, rect.size.width, boxHeight);
+    self.volView.kLineWidth = self.kLineWidth;
+    self.volView.linePadding = self.kLinePadding;
+    self.volView.boxOriginX = self.leftMargin;
     
-    CGFloat boxYOrigin = self.topMargin + self.yAxisHeight + self.timeAxisHeight;
-    CGFloat boxHeight = rect.size.height - boxYOrigin;
-    CGFloat scale = self.maxVolValue/boxHeight;
-    
-    for (NSArray *line in [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
-        CGFloat open = [line[0] floatValue];
-        CGFloat close = [line[3] floatValue];
-        UIColor *fillColor = open > close ? self.positiveVolColor : self.negativeVolColor;
-        CGContextSetFillColorWithColor(context, fillColor.CGColor);
-        
-        CGFloat height = [line[4] floatValue]/scale == 0 ? 1.0 : [line[4] floatValue]/scale;
-        CGRect pathRect = CGRectMake(xAxis, boxYOrigin + boxHeight - height, self.kLineWidth, height);
-        CGContextAddRect(context, pathRect);
-        CGContextFillPath(context);
-        
-        xAxis += _kLineWidth + _kLinePadding;
-    }
+    self.volView.startDrawIndex = self.startDrawIndex;
+    self.volView.numberOfDrawCount = self.kLineDrawNum;
+    [self.volView update];
 }
 
 - (void)dynamicUpdateChart {
@@ -785,8 +759,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     for (int i = 0; i < drawContext.count; i++) {
         NSArray<NSString *> *item = drawContext[i];
         if (i == 0) {
-            self.minVolValue = [item[4] floatValue];
-            self.maxVolValue = [item[4] floatValue];
             self.minLowValue = [item[2] floatValue];
             self.maxHighValue = [item[1] floatValue];
         } else {
@@ -796,14 +768,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
             
             if (self.minLowValue > [item[2] floatValue]) {
                 self.minLowValue = [item[2] floatValue];
-            }
-            
-            if (self.maxVolValue < [item[4] floatValue]) {
-                self.maxVolValue = [item[4] floatValue];
-            }
-            
-            if (self.minVolValue > [item[4] floatValue]) {
-                self.minVolValue = [item[4] floatValue];
             }
         }
     }
@@ -841,11 +805,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     [self.updateTempDates addObjectsFromArray:data[kCandlerstickChartsDate]];
     [self.updateTempContexts addObjectsFromArray:data[kCandlerstickChartsContext]];
-    
-    if ([data[kCandlerstickChartsMaxVol] floatValue] > self.updateTempMaxVol) {
-        self.updateTempMaxVol = [data[kCandlerstickChartsMaxVol] floatValue];
-    }
-    
+
     if ([data[kCandlerstickChartsMaxHigh] floatValue] > self.updateTempMaxHigh) {
         self.updateTempMaxHigh = [data[kCandlerstickChartsMaxHigh] floatValue];
     }
@@ -875,6 +835,24 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 }
 
 #pragma mark - getters
+
+- (VolumnView *)volView {
+    if (!_volView) {
+        _volView = [VolumnView new];
+        _volView.backgroundColor  = self.backgroundColor;
+        _volView.boxRightMargin = self.rightMargin;
+        _volView.axisShadowColor = self.axisShadowColor;
+        _volView.axisShadowWidth = self.axisShadowWidth;
+        _volView.negativeVolColor = self.negativeVolColor;
+        _volView.positiveVolColor = self.positiveVolColor;
+        _volView.yAxisTitleFont = self.yAxisTitleFont;
+        _volView.yAxisTitleColor = self.yAxisTitleColor;
+        _volView.separatorWidth = self.separatorWidth;
+        _volView.separatorColor = self.separatorColor;
+        [self addSubview:_volView];
+    }
+    return _volView;
+}
 
 - (UIView *)verticalCrossLine {
     if (!_verticalCrossLine) {

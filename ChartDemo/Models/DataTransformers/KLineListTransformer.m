@@ -12,8 +12,7 @@ NSString *const kCandlerstickChartsContext = @"kCandlerstickChartsContext";
 NSString *const kCandlerstickChartsDate    = @"kCandlerstickChartsDate";
 NSString *const kCandlerstickChartsMaxHigh = @"kCandlerstickChartsMaxHigh";
 NSString *const kCandlerstickChartsMinLow  = @"kCandlerstickChartsMinLow";
-NSString *const kCandlerstickChartsMaxVol  = @"kCandlerstickChartsMaxVol";
-NSString *const kCandlerstickChartsMinVol  = @"kCandlerstickChartsMinVol";
+NSString *const kCandlerstickChartsVol = @"kCandlerstickChartsVol";
 NSString *const kCandlerstickChartsRSV9 = @"kCandlerstickChartsRSV9";
 NSString *const kCandlerstickChartsKDJ = @"kCandlerstickChartsKDJ";
 NSString *const kCandlerstickChartsMACD = @"kCandlerstickChartsMACD";
@@ -51,7 +50,8 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
     NSMutableArray *ccis = [NSMutableArray new];
     NSMutableArray *wrs = [NSMutableArray new];
     NSMutableArray *biass = [NSMutableArray new];
-    float maxHigh = 0.0, minLow = 0.0, maxVol = 0.0, minVol = 0.0;
+    NSMutableArray *vols = [NSMutableArray new];
+    float maxHigh = 0.0, minLow = 0.0;
     for (int i = (int)cutRawData.count; i > 0; i --) {
         //arr = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
         NSArray *arr = [lineRawData[i] componentsSeparatedByString:@","];
@@ -85,11 +85,10 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
         item[1] = arr[2];
         item[2] = arr[3];
         item[3] = arr[4];
+        item[4] = @[@(MA5), @(MA10), @(MA20)];
         
         CGFloat vol = [arr[5] floatValue]/10000.00;
-        item[4] = @(vol);
-        
-        item[5] = @[@(MA5), @(MA10), @(MA20)];
+        [vols addObject:@(vol)];
         
         if (maxHigh < [item[1] floatValue]) {
             maxHigh = [item[1] floatValue];
@@ -98,16 +97,6 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
         if (minLow > [item[2] floatValue] || i == (cutRawData.count - 1)) {
             minLow = [item[2] floatValue];
         }
-        
-        if (maxVol < [item[4] floatValue]) {
-            maxVol = [item[4] floatValue];
-        }
-        
-        if (minVol > [item[4] floatValue] || i == (cutRawData.count - 1)) {
-            minVol = [item[4] floatValue];
-        }
-        
-        
         
         [context addObject:item];
         [dates addObject:arr[0]];
@@ -130,8 +119,7 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
     [despString appendFormat:@"Stock Dates: \t\t\t\t%@\n\n\n", dates];
     [despString appendFormat:@"MaxHigh: \t\t\t\t%.2f\n\n\n", maxHigh];
     [despString appendFormat:@"MinLow: \t\t\t\t%.2f\n\n\n", minLow];
-    [despString appendFormat:@"MaxVol: \t\t\t\t%.2f\n\n\n", maxVol];
-    [despString appendFormat:@"MinVol: \t\t\t\t%.2f\n\n\n", minVol];
+    [despString appendFormat:@"VOLS: \t\t\t\t%@\n\n\n", vols];
     [despString appendFormat:@"KDJ->[K, D, J]: \t\t\t\t%@\n\n\n", kdj];
     [despString appendFormat:@"MACD->[DIFF, DEA, BAR]: \t\t\t\t%@\n\n\n", macd];
     [despString appendFormat:@"RSI: \t\t\t\t%@\n\n\n", rsis];
@@ -149,8 +137,7 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
              kCandlerstickChartsContext:context,
              kCandlerstickChartsMaxHigh:@(maxHigh),
              kCandlerstickChartsMinLow:@(minLow),
-             kCandlerstickChartsMaxVol:@(maxVol),
-             kCandlerstickChartsMinVol:@(minVol),
+             kCandlerstickChartsVol:vols,
              kCandlerstickChartsRSV9:rsv9s,
              kCandlerstickChartsKDJ:kdj,
              kCandlerstickChartsMACD:macd,

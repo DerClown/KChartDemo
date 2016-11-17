@@ -243,9 +243,6 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 - (void)drawChartWithData:(NSDictionary *)data {
     self.contexts = data[kCandlerstickChartsContext];
     self.dates = data[kCandlerstickChartsDate];
-    //最大、最小 交易量
-    self.maxValue = [data[kCandlerstickChartsMaxVol] floatValue];
-    self.minValue = [data[kCandlerstickChartsMinVol] floatValue];
 
     [self drawSetting];
     

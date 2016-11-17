@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1E2AB5681DDC6596002E96B8 /* Global+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E2AB5671DDC6596002E96B8 /* Global+Helper.m */; };
+		1E2AB56F1DDD9089002E96B8 /* VolumnView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E2AB56E1DDD9089002E96B8 /* VolumnView.m */; };
 		1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TLineChartView.m */; };
 		1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */; };
 		1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EECF1B11D6E9AD300E52D10 /* StatusView.m */; };
@@ -60,6 +61,8 @@
 		1E2AB5661DDC6596002E96B8 /* Global+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Global+Helper.h"; sourceTree = "<group>"; };
 		1E2AB5671DDC6596002E96B8 /* Global+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Global+Helper.m"; sourceTree = "<group>"; };
 		1E2AB56A1DDC665B002E96B8 /* ACMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACMacros.h; sourceTree = "<group>"; };
+		1E2AB56D1DDD9089002E96B8 /* VolumnView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VolumnView.h; sourceTree = "<group>"; };
+		1E2AB56E1DDD9089002E96B8 /* VolumnView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VolumnView.m; sourceTree = "<group>"; };
 		1E7B58C51D621010005BF850 /* TLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLineChartView.h; sourceTree = "<group>"; };
 		1E7B58C61D621010005BF850 /* TLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TLineChartView.m; sourceTree = "<group>"; };
 		1EEC1A4A1D5DC4600063A205 /* UIBezierPath+curved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBezierPath+curved.h"; sourceTree = "<group>"; };
@@ -152,6 +155,15 @@
 				1E2AB5671DDC6596002E96B8 /* Global+Helper.m */,
 			);
 			path = Utils;
+			sourceTree = "<group>";
+		};
+		1E2AB56C1DDD8FF4002E96B8 /* VolumnView */ = {
+			isa = PBXGroup;
+			children = (
+				1E2AB56D1DDD9089002E96B8 /* VolumnView.h */,
+				1E2AB56E1DDD9089002E96B8 /* VolumnView.m */,
+			);
+			path = VolumnView;
 			sourceTree = "<group>";
 		};
 		1E7B58C41D621010005BF850 /* TLine */ = {
@@ -255,6 +267,7 @@
 		1EF4CED81D5D5FFF00221294 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				1E2AB56C1DDD8FF4002E96B8 /* VolumnView */,
 				1EECF1AF1D6E9AC000E52D10 /* StatusView */,
 				1EFDDC6F1D69ED9D00A39786 /* TipViews */,
 				1EF4CF331D5D67C200221294 /* KLine */,
@@ -590,6 +603,7 @@
 				1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */,
 				1EF4CF201D5D63B400221294 /* GApiBaseManager.m in Sources */,
 				1EF4CF1F1D5D63B400221294 /* GApiAgent.m in Sources */,
+				1E2AB56F1DDD9089002E96B8 /* VolumnView.m in Sources */,
 				1EF83FC31D6C300900798643 /* KLineTipBoardView.m in Sources */,
 				1EF4CF2E1D5D650400221294 /* KLineListManager.m in Sources */,
 				1EFDDC751D69ED9D00A39786 /* TipBoardView.m in Sources */,

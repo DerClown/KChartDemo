@@ -80,7 +80,6 @@
     tempDict[kCandlerstickChartsDate] = @[[dates objectAtIndex:randomIndex]];
     tempDict[kCandlerstickChartsContext] = @[[contexts objectAtIndex:randomIndex]];
     tempDict[kCandlerstickChartsMaxHigh] = @(0.0);
-    tempDict[kCandlerstickChartsMaxVol] = @(0.0);
     
     //k线图
     [self.kLineChartView updateChartWithData:tempDict];
