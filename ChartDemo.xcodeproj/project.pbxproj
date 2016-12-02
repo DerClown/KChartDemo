@@ -10,6 +10,7 @@
 		1E2AB5681DDC6596002E96B8 /* Global+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E2AB5671DDC6596002E96B8 /* Global+Helper.m */; };
 		1E2AB56F1DDD9089002E96B8 /* VolumnView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E2AB56E1DDD9089002E96B8 /* VolumnView.m */; };
 		1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TLineChartView.m */; };
+		1E7F343A1DF11C5D0058317B /* KLineItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7F34391DF11C5D0058317B /* KLineItem.m */; };
 		1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */; };
 		1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EECF1B11D6E9AD300E52D10 /* StatusView.m */; };
 		1EF4CEA51D5D5FA600221294 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CEA41D5D5FA600221294 /* main.m */; };
@@ -65,6 +66,8 @@
 		1E2AB56E1DDD9089002E96B8 /* VolumnView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VolumnView.m; sourceTree = "<group>"; };
 		1E7B58C51D621010005BF850 /* TLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLineChartView.h; sourceTree = "<group>"; };
 		1E7B58C61D621010005BF850 /* TLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TLineChartView.m; sourceTree = "<group>"; };
+		1E7F34381DF11C5D0058317B /* KLineItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineItem.h; sourceTree = "<group>"; };
+		1E7F34391DF11C5D0058317B /* KLineItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineItem.m; sourceTree = "<group>"; };
 		1EEC1A4A1D5DC4600063A205 /* UIBezierPath+curved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBezierPath+curved.h"; sourceTree = "<group>"; };
 		1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIBezierPath+curved.m"; sourceTree = "<group>"; };
 		1EECF1B01D6E9AD300E52D10 /* StatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StatusView.h; sourceTree = "<group>"; };
@@ -356,6 +359,8 @@
 		1EF4CF271D5D643F00221294 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				1E7F34381DF11C5D0058317B /* KLineItem.h */,
+				1E7F34391DF11C5D0058317B /* KLineItem.m */,
 				1EF4CF2F1D5D653500221294 /* DataTransformers */,
 			);
 			path = Models;
@@ -611,6 +616,7 @@
 				1EF83FC91D6C420200798643 /* MATipView.m in Sources */,
 				1EF4CF231D5D63B400221294 /* GApiConfig.m in Sources */,
 				1EF4CF221D5D63B400221294 /* GApiCachedObject.m in Sources */,
+				1E7F343A1DF11C5D0058317B /* KLineItem.m in Sources */,
 				1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */,
 				1E2AB5681DDC6596002E96B8 /* Global+Helper.m in Sources */,
 				1EF4CF1E1D5D63B400221294 /* NSString+md5.m in Sources */,

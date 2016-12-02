@@ -25,7 +25,7 @@
 /**
  *  (模拟)实时测试
  */
-@property (nonatomic, strong) NSMutableDictionary *data;
+@property (nonatomic, strong) NSArray *data;
 @property (nonatomic, strong) NSTimer *timer;
 
 @end
@@ -73,18 +73,6 @@
 }
 
 - (void)realTimeData:(id)timer {
-    NSMutableArray *dates = [self.data[kCandlerstickChartsDate] mutableCopy];
-    NSMutableArray *contexts = [self.data[kCandlerstickChartsContext] mutableCopy];
-    NSInteger randomIndex = arc4random()%(dates.count);
-    NSMutableDictionary *tempDict = [NSMutableDictionary new];
-    tempDict[kCandlerstickChartsDate] = @[[dates objectAtIndex:randomIndex]];
-    tempDict[kCandlerstickChartsContext] = @[[contexts objectAtIndex:randomIndex]];
-    tempDict[kCandlerstickChartsMaxHigh] = @(0.0);
-    
-    //k线图
-    [self.kLineChartView updateChartWithData:tempDict];
-    //时分图
-    [self.tLineChartView updateChartWithData:tempDict];
 }
 
 #pragma mark - GAPIBaseManagerRequestCallBackDelegate
@@ -130,6 +118,7 @@
         _kLineChartView.topMargin = 20.0f;
         _kLineChartView.rightMargin = 1.0;
         _kLineChartView.bottomMargin = 80.0f;
+        _kLineChartView.leftMargin = 25.0f;
         // YES表示：Y坐标的值根据视图中呈现的k线图的最大值最小值变化而变化；NO表示：Y坐标是所有数据中的最大值最小值，不管k线图呈现如何都不会变化。默认YES
         //_kLineChartView.yAxisTitleIsChange = NO;
         

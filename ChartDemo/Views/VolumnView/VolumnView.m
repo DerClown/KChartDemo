@@ -9,62 +9,13 @@
 #import "VolumnView.h"
 #import "KLineListTransformer.h"
 #import "Global+Helper.h"
+#import "KLineItem.h"
 
 @interface VolumnView ()
 
 @property (nonatomic) float maxValue;
 
 @property (nonatomic) float minValue;
-
-/**
- *   成交量
- */
-@property (nonatomic, strong) NSArray *volums;
-
-/**
- *   成交量
- */
-@property (nonatomic, strong) NSArray *rsv9;
-
-/**
- *   成交量
- */
-@property (nonatomic, strong) NSArray *kdj;
-
-/**
- *   成交量
- */
-@property (nonatomic, strong) NSArray *macd;
-
-/**
- *   成交量
- */
-@property (nonatomic, strong) NSArray *rsi;
-
-/**
- *   成交量
- */
-@property (nonatomic, strong) NSArray *boll;
-
-/**
- *   成交量
- */
-@property (nonatomic, strong) NSArray *dma;
-
-/**
- *   威廉指数
- */
-@property (nonatomic, strong) NSArray *wr;
-
-/**
- *   成交量
- */
-@property (nonatomic, strong) NSArray *cci;
-
-/**
- *   成交量
- */
-@property (nonatomic, strong) NSArray *bias;
 
 @property (nonatomic, strong) UITapGestureRecognizer *switchGesture;
 
@@ -112,61 +63,16 @@
     _minValue = MAXFLOAT;
     switch (_volStyle) {
         case CandlerstickChartsVolStyleDefault: {
-            self.volums = [self.data[kCandlerstickChartsVol] subarrayWithRange:NSMakeRange(self.startDrawIndex, self.numberOfDrawCount)];
-            self.maxValue = [[self.volums valueForKeyPath:@"@max.self"] floatValue];
-            self.minValue = [[self.volums valueForKeyPath:@"@min.self"] floatValue];
-            break;
-        }
-        case CandlerstickChartsVolStyleRSV9: {
-            self.maxValue = [[self.rsv9 valueForKeyPath:@"@max.self"] floatValue];
-            self.minValue = [[self.rsv9 valueForKeyPath:@"@min.self"] floatValue];
-            break;
-        }
-            
-        case CandlerstickChartsVolStyleKDJ: {
-//            self.maxValue = [[self.kdj valueForKeyPath:@"@max.self"] floatValue];
-//            self.minValue = [[self.kdj valueForKeyPath:@"@min.self"] floatValue];
-            break;
-        }
-            
-        case CandlerstickChartsVolStyleMACD: {
-//            self.maxValue = [[self.volums valueForKeyPath:@"@max.self"] floatValue];
-//            self.minValue = [[self.volums valueForKeyPath:@"@min.self"] floatValue];
-            break;
-        }
-            
-        case CandlerstickChartsVolStyleRSI: {
-            self.maxValue = [[self.rsi valueForKeyPath:@"@max.self"] floatValue];
-            self.minValue = [[self.rsi valueForKeyPath:@"@min.self"] floatValue];
-            break;
-        }
-            
-        case CandlerstickChartsVolStyleBOLL: {
-            self.maxValue = [[self.boll valueForKeyPath:@"@max.self"] floatValue];
-            self.minValue = [[self.boll valueForKeyPath:@"@min.self"] floatValue];
-            break;
-        }
-            
-        case CandlerstickChartsVolStyleDMA: {
-            self.maxValue = [[self.dma valueForKeyPath:@"@max.self"] floatValue];
-            self.minValue = [[self.dma valueForKeyPath:@"@min.self"] floatValue];
-            break;
-        }
-            
-        case CandlerstickChartsVolStyleCCI: {
-            self.maxValue = [[self.cci valueForKeyPath:@"@max.self"] floatValue];
-            self.minValue = [[self.cci valueForKeyPath:@"@min.self"] floatValue];
-            break;
-        }
-            
-        case CandlerstickChartsVolStyleWR: {
-            self.maxValue = [[self.wr valueForKeyPath:@"@max.self"] floatValue];
-            self.minValue = [[self.wr valueForKeyPath:@"@min.self"] floatValue];
-            break;
-        }
-        case CandlerstickChartsVolStyleBIAS: {
-            self.maxValue = [[self.bias valueForKeyPath:@"@max.self"] floatValue];
-            self.minValue = [[self.bias valueForKeyPath:@"@min.self"] floatValue];
+            NSArray *volums = [self.data subarrayWithRange:NSMakeRange(self.startDrawIndex, self.numberOfDrawCount)];
+            for (KLineItem *item in volums) {
+                if (self.maxValue < [item.vol floatValue]) {
+                    self.maxValue = [item.vol floatValue];
+                }
+                
+                if (self.minValue > [item.vol floatValue]) {
+                    self.minValue = [item.vol floatValue];
+                }
+            }
             break;
         }
         default:
@@ -244,15 +150,14 @@
     CGFloat boxHeight = rect.size.height - boxOriginY;
     CGFloat scale = self.maxValue/boxHeight;
     
-    NSArray *contentValues = [self.data[kCandlerstickChartsContext] subarrayWithRange:NSMakeRange(self.startDrawIndex, self.numberOfDrawCount)];
-    for (NSArray *line in contentValues) {
-        CGFloat open = [line[0] floatValue];
-        CGFloat close = [line[3] floatValue];
+    NSArray *contentValues = [self.data subarrayWithRange:NSMakeRange(self.startDrawIndex, self.numberOfDrawCount)];
+    for (KLineItem *item in contentValues) {
+        CGFloat open = [item.open floatValue];
+        CGFloat close = [item.close floatValue];
         UIColor *fillColor = open > close ? self.positiveVolColor : self.negativeVolColor;
         CGContextSetFillColorWithColor(context, fillColor.CGColor);
         
-        NSInteger index = [contentValues indexOfObject:line];
-        CGFloat height = [self.volums[index] floatValue]/scale == 0 ? 1.0 : [self.volums[index] floatValue]/scale;
+        CGFloat height = [item.vol floatValue]/scale == 0 ? 1.0 : [item.vol floatValue]/scale;
         CGRect pathRect = CGRectMake(xAxis, boxOriginY + boxHeight - height, self.kLineWidth, height - self.axisShadowWidth);
         CGContextAddRect(context, pathRect);
         CGContextFillPath(context);
@@ -303,7 +208,61 @@
 #pragma mark - events
 
 - (void)switchEvent:(UITapGestureRecognizer *)tapGesture {
+    return;
+    switch (_volStyle) {
+        case CandlerstickChartsVolStyleDefault: {
+            _volStyle = CandlerstickChartsVolStyleRSV9;
+            break;
+        }
+        case CandlerstickChartsVolStyleRSV9: {
+            _volStyle = CandlerstickChartsVolStyleKDJ;
+            break;
+        }
+            
+        case CandlerstickChartsVolStyleKDJ: {
+            _volStyle = CandlerstickChartsVolStyleMACD;
+            break;
+        }
+            
+        case CandlerstickChartsVolStyleMACD: {
+            _volStyle = CandlerstickChartsVolStyleRSI;
+            break;
+        }
+            
+        case CandlerstickChartsVolStyleRSI: {
+            _volStyle = CandlerstickChartsVolStyleBOLL;
+            break;
+        }
+            
+        case CandlerstickChartsVolStyleBOLL: {
+            _volStyle = CandlerstickChartsVolStyleDMA;
+            break;
+        }
+            
+        case CandlerstickChartsVolStyleDMA: {
+            _volStyle = CandlerstickChartsVolStyleCCI;
+            break;
+        }
+            
+        case CandlerstickChartsVolStyleCCI: {
+            _volStyle = CandlerstickChartsVolStyleWR;
+            break;
+        }
+            
+        case CandlerstickChartsVolStyleWR: {
+            _volStyle = CandlerstickChartsVolStyleBIAS;
+            break;
+        }
+        case CandlerstickChartsVolStyleBIAS: {
+            _volStyle = CandlerstickChartsVolStyleDefault;
+            break;
+        }
+        default:
+            break;
+    }
     
+    [self update];
+    [self setNeedsDisplay];
 }
 
 #pragma mark - getters

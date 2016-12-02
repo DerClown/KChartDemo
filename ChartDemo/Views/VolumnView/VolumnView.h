@@ -96,7 +96,7 @@ typedef NS_ENUM(NSInteger, CandlerstickChartsVolStyle) {
 //默认 YES
 @property (nonatomic, assign) BOOL gestureEnable;
 
-@property (nonatomic, strong) NSDictionary *data;
+@property (nonatomic, strong) NSArray *data;
 
 /*
  * 柱状图类型

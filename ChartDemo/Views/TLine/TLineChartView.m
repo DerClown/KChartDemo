@@ -11,6 +11,7 @@
 #import "KLineListTransformer.h"
 #import "UIBezierPath+curved.h"
 #import "TLineTipBoardView.h"
+#import "KLineItem.h"
 
 #define HexRGB(rgbValue)\
                         \
@@ -24,9 +25,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 @interface TLineChartView ()
 
-@property (nonatomic, strong) NSArray *contexts;
-
-@property (nonatomic, strong) NSArray *dates;
+@property (nonatomic, strong) NSArray<KLineItem *> *chartData;
 
 @property (nonatomic, assign) CGFloat xAxisWidth;
 
@@ -146,7 +145,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 - (void)drawRect:(CGRect)rect {
     [super drawRect:rect];
     [self stopFlashAnimation];
-    if (self.contexts.count == 0) {
+    if (self.chartData.count == 0 || !self.chartData) {
         return;
     }
     
@@ -171,7 +170,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 - (void)longPressedEvent:(UILongPressGestureRecognizer *)longGesture {
     [self postNotificationWithGestureRecognizerStatee:longGesture.state];
     
-    if (self.contexts.count == 0 || !self.contexts) {
+    if (self.chartData.count == 0 || !self.chartData) {
         return;
     }
     if (longGesture.state == UIGestureRecognizerStateEnded) {
@@ -204,11 +203,11 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
             }
             
             
-            self.tipBox.content = [NSString stringWithFormat:@"%.2f", [[_contexts[touchIndex] objectAtIndex:3] floatValue]];
+            self.tipBox.content = [NSString stringWithFormat:@"%.2f", [self.chartData[touchIndex].close floatValue]];
             [self.tipBox showWithTipPoint:point];
             [self bringSubviewToFront:self.tipBox];
             
-            NSString *date = self.dates[touchIndex];
+            NSString *date = self.chartData[touchIndex].date;
             self.timeLbl.text = date;
             self.timeLbl.hidden = date.length > 0 ? NO : YES;
             if (date.length > 0) {
@@ -240,24 +239,12 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 #pragma mark - public method
 
-- (void)drawChartWithData:(NSDictionary *)data {
-    self.contexts = data[kCandlerstickChartsContext];
-    self.dates = data[kCandlerstickChartsDate];
+- (void)drawChartWithData:(NSArray *)data {
+    self.chartData = data;
 
     [self drawSetting];
     
     [self setNeedsDisplay];
-}
-
-- (void)updateChartWithData:(NSDictionary *)data {
-    if ([data[kCandlerstickChartsContext] count] == 0) {
-        return;
-    }
-    
-    [self.updateTempContexts addObjectsFromArray:data[kCandlerstickChartsContext]];
-    [self.updateTempDates addObjectsFromArray:data[kCandlerstickChartsDate]];
-    
-    [self dynamicUpdateChart];
 }
 
 - (void)drawSetting {
@@ -341,11 +328,11 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         
         //x轴坐标
         NSInteger timeIndex = i*avgDrawCount + self.startDrawIndex + 1;
-        if (timeIndex > self.dates.count - 1) {
+        if (timeIndex > self.chartData.count - 1) {
             xAxis += avgDrawCount*_pointPadding;
             continue;
         }
-        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.dates[timeIndex] attributes:@{NSFontAttributeName:self.xAxisTitleFont, NSForegroundColorAttributeName:self.xAxisTitleColor}];
+        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.chartData[timeIndex].date attributes:@{NSFontAttributeName:self.xAxisTitleFont, NSForegroundColorAttributeName:self.xAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.xAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         CGFloat originX = MIN(xAxis - size.width/2.0, self.frame.size.width - self.rightMargin - size.width);
         [attString drawInRect:CGRectMake(originX, self.topMargin + self.yAxisHeight + 2.0, size.width, size.height)];
@@ -392,10 +379,10 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     CGFloat scale = (self.maxValue - self.minValue) / self.yAxisHeight;
     
     if (scale != 0) {
-        NSArray *drawContexts = [_contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
+        NSArray *drawContexts = [self.chartData subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
         NSMutableDictionary *contentPoints = [NSMutableDictionary new];
-        for (NSArray *line in drawContexts) {
-            CGFloat volValue = [line[3] floatValue];
+        for (KLineItem *item in drawContexts) {
+            CGFloat volValue = [item.close floatValue];
             CGFloat yAxis = self.yAxisHeight - (volValue - self.minValue)/scale + self.topMargin;
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
             
@@ -406,7 +393,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
                 [path addLineToPoint:maPoint];
             }
             
-            [contentPoints setObject:NSStringFromCGPoint(CGPointMake(xAxis, yAxis)) forKey:@([_contexts indexOfObject:line])];
+            [contentPoints setObject:NSStringFromCGPoint(CGPointMake(xAxis, yAxis)) forKey:@([self.chartData indexOfObject:item])];
             xAxis += self.pointPadding;
         }
         self.points = contentPoints;
@@ -461,40 +448,16 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     _flashLayer = nil;
 }
 
-- (void)dynamicUpdateChart {
-    if (self.interactive) {
-        return;
-    }
-    
-    self.contexts = [self.contexts arrayByAddingObjectsFromArray:self.updateTempContexts];
-    self.dates = [self.dates arrayByAddingObjectsFromArray:self.updateTempDates];
-    
-    [self drawSetting];
-    [self setNeedsDisplay];
-    [self startFlashAnimation];
-    [self.updateTempContexts removeAllObjects];
-    [self.updateTempDates removeAllObjects];
-}
-
 - (void)resetMinAndMax {
-    NSArray<NSArray *> *drawContexts = self.contexts;
-    if (self.yAxisTitleIsChange) {
-        drawContexts = [self.contexts subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
-    }
+    self.maxValue = -MAXFLOAT;
+    self.minValue = MAXFLOAT;
+    NSArray *drawContext = self.yAxisTitleIsChange ? [self.chartData subarrayWithRange:NSMakeRange(self.startDrawIndex, MIN(self.kGraphDrawCount, self.chartData.count))] : self.chartData;
     
-    for (int i = 0; i < drawContexts.count; i++) {
-        if (i == 0) {
-            self.maxValue = [drawContexts[i][3] floatValue];
-            self.minValue = [drawContexts[i][3] floatValue];
-        } else {
-            if (self.maxValue < [drawContexts[i][3] floatValue]) {
-                self.maxValue = [drawContexts[i][3] floatValue];
-            }
-            
-            if (self.minValue > [drawContexts[i][3] floatValue] || i == 0) {
-                self.minValue = [drawContexts[i][3] floatValue];
-            }
-        }
+    for (int i = 0; i < drawContext.count; i++) {
+        KLineItem *item = drawContext[i];
+        
+        self.maxValue = MAX([item.high floatValue], self.maxValue);
+        self.minValue = MIN([item.low floatValue], self.minValue);
     }
     
     CGFloat offsetValue = (self.maxValue - self.minValue)/10.0f;
@@ -510,7 +473,6 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 - (void)endOfTouchNotification:(NSNotification *)notification {
     self.interactive = NO;
-    [self dynamicUpdateChart];
 }
 
 - (void)deviceOrientationDidChangeNotification:(NSNotification *)notificaiton {
@@ -576,11 +538,9 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 }
 
 - (void)setKGraphDrawCount:(NSInteger)kGraphDrawCount {
-    if (kGraphDrawCount > self.contexts.count || self.contexts.count < kGraphDrawCount) {
-        kGraphDrawCount = self.contexts.count;
-    }
+    kGraphDrawCount = MAX(MIN(self.chartData.count, kGraphDrawCount), 0);
     
-    self.startDrawIndex = self.contexts.count > kGraphDrawCount ? self.contexts.count - kGraphDrawCount : 0;
+    self.startDrawIndex = self.chartData.count - kGraphDrawCount;
     
     _kGraphDrawCount = kGraphDrawCount;
 }

@@ -7,6 +7,7 @@
 //
 
 #import "KLineListTransformer.h"
+#import "KLineItem.h"
 
 NSString *const kCandlerstickChartsContext = @"kCandlerstickChartsContext";
 NSString *const kCandlerstickChartsDate    = @"kCandlerstickChartsDate";
@@ -41,17 +42,7 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
     NSInteger length = _kCount>=lineRawData.count ? lineRawData.count:_kCount;
     NSArray *cutRawData = [lineRawData subarrayWithRange:NSMakeRange(1, length)];
     
-    NSMutableArray *context = [NSMutableArray new];
-    NSMutableArray *dates = [NSMutableArray new];
-    NSMutableArray *rsv9s = [NSMutableArray new];
-    NSMutableArray *rsis = [NSMutableArray new];
-    NSMutableArray *bolls = [NSMutableArray new];
-    NSMutableArray *dmas = [NSMutableArray new];
-    NSMutableArray *ccis = [NSMutableArray new];
-    NSMutableArray *wrs = [NSMutableArray new];
-    NSMutableArray *biass = [NSMutableArray new];
-    NSMutableArray *vols = [NSMutableArray new];
-    float maxHigh = 0.0, minLow = 0.0;
+    NSMutableArray *items = [NSMutableArray new];
     for (int i = (int)cutRawData.count; i > 0; i --) {
         //arr = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
         NSArray *arr = [lineRawData[i] componentsSeparatedByString:@","];
@@ -63,91 +54,31 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
         CGFloat MA10 = [self maWithData:lineRawData subInRange:NSMakeRange(i, 10)];
         CGFloat MA20 = [self maWithData:lineRawData subInRange:NSMakeRange(i, 20)];
         
-        CGFloat rsv9 = [self rsv9WithData:lineRawData sunInRange:NSMakeRange(i, 9)];
+        KLineItem *item = [KLineItem new];
+        item.date = arr[0];
+        item.open = @([arr[1] floatValue]);
+        item.high = @([arr[2] floatValue]);
+        item.low = @([arr[3] floatValue]);
+        item.close = @([arr[4] floatValue]);
+        item.MAs = @[@(MA5), @(MA10), @(MA20)];
+        item.vol = @([arr[5] floatValue]/10000.00);
         
-        CGFloat rsi = [self rsiWithData:lineRawData subWithRange:NSMakeRange(i, 12)];
-        
-        NSArray *boll20 = [self bollWithData:lineRawData subWithRange:NSMakeRange(i, 20)];
-        
-        NSArray *dma = [self dmaWithData:lineRawData atIndex:i];
-        
-        CGFloat cci14 = [self cciWithData:lineRawData subWithRange:NSMakeRange(i, 14)];
-        
-        CGFloat wr14 = [self wrWithData:lineRawData subWithRange:NSMakeRange(i, 14)];
-        
-        CGFloat bias6 = [self biasWithData:lineRawData subWithRange:NSMakeRange(i, 6)];
-        CGFloat bias12 = [self biasWithData:lineRawData subWithRange:NSMakeRange(i, 12)];
-        CGFloat bias24 = [self biasWithData:lineRawData subWithRange:NSMakeRange(i, 24)];
-        
-        //item = @["开盘价,最高价,最低价,收盘价,成交量, @[ma, ma, ...]"]
-        NSMutableArray *item = [[NSMutableArray alloc] initWithCapacity:5];
-        item[0] = arr[1];
-        item[1] = arr[2];
-        item[2] = arr[3];
-        item[3] = arr[4];
-        item[4] = @[@(MA5), @(MA10), @(MA20)];
-        
-        CGFloat vol = [arr[5] floatValue]/10000.00;
-        [vols addObject:@(vol)];
-        
-        if (maxHigh < [item[1] floatValue]) {
-            maxHigh = [item[1] floatValue];
-        }
-        
-        if (minLow > [item[2] floatValue] || i == (cutRawData.count - 1)) {
-            minLow = [item[2] floatValue];
-        }
-        
-        [context addObject:item];
-        [dates addObject:arr[0]];
-        [rsv9s addObject:@(rsv9)];
-        [rsis addObject:@(rsi)];
-        [bolls addObject:boll20];
-        [dmas addObject:dma];
-        [ccis addObject:@(cci14)];
-        [wrs addObject:@(wr14)];
-        [biass addObject:@[@(bias6), @(bias12), @(bias24)]];
+        [items addObject:item];
     }
     
-    NSArray *kdj = [self kdjWithRSV9:rsv9s];
-    
-    NSArray *macd = [self macdWithData:cutRawData];
+//    NSArray *kdj = [self kdjWithRSV9:rsv9s];
+//    
+//    NSArray *macd = [self macdWithData:cutRawData];
     
 #ifdef DEBUG
     NSMutableString *despString = [[NSMutableString alloc] initWithString:@"\n\n\n\n/************************************ Data Center Control ************************************/\n\n\n\n"];
-    [despString appendFormat:@"Stock Candlers: \t\t\t\t%@\n\n\n", context];
-    [despString appendFormat:@"Stock Dates: \t\t\t\t%@\n\n\n", dates];
-    [despString appendFormat:@"MaxHigh: \t\t\t\t%.2f\n\n\n", maxHigh];
-    [despString appendFormat:@"MinLow: \t\t\t\t%.2f\n\n\n", minLow];
-    [despString appendFormat:@"VOLS: \t\t\t\t%@\n\n\n", vols];
-    [despString appendFormat:@"KDJ->[K, D, J]: \t\t\t\t%@\n\n\n", kdj];
-    [despString appendFormat:@"MACD->[DIFF, DEA, BAR]: \t\t\t\t%@\n\n\n", macd];
-    [despString appendFormat:@"RSI: \t\t\t\t%@\n\n\n", rsis];
-    [despString appendFormat:@"BOLL: \t\t\t\t%@\n\n\n", bolls];
-    [despString appendFormat:@"DMA: \t\t\t\t%@\n\n\n", dmas];
-    [despString appendFormat:@"CCI: \t\t\t\t%@\n\n\n", ccis];
-    [despString appendFormat:@"WR: \t\t\t\t%@\n\n\n", wrs];
-    [despString appendFormat:@"BIAS: \t\t\t\t%@\n\n\n", biass];
+    [despString appendFormat:@"Stock Candlers: \t\t\t\t%@\n\n\n", items];
     [despString appendString:@"/************************************************************************/"];
     
     NSLog(@"%@", despString);
 #endif
     
-    return @{kCandlerstickChartsDate:dates,
-             kCandlerstickChartsContext:context,
-             kCandlerstickChartsMaxHigh:@(maxHigh),
-             kCandlerstickChartsMinLow:@(minLow),
-             kCandlerstickChartsVol:vols,
-             kCandlerstickChartsRSV9:rsv9s,
-             kCandlerstickChartsKDJ:kdj,
-             kCandlerstickChartsMACD:macd,
-             kCandlerstickChartsRSI:rsis,
-             kCandlerstickChartsBOLL:bolls,
-             kCandlerstickChartsDMA:dmas,
-             kCandlerstickChartsCCI:ccis,
-             kCandlerstickChartsWR:wrs,
-             kCandlerstickChartsBIAS:biass
-             };
+    return items;
 }
 
 // MA
