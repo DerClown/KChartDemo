@@ -6,6 +6,7 @@
 #ifndef ACMacros_h
 #define ACMacros_h
 
+#import "Global+Helper.h"
 
 //** 沙盒路径 ***********************************************************************************
 #define PATH_OF_APP_HOME    NSHomeDirectory()
@@ -216,6 +217,10 @@ do { \
 
 // 字符串比较
 #define EqualString(aString, toString)  [(aString == nil ? @"" : aString) isEqualToString:(toString == nil ? @"" : toString)]
+
+// nil替换为空字符串
+#define SAFE_STRING(aString)                       SAFE_STRING_PLACEHODER(aString, @"")
+#define SAFE_STRING_PLACEHODER(aString, pString)   [Global_Helper safeString:aString placeHolder:pString]
 
 #if TARGET_OS_IPHONE
 /** iPhone Device */

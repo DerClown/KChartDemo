@@ -10,6 +10,8 @@
 
 @interface TipBoardView : UIView
 
+@property (nonatomic, readonly) BOOL arrowInLeft;
+
 @property (nonatomic, strong) UIColor *strockColor;
 
 @property (nonatomic, strong) UIColor *fillColor;

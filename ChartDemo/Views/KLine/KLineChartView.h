@@ -241,6 +241,11 @@
 @property (nonatomic, assign) BOOL dynamicUpdateIsNew;
 
 /*
+ *  全屏绘制时，topMargin无效
+ */
+@property (nonatomic, assign) BOOL fullScreen;
+
+/*
  * self.data 的格式为 @[@KLineItem, @KLineItem, ...]
  */
 

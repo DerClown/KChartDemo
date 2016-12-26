@@ -8,17 +8,10 @@
 //
 
 #import "TLineChartView.h"
-#import "KLineListTransformer.h"
 #import "UIBezierPath+curved.h"
 #import "TLineTipBoardView.h"
 #import "KLineItem.h"
-
-#define HexRGB(rgbValue)\
-                        \
-                        [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 \
-                                        green:((float)((rgbValue & 0xFF00) >> 8))/255.0    \
-                                         blue:((float)(rgbValue & 0xFF))/255.0             \
-                                        alpha:(1.0)]
+#import "ACMacros.h"
 
 NSString *const TLineKeyStartUserInterfaceNotification = @"TLineKeyStartUserInterfaceNotification";
 NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInterfaceNotification";
@@ -45,6 +38,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 @property (nonatomic, strong) UIView *vtlCrossLine; //垂直线
 
+@property (nonatomic, strong) UITapGestureRecognizer *tapGesture;
+
 @property (nonatomic, strong) UILongPressGestureRecognizer *longGesture;
 
 @property (nonatomic, strong) CALayer *flashLayer;
@@ -58,6 +53,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 //数据更新
 @property (nonatomic, strong) NSMutableArray *updateTempContexts;
 @property (nonatomic, strong) NSMutableArray *updateTempDates;
+
+@property (nonatomic, strong) KLineItem *highItem;
 
 @end
 
@@ -91,6 +88,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 }
 
 - (void)_setup {
+    self.fullScreen = YES;
+    
     self.pointPadding = 1.5;
     
     self.lineWidth = 0.8;
@@ -123,12 +122,15 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     self.yAxisTitleIsChange = YES;
     
+    self.saveDecimalPlaces = 2;
+    
     self.timeTipBackgroundColor = HexRGB(0xD70002);
     self.timeTipTextColor = [UIColor colorWithWhite:1.0 alpha:0.95];
     
     self.updateTempContexts = [NSMutableArray new];
     self.updateTempDates = [NSMutableArray new];
     
+    [self addGestureRecognizer:self.tapGesture];
     [self addGestureRecognizer:self.longGesture];
 }
 
@@ -144,13 +146,17 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 - (void)drawRect:(CGRect)rect {
     [super drawRect:rect];
+    [_vtlCrossLine removeFromSuperview];
+    _vtlCrossLine = nil;
+    self.timeLbl.hidden = YES;
+    self.tipBox.hidden = YES;
     [self stopFlashAnimation];
     if (self.chartData.count == 0 || !self.chartData) {
         return;
     }
     
     //x坐标轴长度
-    self.xAxisWidth = rect.size.width - self.leftMargin - self.rightMargin;
+    self.xAxisWidth = rect.size.width - self.rightMargin - (self.fullScreen ? 0 : self.leftMargin);
     
     //y坐标轴高度
     self.yAxisHeight = rect.size.height - self.bottomMargin - self.topMargin;
@@ -163,9 +169,21 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     //折线图
     [self drawLineChart];
+    
+    //y坐标
+    [self drawYAxisTitle];
 }
 
 #pragma mark - reponse events
+
+- (void)tapPressedEvent:(UITapGestureRecognizer *)tapGesture {
+    if (self.chartData.count == 0 || !self.chartData) {
+        return;
+    }
+    
+    CGPoint touchPoint = [tapGesture locationInView:self];
+    [self showTipBoardWithTouchPoint:touchPoint];
+}
 
 - (void)longPressedEvent:(UILongPressGestureRecognizer *)longGesture {
     [self postNotificationWithGestureRecognizerStatee:longGesture.state];
@@ -179,47 +197,50 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         [self.tipBox hide];
     } else {
         CGPoint touchPoint = [longGesture locationInView:self];
-        [self.points enumerateKeysAndObjectsUsingBlock:^(NSNumber *indexNum, NSString *pointKey, BOOL * _Nonnull stop) {
-            NSInteger touchIndex = MIN(MAX(0, floor((touchPoint.x - self.leftMargin)/self.pointPadding)), self.points.count - 1);
-            if (touchIndex*self.pointPadding - touchPoint.x > 1/2*self.pointPadding) {
-                touchIndex += 1;
-            }
-            
-            touchIndex += self.startDrawIndex;
-            
-            CGPoint point = CGPointFromString([_points objectForKey:@(touchIndex)]);
-            self.vtlCrossLine.hidden = NO;
-            CGRect frame = self.vtlCrossLine.frame;
-            frame.origin.x = point.x;
-            
-            self.vtlCrossLine.frame = frame;
-            
-            self.tipBox.hidden = NO;
-            
-            point.y = point.y > (self.frame.size.height - self.topMargin - self.tipBox.frame.size.height/2.0)/2.0 ? (self.frame.size.height - self.topMargin - self.tipBox.frame.size.height/2.0)/2.0 : point.y;
-            point.y -= self.tipBox.frame.size.height/2.0;
-            if (point.y < self.topMargin + self.tipBox.frame.size.height/2.0) {
-                point.y = self.topMargin;
-            }
-            
-            
-            self.tipBox.content = [NSString stringWithFormat:@"%.2f", [self.chartData[touchIndex].close floatValue]];
-            [self.tipBox showWithTipPoint:point];
-            [self bringSubviewToFront:self.tipBox];
-            
-            NSString *date = self.chartData[touchIndex].date;
-            self.timeLbl.text = date;
-            self.timeLbl.hidden = date.length > 0 ? NO : YES;
-            if (date.length > 0) {
-                CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
-                CGFloat originX = MIN(MAX(self.leftMargin, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
-                self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeigth - self.separatorWidth*2);
-            }
-            
-            
-            *stop = YES;
-        }];
+        [self showTipBoardWithTouchPoint:touchPoint];
     }
+}
+
+- (void)showTipBoardWithTouchPoint:(CGPoint)touchPoint {
+    [self.points enumerateKeysAndObjectsUsingBlock:^(NSNumber *indexNum, NSString *pointKey, BOOL * _Nonnull stop) {
+        NSInteger touchIndex = MIN(MAX(0, floor((touchPoint.x - (self.fullScreen ? 0 : self.leftMargin))/self.pointPadding)), self.points.count - 1);
+        if (touchIndex*self.pointPadding - touchPoint.x > 1/2*self.pointPadding) {
+            touchIndex += 1;
+        }
+        
+        touchIndex += self.startDrawIndex;
+        
+        CGPoint point = CGPointFromString([_points objectForKey:@(touchIndex)]);
+        CGRect frame = self.vtlCrossLine.frame;
+        frame.origin.x = point.x;
+        self.vtlCrossLine.frame = frame;
+        self.vtlCrossLine.hidden = NO;
+        [self bringSubviewToFront:self.vtlCrossLine];
+        
+        self.tipBox.hidden = NO;
+        
+        point.y = point.y > (self.frame.size.height - self.topMargin - self.tipBox.frame.size.height/2.0)/2.0 ? (self.frame.size.height - self.topMargin - self.tipBox.frame.size.height/2.0)/2.0 : point.y;
+        point.y -= self.tipBox.frame.size.height/2.0;
+        if (point.y < self.topMargin + self.tipBox.frame.size.height/2.0) {
+            point.y = self.topMargin;
+        }
+        
+        self.tipBox.content = [NSString stringWithFormat:@"%@", [self dealDecimalWithNum:@([self.chartData[touchIndex].close floatValue])]];
+        [self.tipBox showWithTipPoint:point];
+        [self bringSubviewToFront:self.tipBox];
+        
+        NSString *date = self.chartData[touchIndex].date;
+        self.timeLbl.text = date;
+        self.timeLbl.hidden = date.length > 0 ? NO : YES;
+        if (date.length > 0) {
+            CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
+            CGFloat originX = MIN(MAX((self.fullScreen ? 0 : self.leftMargin), point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
+            self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeigth - self.separatorWidth*2);
+        }
+        
+        
+        *stop = YES;
+    }];
 }
 
 - (void)postNotificationWithGestureRecognizerStatee:(UIGestureRecognizerState)state {
@@ -248,14 +269,14 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 }
 
 - (void)drawSetting {
-    NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", self.maxValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
+    NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", self.highItem.high.floatValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
     CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
     self.leftMargin = size.width + 4.0f;
     
     //绘制点数
-    self.kGraphDrawCount = ceil(((self.frame.size.width - self.leftMargin - self.rightMargin - 0.5) / self.pointPadding));
-    self.pointPadding += fabs((self.frame.size.width - self.leftMargin - self.rightMargin - 0.5) - MAX(0, (self.kGraphDrawCount - 1))*self.pointPadding)/self.kGraphDrawCount;
-    
+    self.kGraphDrawCount = ceil(((self.frame.size.width - self.rightMargin - 0.5) / self.pointPadding));
+    self.pointPadding += fabs((self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - 0.5) - MAX(0, (self.kGraphDrawCount - 1))*self.pointPadding)/self.kGraphDrawCount;
+    DLog(@"%ld, %.2f %.2f", (long)self.kGraphDrawCount, self.pointPadding, self.leftMargin);
     [self resetMinAndMax];
 }
 
@@ -266,7 +287,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     CGContextRef context = UIGraphicsGetCurrentContext();
     
     //k线边框
-    CGRect strokeRect = CGRectMake(self.leftMargin, self.topMargin, self.xAxisWidth, self.yAxisHeight);
+    CGRect strokeRect = CGRectMake((self.fullScreen ? 0 : self.leftMargin), self.topMargin, self.xAxisWidth, self.yAxisHeight);
     CGContextSetLineWidth(context, self.axisShadowWidth);
     
     CGFloat lengths[] = {5,5};
@@ -284,7 +305,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         CGContextSetLineDash(context, 0, lengths, 2);  //画虚线
         
         CGContextBeginPath(context);
-        CGContextMoveToPoint(context, self.leftMargin + 1.25, self.topMargin + avgHeight*i);    //开始画线
+        CGContextMoveToPoint(context, (self.fullScreen ? 0 : self.leftMargin) + 1.25, self.topMargin + avgHeight*i);    //开始画线
         CGContextAddLineToPoint(context, rect.size.width  - self.rightMargin - 0.8, self.topMargin + avgHeight*i);
         
         CGContextStrokePath(context);
@@ -292,16 +313,6 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     //这必须把dash给初始化一次，不然会影响其他线条的绘制
     CGContextSetLineDash(context, 0, 0, 0);
-    
-    //k线y坐标
-    CGFloat avgValue = (self.maxValue - self.minValue) / (self.separatorNum + 1);
-    for (int i = 0; i < (self.separatorNum + 2); i ++) {
-        float yAxisValue = i == (self.separatorNum  + 2 - 1) ? self.minValue : self.maxValue - avgValue*i;
-        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", yAxisValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
-        CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
-        
-        [attString drawInRect:CGRectMake(self.leftMargin - size.width - 2.0f, self.topMargin + avgHeight*i - (i == (self.separatorNum  + 2 - 1) ? size.height - 1 : (i == 0 ? 0 : size.height/2.0)), size.width, size.height)];
-    }
 }
 
 - (void)drawTimeAxis {
@@ -311,10 +322,10 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     CGFloat quarteredWidth = self.xAxisWidth/4.0;
     NSInteger avgDrawCount = ceil(quarteredWidth/_pointPadding);
     
-    CGFloat xAxis = self.leftMargin + 0.5 + self.pointPadding;
+    CGFloat xAxis = (self.fullScreen ? 0 : self.leftMargin) + 2.0 + self.pointPadding;
     //画4条虚线
     for (int i = 0; i < 4; i ++) {
-        if (xAxis > self.leftMargin + self.xAxisWidth) {
+        if (xAxis > (self.fullScreen ? 0 : self.leftMargin) + self.xAxisWidth) {
             break;
         }
         CGContextSetLineWidth(context, self.separatorWidth);
@@ -332,7 +343,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
             xAxis += avgDrawCount*_pointPadding;
             continue;
         }
-        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.chartData[timeIndex].date attributes:@{NSFontAttributeName:self.xAxisTitleFont, NSForegroundColorAttributeName:self.xAxisTitleColor}];
+        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:SAFE_STRING(self.chartData[timeIndex].date) attributes:@{NSFontAttributeName:self.xAxisTitleFont, NSForegroundColorAttributeName:self.xAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.xAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         CGFloat originX = MIN(xAxis - size.width/2.0, self.frame.size.width - self.rightMargin - size.width);
         [attString drawInRect:CGRectMake(originX, self.topMargin + self.yAxisHeight + 2.0, size.width, size.height)];
@@ -354,7 +365,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     //gradient
     CGPoint point = CGPointFromString([self.points objectForKey:[self.points.allKeys valueForKeyPath:@"@max.intValue"]]);
     [bPath addLineToPoint:CGPointMake(point.x, self.frame.size.height - self.bottomMargin - 0.5)];
-    [bPath addLineToPoint:CGPointMake(self.leftMargin + 0.5, self.frame.size.height - self.bottomMargin - 0.5)];
+    [bPath addLineToPoint:CGPointMake((self.fullScreen ? 0 :self.leftMargin) + 0.5, self.frame.size.height - self.bottomMargin - 0.5)];
     CGPathRef path = bPath.CGPath;
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGFloat locations[] = {0.5, 1.0};
@@ -375,8 +386,9 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 - (UIBezierPath *)getLineChartPath {
     UIBezierPath *path;
-    CGFloat xAxis = self.leftMargin+0.5;
+    CGFloat xAxis = (self.fullScreen ? 0 :self.leftMargin) + 0.6;
     CGFloat scale = (self.maxValue - self.minValue) / self.yAxisHeight;
+    scale = scale == 0 ? 1.0 : scale;
     
     if (scale != 0) {
         NSArray *drawContexts = [self.chartData subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kGraphDrawCount)];
@@ -384,6 +396,9 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         for (KLineItem *item in drawContexts) {
             CGFloat volValue = [item.close floatValue];
             CGFloat yAxis = self.yAxisHeight - (volValue - self.minValue)/scale + self.topMargin;
+            if (scale == 1) {
+                yAxis = self.yAxisHeight/2.0 + self.topMargin;
+            }
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
             
             if (!path) {
@@ -448,6 +463,19 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     _flashLayer = nil;
 }
 
+//k线y坐标
+- (void)drawYAxisTitle {
+    CGFloat avgHeight = self.yAxisHeight/(self.separatorNum + 1);
+    CGFloat avgValue = (self.maxValue - self.minValue) / (self.separatorNum + 1);
+    for (int i = 0; i < (self.separatorNum + 2); i ++) {
+        float yAxisValue = i == (self.separatorNum  + 2 - 1) ? self.minValue : self.maxValue - avgValue*i;
+        NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@", [self dealDecimalWithNum:@(yAxisValue)]] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
+        CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
+        
+        [attString drawInRect:CGRectMake((self.fullScreen ? 1.25 : self.leftMargin - size.width - 2.0f), self.topMargin + avgHeight*i - (i == (self.separatorNum  + 2 - 1) ? size.height - 1 : (i == 0 ? 0 : size.height/2.0)), size.width, size.height)];
+    }
+}
+
 - (void)resetMinAndMax {
     self.maxValue = -MAXFLOAT;
     self.minValue = MAXFLOAT;
@@ -456,13 +484,36 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     for (int i = 0; i < drawContext.count; i++) {
         KLineItem *item = drawContext[i];
         
-        self.maxValue = MAX([item.high floatValue], self.maxValue);
-        self.minValue = MIN([item.low floatValue], self.minValue);
+        self.maxValue = MAX([item.close floatValue], self.maxValue);
+        self.minValue = MIN([item.close floatValue], self.minValue);
     }
     
-    CGFloat offsetValue = (self.maxValue - self.minValue)/10.0f;
+    int offsetValue = self.maxValue - self.minValue;
     self.maxValue += offsetValue;
     self.minValue = self.minValue - offsetValue < 0 ? 0 : self.minValue - offsetValue;
+}
+
+- (NSString *)dealDecimalWithNum:(NSNumber *)num {
+    NSString *dealString;
+    
+    switch (self.saveDecimalPlaces) {
+        case 0: {
+            dealString = [NSString stringWithFormat:@"%ld", lroundf(num.doubleValue)];
+        }
+            break;
+        case 1: {
+            dealString = [NSString stringWithFormat:@"%.1f", num.doubleValue];
+        }
+            break;
+        case 2: {
+            dealString = [NSString stringWithFormat:@"%.2f", num.doubleValue];
+        }
+            break;
+        default:
+            break;
+    }
+    
+    return dealString;
 }
 
 #pragma mark - notificaiton events
@@ -486,6 +537,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         _tipBox = [[TLineTipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 60.0f, 25.0f)];
         _tipBox.backgroundColor = [UIColor clearColor];
         _tipBox.radius = 2.0;
+        _tipBox.font = [UIFont systemFontOfSize:14.0f];
         [self addSubview:_tipBox];
     }
     return _tipBox;
@@ -495,7 +547,6 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     if (!_vtlCrossLine) {
         _vtlCrossLine = [[UIView alloc] initWithFrame:CGRectMake(self.leftMargin + self.pointPadding, self.axisShadowWidth + self.topMargin, 0.5, self.yAxisHeight - self.axisShadowWidth)];
         _vtlCrossLine.backgroundColor = self.crossLineColor;
-        _vtlCrossLine.hidden = YES;
         [self addSubview:_vtlCrossLine];
     }
     return _vtlCrossLine;
@@ -511,6 +562,13 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         [self addSubview:_timeLbl];
     }
     return _timeLbl;
+}
+
+- (UITapGestureRecognizer *)tapGesture {
+    if (!_tapGesture) {
+        _tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapPressedEvent:)];
+    }
+    return _tapGesture;
 }
 
 - (UILongPressGestureRecognizer *)longGesture {
@@ -532,6 +590,18 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 }
 
 #pragma mark - setters
+
+- (void)setChartData:(NSArray<KLineItem *> *)chartData {
+    _chartData = chartData;
+    
+    CGFloat maxHigh = -MAXFLOAT;
+    for (KLineItem *item in self.chartData) {
+        if (item.high.floatValue > maxHigh) {
+            maxHigh = item.high.floatValue;
+            self.highItem = item;
+        }
+    }
+}
 
 - (void)setSeparatorNum:(NSInteger)separatorNum {
     _separatorNum = separatorNum < 0 ? 0 : separatorNum;

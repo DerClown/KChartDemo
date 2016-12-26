@@ -146,6 +146,16 @@
 @property (nonatomic, strong) UIColor *timeTipBackgroundColor;
 
 /*
+ *  全屏绘制时，topMargin无效
+ */
+@property (nonatomic, assign) BOOL fullScreen;
+
+/*
+ *  保留小数点位数，默认保留两位(最多两位)
+ */
+@property (nonatomic, assign) NSInteger  saveDecimalPlaces;
+
+/*
  * self.data 的格式为 @[@KLineItem, @KLineItem, ...]
  */
 

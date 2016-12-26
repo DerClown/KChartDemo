@@ -41,7 +41,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "669"
             endingLineNumber = "669"
-            landmarkName = "-resetMaxAndMin"
+            landmarkName = "-movingAvgGraphPathForContextAtIndex:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

@@ -23,4 +23,8 @@
 
 + (CGSize)attributeString:(NSAttributedString *)attString boundingRectWithSize:(CGSize)size;
 
+#pragma mark - String
+
++ (NSString *)safeString:(NSString *)string placeHolder:(NSString *)placeHolder;
+
 @end

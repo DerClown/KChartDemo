@@ -7,6 +7,7 @@
 //
 
 #import "Global+Helper.h"
+#import "ACMacros.h"
 
 @implementation Global_Helper
 
@@ -63,6 +64,14 @@
         return CGSizeZero;
     }
     return [attString boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
+}
+
++ (NSString *)safeString:(NSString *)string placeHolder:(NSString *)placeHolder {
+    NSString *safeString = string;
+    if (EqualString(string, @"")) {
+        safeString = placeHolder;
+    }
+    return safeString;
 }
 
 @end

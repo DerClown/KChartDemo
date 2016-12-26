@@ -52,6 +52,9 @@
 }
 
 - (void)drawText {
+    if (self.content.length == 0 || self.content) {
+        self.content = @"";
+    }
     NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.content attributes:@{NSFontAttributeName:self.font, NSForegroundColorAttributeName:self.contentColor}];
     CGSize size = [attString boundingRectWithSize:CGSizeMake(self.frame.size.width, self.frame.size.height) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
     [attString drawInRect:CGRectMake((self.frame.size.width - size.width)/2.0, (self.frame.size.height - size.height)/2.0, size.width, size.height)];
