@@ -41,22 +41,15 @@
 1. 其他参数设置可以查看`KLineChartView.h` & `TLineChartView.h` 头文件。
 2. 网络请求查看 `KLineListManager.m` 文件。
 3. 数据处理查看 `KLineListTransformer.m` 文件。
-4. 传递到 **k线图** & **时分图** 的数据格式按照自己处理数据格式需改！
 
->这里有几点有必要说明一下！
+>其他
 
-1.k线图功能比较完整，稍微的改动已能够满足用户的需求。
-
+1.k线图功能比较完整，如有不同需求，可以自行改动就能满足需求。
 
 2.在使用的过程中有什么不明白的地方可以给我提 **Issues**
 
-3.我相信看完整个demo以后，可能会很大一部分开发者都觉得疑惑或者吐槽，这个传值也隐藏的太深了吧，然而传值过程怎么不是一个Entity。（如果需要换成Entity模式，可以自行修改就可以了）
+3.为什么不适用pod管理的原因，希望能够提供让更多的人参与自行修改，能够定制自己的k线图。
 
-第三小点不明白为什么不用model，而是用extern key方式，可以看一看大神 **casatwy** 博客的两篇文章：
- **《model化和数据对象》** 🔗<http://casatwy.com/OOP_nomodel.html>、
- **《iOS应用架构谈 网络层设计方案》**:
-🔗<http://casatwy.com/iosying-yong-jia-gou-tan-wang-luo-ceng-she-ji-fang-an.html>
-
-3.`GNetworking`<https://github.com/DerClown/GNetworking>这个网络请求，是我借鉴 **YTK**和**casatwy** 写的一个高性能的网络框架。在这里非常感谢**猿题库团队**和**casatwy**做出的贡献。
+4.`GNetworking`<https://github.com/DerClown/GNetworking>这个网络请求，是我借鉴 **YTK**和**casatwy** 写的一个高性能的网络框架。在这里非常感谢**猿题库团队**和**casatwy**做出的贡献。
 
 	
