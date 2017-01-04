@@ -398,6 +398,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.verticalCrossLine.hidden = NO;
     CGRect frame = self.verticalCrossLine.frame;
     frame.origin.x = point.x;
+    frame.size.height = self.showBarChart ? self.frame.size.height - self.topMargin : frame.size.height;
     self.verticalCrossLine.frame = frame;
     
     self.horizontalCrossLine.hidden = NO;
@@ -450,6 +451,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     NSString *date = item.date;
     self.timeLbl.text = date;
     self.timeLbl.hidden = date.length > 0 ? NO : YES;
+    [self bringSubviewToFront:self.timeLbl];
     if (date.length > 0) {
         CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
         CGFloat originX = MIN(MAX(self.leftMargin, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
