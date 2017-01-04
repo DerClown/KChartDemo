@@ -436,6 +436,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     frame = self.tipBoard.frame;
     frame.size.width = size.width + Adaptor_Value(20.0f);
+
     self.tipBoard.frame = frame;
     
     [self.tipBoard showWithTipPoint:CGPointMake(point.x, point.y)];

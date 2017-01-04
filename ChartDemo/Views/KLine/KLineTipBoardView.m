@@ -66,7 +66,7 @@
     
     for (int i = 0; i < titles.count; i ++) {
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:titles[i] attributes:@{NSFontAttributeName:self.font, NSForegroundColorAttributeName:colors[i]}];
-        CGFloat originY = (6 + 4 + self.font.lineHeight) * i;
+        CGFloat originY = 6 + (4 + self.font.lineHeight) * i;
         [attString drawInRect:CGRectMake(self.arrowInLeft ? self.triangleWidth + 2.5 : self.triangleWidth + 5.5, originY, self.frame.size.width, self.font.lineHeight)];
     }
 }
