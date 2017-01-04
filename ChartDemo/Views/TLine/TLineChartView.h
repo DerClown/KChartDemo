@@ -86,6 +86,11 @@
 @property (nonatomic, strong) UIColor *xAxisTitleColor;
 
 /**
+ *  x坐标轴时间字体
+ */
+@property (nonatomic, strong) UIFont *xAxisPriceFont;
+
+/**
  *   时间轴高度（默认20.0f）
  */
 @property (nonatomic, assign) CGFloat timeAxisHeigth;

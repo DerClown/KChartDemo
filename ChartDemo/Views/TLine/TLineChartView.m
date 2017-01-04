@@ -18,6 +18,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 @interface TLineChartView ()
 
+@property (nonatomic, strong) UIBezierPath *bPath;
+
 @property (nonatomic, strong) NSArray<KLineItem *> *chartData;
 
 @property (nonatomic, assign) CGFloat xAxisWidth;
@@ -106,6 +108,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     
     self.xAxisTitleFont = [UIFont systemFontOfSize:8.0];
     self.xAxisTitleColor = [UIColor colorWithRed:(130/255.0f) green:(130/255.0f) blue:(130/255.0f) alpha:1.0];
+    self.xAxisPriceFont = [UIFont systemFontOfSize:10.0f];
     
     self.timeAxisHeigth = 20.0;
     
@@ -233,7 +236,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         self.timeLbl.text = date;
         self.timeLbl.hidden = date.length > 0 ? NO : YES;
         if (date.length > 0) {
-            CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
+            CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisPriceFont} context:nil].size;
             CGFloat originX = MIN(MAX((self.fullScreen ? 0 : self.leftMargin), point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
             self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeigth - self.separatorWidth*2);
         }
@@ -358,15 +361,15 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(context, self.lineWidth);
     CGContextSetStrokeColorWithColor(context, self.lineColor.CGColor);
-    UIBezierPath *bPath = [self getLineChartPath];
-    CGContextAddPath(context, bPath.CGPath);
+    [self drawLineChartPath];
+    CGContextAddPath(context, _bPath.CGPath);
     CGContextStrokePath(context);
     
     //gradient
     CGPoint point = CGPointFromString([self.points objectForKey:[self.points.allKeys valueForKeyPath:@"@max.intValue"]]);
-    [bPath addLineToPoint:CGPointMake(point.x, self.frame.size.height - self.bottomMargin - 0.5)];
-    [bPath addLineToPoint:CGPointMake((self.fullScreen ? 0 :self.leftMargin) + 0.5, self.frame.size.height - self.bottomMargin - 0.5)];
-    CGPathRef path = bPath.CGPath;
+    [_bPath addLineToPoint:CGPointMake(point.x, self.frame.size.height - self.bottomMargin - 0.5)];
+    [_bPath addLineToPoint:CGPointMake((self.fullScreen ? 0 :self.leftMargin) + 0.5, self.frame.size.height - self.bottomMargin - 0.5)];
+    CGPathRef path = _bPath.CGPath;
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGFloat locations[] = {0.5, 1.0};
     NSArray *colors = @[(__bridge id) self.gradientStartColor.CGColor, (__bridge id) self.gradientEndColor.CGColor];
@@ -384,8 +387,10 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     CGColorSpaceRelease(colorSpace);
 }
 
-- (UIBezierPath *)getLineChartPath {
-    UIBezierPath *path;
+- (void)drawLineChartPath {
+    [self.bPath removeAllPoints];
+    BOOL containPoint = NO;
+    
     CGFloat xAxis = (self.fullScreen ? 0 :self.leftMargin) + 0.6;
     CGFloat scale = (self.maxValue - self.minValue) / self.yAxisHeight;
     scale = scale == 0 ? 1.0 : scale;
@@ -395,17 +400,19 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         NSMutableDictionary *contentPoints = [NSMutableDictionary new];
         for (KLineItem *item in drawContexts) {
             CGFloat volValue = [item.close floatValue];
-            CGFloat yAxis = self.yAxisHeight - (volValue - self.minValue)/scale + self.topMargin;
+            CGFloat diffHeight = (volValue - self.minValue)/scale;
+            
+            CGFloat yAxis = self.yAxisHeight -  diffHeight + self.topMargin - (diffHeight == 0 ? 1.0 : 0);
             if (scale == 1) {
                 yAxis = self.yAxisHeight/2.0 + self.topMargin;
             }
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
             
-            if (!path) {
-                path = [UIBezierPath bezierPath];
-                [path moveToPoint:maPoint];
+            if (!containPoint) {
+                containPoint = YES;
+                [self.bPath moveToPoint:maPoint];
             } else {
-                [path addLineToPoint:maPoint];
+                [self.bPath addLineToPoint:maPoint];
             }
             
             [contentPoints setObject:NSStringFromCGPoint(CGPointMake(xAxis, yAxis)) forKey:@([self.chartData indexOfObject:item])];
@@ -417,10 +424,8 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     }
     
     if (self.smoothPath) {
-        path = [path smoothedPathWithGranularity:15];
+        self.bPath = [self.bPath smoothedPathWithGranularity:15];
     }
-
-    return path;
 }
 
 - (void)startFlashAnimation {
@@ -468,7 +473,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
     CGFloat avgHeight = self.yAxisHeight/(self.separatorNum + 1);
     CGFloat avgValue = (self.maxValue - self.minValue) / (self.separatorNum + 1);
     for (int i = 0; i < (self.separatorNum + 2); i ++) {
-        float yAxisValue = i == (self.separatorNum  + 2 - 1) ? self.minValue : self.maxValue - avgValue*i;
+        float yAxisValue = self.maxValue - avgValue*i;
         NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@", [self dealDecimalWithNum:@(yAxisValue)]] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
         CGSize size = [attString boundingRectWithSize:CGSizeMake(self.leftMargin, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
         
@@ -488,9 +493,11 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         self.minValue = MIN([item.close floatValue], self.minValue);
     }
     
-    int offsetValue = self.maxValue - self.minValue;
+    int offsetValue = ceil((self.maxValue - self.minValue)/10);
     self.maxValue += offsetValue;
-    self.minValue = self.minValue - offsetValue < 0 ? 0 : self.minValue - offsetValue;
+    
+    CGFloat avgValue = (self.maxValue - self.minValue) / (self.separatorNum + 1);
+    self.minValue = MAX(MIN(self.minValue, self.maxValue - [[self dealDecimalWithNum:@(avgValue)] floatValue]*(self.separatorNum + 1)), 0);
 }
 
 - (NSString *)dealDecimalWithNum:(NSNumber *)num {
@@ -532,6 +539,13 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
 
 #pragma mark - getters
 
+- (UIBezierPath *)bPath {
+    if (!_bPath) {
+        _bPath = [UIBezierPath new];
+    }
+    return _bPath;
+}
+
 - (TLineTipBoardView *)tipBox {
     if (!_tipBox) {
         _tipBox = [[TLineTipBoardView alloc] initWithFrame:CGRectMake(self.leftMargin, self.topMargin, 60.0f, 25.0f)];
@@ -557,7 +571,7 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         _timeLbl = [UILabel new];
         _timeLbl.backgroundColor = self.timeTipBackgroundColor;
         _timeLbl.textAlignment = NSTextAlignmentCenter;
-        _timeLbl.font = self.yAxisTitleFont;
+        _timeLbl.font = self.xAxisPriceFont;
         _timeLbl.textColor = self.timeTipTextColor;
         [self addSubview:_timeLbl];
     }

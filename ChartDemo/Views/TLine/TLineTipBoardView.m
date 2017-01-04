@@ -52,7 +52,7 @@
 }
 
 - (void)drawText {
-    if (self.content.length == 0 || self.content) {
+    if (self.content.length == 0 || !self.content) {
         self.content = @"";
     }
     NSAttributedString *attString = [[NSAttributedString alloc] initWithString:self.content attributes:@{NSFontAttributeName:self.font, NSForegroundColorAttributeName:self.contentColor}];
