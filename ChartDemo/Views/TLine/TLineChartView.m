@@ -493,9 +493,6 @@ NSString *const TLineKeyEndOfUserInterfaceNotification = @"TLineKeyEndOfUserInte
         self.minValue = MIN([item.close floatValue], self.minValue);
     }
     
-    int offsetValue = ceil((self.maxValue - self.minValue)/10);
-    self.maxValue += offsetValue;
-    
     CGFloat avgValue = (self.maxValue - self.minValue) / (self.separatorNum + 1);
     self.minValue = MAX(MIN(self.minValue, self.maxValue - [[self dealDecimalWithNum:@(avgValue)] floatValue]*(self.separatorNum + 1)), 0);
 }
