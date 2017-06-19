@@ -44,7 +44,9 @@
     
     [self.view addSubview:self.kLineChartView];
     [self.view addSubview:self.tLineChartView];
-    [self.kLineChartView addSubview:self.kStatusView];
+    
+    [self drawChart];
+    /*[self.kLineChartView addSubview:self.kStatusView];
     
     __block typeof(self) weakSelf = self;
     self.kStatusView.reloadBlock = ^(){
@@ -54,7 +56,15 @@
     //发起请求
     self.chartApi.dateType = @"d";
     self.chartApi.kLineID = @"601888.SS";
-    [self.chartApi startRequest];
+    [self.chartApi startRequest];*/
+}
+
+- (void)drawChart {
+    NSString * path =[[NSBundle mainBundle]pathForResource:@"data.plist" ofType:nil];
+    NSArray * sourceArray = [[NSDictionary dictionaryWithContentsOfFile:path] objectForKey:@"data"];
+    
+    self.data = [self.lineListTransformer manager:nil transformData:sourceArray];
+    [self.kLineChartView drawChartWithData:self.data];
 }
 
 #pragma mark - private methods

@@ -692,7 +692,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         return;
     }
     
-    NSAssert(self.masColors.count == self.Mas.count, @"绘制均线个数与均线绘制颜色个数不一致！");
+    NSAssert(self.masColors.count != self.Mas.count, @"绘制均线个数与均线绘制颜色个数不一致！");
     
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(context, self.movingAvgLineWidth);

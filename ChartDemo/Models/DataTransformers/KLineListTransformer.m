@@ -32,31 +32,22 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
 }
 
 - (id)manager:(GApiBaseManager *)manager transformData:(id)data {
-    _kCount = 150;
-    NSString *content = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    if (content.length == 0 || !content) {
+    // 截取的个数自己定义
+    if (!data) {
         return nil;
     }
     
-    NSArray *lineRawData = [content componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]];
-    NSInteger length = _kCount>=lineRawData.count ? lineRawData.count:_kCount;
-    NSArray *cutRawData = [lineRawData subarrayWithRange:NSMakeRange(1, length)];
-    
     NSMutableArray *items = [NSMutableArray new];
-    for (int i = (int)cutRawData.count; i > 0; i --) {
-        //arr = @["日期,开盘价,最高价,最低价,收盘价,成交量, 调整收盘价"]
-        NSArray *arr = [lineRawData[i] componentsSeparatedByString:@","];
-        if (arr.count != 7 || !arr) {
-            continue;
-        }
+    for (int i = (int)([data count] - 1); i > 0; i --) {
+        NSDictionary *dic = data[i];
         
         KLineItem *item = [KLineItem new];
-        item.date = arr[0];
-        item.open = @([arr[1] floatValue]);
-        item.high = @([arr[2] floatValue]);
-        item.low = @([arr[3] floatValue]);
-        item.close = @([arr[4] floatValue]);
-        item.vol = @([arr[5] floatValue]/10000.00);
+        item.date = dic[@"date"];
+        item.open = @([dic[@"open_px"] doubleValue]);
+        item.high = @([dic[@"high_px"] doubleValue]);
+        item.low = @([dic[@"low_px"] doubleValue]);
+        item.close = @([dic[@"close_px"] doubleValue]);
+        item.vol = @([dic[@"total_volume_trade"] doubleValue]/10000.00);
         
         [items addObject:item];
     }
