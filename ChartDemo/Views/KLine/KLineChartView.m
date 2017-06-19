@@ -494,7 +494,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     [self bringSubviewToFront:self.timeLbl];
     if (date.length > 0) {
         CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
-        CGFloat originX = MIN(MAX(self.leftMargin, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
+        CGFloat originX = MIN(MAX(0, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
         self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeight - self.separatorWidth*2);
     }
 }
@@ -608,7 +608,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         }
         NSAttributedString *attString = [Global_Helper attributeText:self.chartValues[timeIndex].date textColor:self.xAxisTitleColor font:self.xAxisTitleFont lineSpacing:2];
         CGSize size = [Global_Helper attributeString:attString boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT)];
-        CGFloat originX = MIN(xAxis - size.width/2.0, self.frame.size.width - self.rightMargin - size.width);
+        CGFloat originX = MAX(MIN(xAxis - size.width/2.0, self.frame.size.width - self.rightMargin - size.width), 0);
         [attString drawInRect:CGRectMake(originX, self.topMargin + self.yAxisHeight + 2.0, size.width, size.height)];
         
         xAxis += avgDrawCount*(_kLinePadding + _kLineWidth);
@@ -643,7 +643,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         
         CGFloat diffValue = fabs(open - close);
         CGFloat maxValue = MAX(open, close);
-        CGFloat height = diffValue/scale == 0 ? 1 : diffValue/scale;
+        CGFloat height = MAX(diffValue/scale == 0 ? 1 : diffValue/scale, 0.5);
         CGFloat width = _kLineWidth;
         CGFloat yAxis = self.yAxisHeight - ((maxValue - self.minLowValue)/scale == 0 ? 1 : (maxValue - self.minLowValue)/scale) + self.topMargin;
         

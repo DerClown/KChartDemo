@@ -65,6 +65,7 @@
     
     self.data = [self.lineListTransformer manager:nil transformData:sourceArray];
     [self.kLineChartView drawChartWithData:self.data];
+    [self.tLineChartView drawChartWithData:self.data];
 }
 
 #pragma mark - private methods
