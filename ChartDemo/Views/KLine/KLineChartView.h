@@ -91,21 +91,6 @@
 @property (nonatomic, strong) UIColor *lowerShadowColor;
 
 /**
- *  最小均线颜色（默认：5日）
- */
-@property (nonatomic, strong) UIColor *minMALineColor;
-
-/**
- *  中间均线颜色（默认：顿号10）
- */
-@property (nonatomic, strong) UIColor *midMALineColor;
-
-/**
- *  最大均线值（默认：日顿号20）
- */
-@property (nonatomic, strong) UIColor *maxMALineColor;
-
-/**
  *  交易量阳线颜色
  */
 @property (nonatomic, strong) UIColor *positiveVolColor;
@@ -226,9 +211,14 @@
 @property (nonatomic, assign) BOOL supportGesture;
 
 /**
- *  均线个数（默认 3 ma5, ma10, ma20）
+ *  均线个数（默认ma5, ma10, ma20）
  */
-@property (nonatomic, assign) NSInteger numberOfMACount;
+@property (nonatomic, strong) NSArray *Mas;
+
+/*
+ *  均线颜色值 (默认 HexRGB(0x019FFD)、HexRGB(0xFF9900)、HexRGB(0xFF00FF))
+ */
+@property (nonatomic, strong) NSArray<UIColor *> *masColors;
 
 /**
  *  动态更新显示最新, 默认不开启。
@@ -250,6 +240,22 @@
  */
 
 - (void)drawChartWithData:(NSArray *)data;
+
+// 更新数据
+- (void)updateChartWithOpen:(NSNumber *)open
+                      close:(NSNumber *)close
+                       high:(NSNumber *)high
+                        low:(NSNumber *)low
+                       date:(NSString *)date
+                      isNew:(BOOL)isNew;
+
+- (void)updateChartWithOpen:(NSNumber *)open
+                      close:(NSNumber *)close
+                       high:(NSNumber *)high
+                        low:(NSNumber *)low
+                       date:(NSString *)date
+                        mas:(NSArray *)mas
+                      isNew:(BOOL)isNew;
 
 - (void)clear;
 

@@ -28,13 +28,4 @@
 // 成交量 
 @property (nonatomic, copy) NSNumber *vol;
 
-// 均线
-@property (nonatomic, strong) NSArray *MAs;
-
-
-/////////////////指数///////////////////////
-
-// RSV9
-@property (nonatomic, copy) NSNumber *rsv9;
-
 @end

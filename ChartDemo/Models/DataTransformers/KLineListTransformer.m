@@ -50,17 +50,12 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
             continue;
         }
         
-        CGFloat MA5 = [self maWithData:lineRawData subInRange:NSMakeRange(i, 5)];
-        CGFloat MA10 = [self maWithData:lineRawData subInRange:NSMakeRange(i, 10)];
-        CGFloat MA20 = [self maWithData:lineRawData subInRange:NSMakeRange(i, 20)];
-        
         KLineItem *item = [KLineItem new];
         item.date = arr[0];
         item.open = @([arr[1] floatValue]);
         item.high = @([arr[2] floatValue]);
         item.low = @([arr[3] floatValue]);
         item.close = @([arr[4] floatValue]);
-        item.MAs = @[@(MA5), @(MA10), @(MA20)];
         item.vol = @([arr[5] floatValue]/10000.00);
         
         [items addObject:item];
@@ -80,6 +75,23 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
     
     return items;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*后续优化*/
+
 
 // MA
 - (CGFloat)maWithData:(NSArray *)data subInRange:(NSRange)range {

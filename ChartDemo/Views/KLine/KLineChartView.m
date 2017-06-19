@@ -119,9 +119,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     self.movingAvgLineWidth = 0.8;
     
-    self.minMALineColor = HexRGB(0x019FFD);
-    self.midMALineColor = HexRGB(0xFF9900);
-    self.maxMALineColor = HexRGB(0xFF00FF);
+    self.masColors = @[HexRGB(0x019FFD), HexRGB(0xFF9900), HexRGB(0xFF00FF)];
     
     self.positiveVolColor = self.positiveLineColor;
     self.negativeVolColor =  self.negativeLineColor;
@@ -166,8 +164,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.lastPanScale = 1.0;
     
     self.xAxisContext = [NSMutableDictionary new];
-    
-    self.numberOfMACount = 3;
     
     //添加手势
     [self addGestures];
@@ -253,6 +249,15 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         self.volView.data = data;
     }
     
+    // 设置
+    [self drawSetting];
+    
+    [self resetMaxAndMin];
+    
+    [self setNeedsDisplay];
+}
+
+- (void)drawSetting {
     NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", self.highItem.high.floatValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
     CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
     self.leftMargin = size.width + 4.0f;
@@ -262,10 +267,46 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     //确定从第几个开始画
     self.startDrawIndex = self.chartValues.count > 0 ? self.chartValues.count - self.kLineDrawNum : 0;
+}
+
+#pragma mark - public methods
+
+- (void)updateChartWithOpen:(NSNumber *)open
+                      close:(NSNumber *)close
+                       high:(NSNumber *)high
+                        low:(NSNumber *)low
+                       date:(NSString *)date
+                      isNew:(BOOL)isNew {
+    [self updateChartWithOpen:open close:close high:high low:low date:date mas:nil isNew:isNew];
+}
+
+- (void)updateChartWithOpen:(NSNumber *)open
+                      close:(NSNumber *)close
+                       high:(NSNumber *)high
+                        low:(NSNumber *)low
+                       date:(NSString *)date
+                        mas:(NSArray *)mas
+                      isNew:(BOOL)isNew {
+    KLineItem *item= [KLineItem new];
+    item.open = open;
+    item.close = close;
+    item.high = high;
+    item.low = low;
+    item.date = date;
     
-    [self resetMaxAndMin];
+    if (isNew) {
+        self.chartValues = self.chartValues.count != 0 ? [self.chartValues arrayByAddingObject:item] : @[item];
+    } else {
+        if ([item.close floatValue] == [self.chartValues.lastObject.close floatValue]) {
+            return;
+        }
+        NSMutableArray *copy = [self.chartValues mutableCopy];
+        [copy removeLastObject];
+        [copy addObject:item];
+        self.chartValues = copy;
+    }
     
-    [self setNeedsDisplay];
+    [self drawChartWithData:self.chartValues];
 }
 
 #pragma mark - event reponse
@@ -652,13 +693,13 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         return;
     }
     
-    NSArray<UIColor *> *colors = @[self.minMALineColor, self.midMALineColor, self.maxMALineColor];
+    NSAssert(self.masColors.count == self.Mas.count, @"绘制均线个数与均线绘制颜色个数不一致！");
     
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(context, self.movingAvgLineWidth);
     
-    for (int i = 0; i < self.numberOfMACount; i ++) {
-        CGContextSetStrokeColorWithColor(context, colors[i].CGColor);
+    for (int i = 0; i < self.Mas.count; i ++) {
+        CGContextSetStrokeColorWithColor(context, self.masColors[i].CGColor);
         CGPathRef path = [self movingAvgGraphPathForContextAtIndex:i];
         CGContextAddPath(context, path);
         CGContextStrokePath(context);
@@ -673,14 +714,30 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     CGFloat xAxis = (self.fullScreen ? 0 : self.leftMargin) + 1/2.0*_kLineWidth + _kLinePadding;
     CGFloat scale = (self.maxHighValue - self.minLowValue) / self.yAxisHeight;
+    if (scale == 0) {
+        scale = 1.0f;
+    }
     
-    if (scale != 0) {
-        for (KLineItem *item in [self.chartValues subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
-            NSAssert(item.MAs.count == self.numberOfMACount, @"均线显示个数，和设置不一致！");
-            CGFloat maValue = [item.MAs[index] floatValue];
-            CGFloat yAxis = self.yAxisHeight - (maValue - self.minLowValue)/scale + self.topMargin;
+    // 均线个数
+    NSInteger maLength = [self.Mas[index] integerValue];
+    
+    // 均线个数达不到三个以上也不绘制
+    if (scale != 0 || maLength + 2 < self.chartValues.count) {
+        NSArray *drawArrays = [self.chartValues subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)];
+        for (int i = 0; i < drawArrays.count; i ++) {
+            KLineItem *item = drawArrays[i];
+            
+            // 不足均线个数，则不需要获取该段均线数据(例如: 均5，个数小于5个，则不需要绘制前四均线，...)
+            if ([self.chartValues indexOfObject:item] < maLength - 1) {
+                xAxis += self.kLineWidth + self.kLinePadding;
+                continue;
+            }
+            NSArray *mas = [self maWithData:self.chartValues subInRange:NSMakeRange([self.chartValues indexOfObject:item] - maLength + 1, maLength)];
+            CGFloat yAxis = self.yAxisHeight - (([[mas valueForKeyPath:@"@avg.floatValue"] floatValue] - self.minLowValue)/scale == 0 ? 1.0 : ([[mas valueForKeyPath:@"@avg.floatValue"] floatValue] - self.minLowValue)/scale) + self.topMargin;
+            
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
-            if (yAxis < self.topMargin || yAxis > (self.frame.size.height - self.bottomMargin)) {
+            
+            if (yAxis > self.frame.size.height - self.bottomMargin) {
                 xAxis += self.kLineWidth + self.kLinePadding;
                 continue;
             }
@@ -700,6 +757,19 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     path = [path smoothedPathWithGranularity:15];
     
     return path.CGPath;
+}
+
+// MA Count
+- (NSMutableArray *)maWithData:(NSArray *)data subInRange:(NSRange)range {
+    
+    NSArray<KLineItem *> *rangeData = data.count - range.location >= range.length ? [data subarrayWithRange:range] : data;
+    
+    NSMutableArray *mas = [NSMutableArray new];
+    for (int i = 0; i < rangeData.count; i ++) {
+        [mas addObject:rangeData[i].close];
+    }
+    
+    return mas;
 }
 
 /**
@@ -971,10 +1041,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     for (UIGestureRecognizer *gesture in self.gestureRecognizers) {
         gesture.enabled = supportGesture;
     }
-}
-
-- (void)setNumberOfMACount:(NSInteger)numberOfMACount {
-    _numberOfMACount = numberOfMACount;
 }
 
 - (void)setBottomMargin:(CGFloat)bottomMargin {
