@@ -454,10 +454,9 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     //均值
     self.maTipView.hidden = !self.showAvgLine;
     if (self.showAvgLine) {
-        NSArray *mas = item.MAs;
-        self.maTipView.minAvgPrice = [NSString stringWithFormat:@"MA5：%.2f", [mas[0] doubleValue]];
-        self.maTipView.midAvgPrice = [NSString stringWithFormat:@"MA10：%.2f", [mas[1] doubleValue]];
-        self.maTipView.maxAvgPrice = [NSString stringWithFormat:@"MA20：%.2f", [mas[2] doubleValue]];
+        self.maTipView.minAvgPrice = [NSString stringWithFormat:@"MA5：%.2f", [self.Mas[0] doubleValue]];
+        self.maTipView.midAvgPrice = [NSString stringWithFormat:@"MA10：%.2f", [self.Mas[1] doubleValue]];
+        self.maTipView.maxAvgPrice = [NSString stringWithFormat:@"MA20：%.2f", [self.Mas[2] doubleValue]];
     }
     //提示版
     self.tipBoard.open = [self dealDecimalWithNum:item.open];
