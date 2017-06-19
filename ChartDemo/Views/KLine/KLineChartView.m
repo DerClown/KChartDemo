@@ -692,7 +692,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         return;
     }
     
-    NSAssert(self.masColors.count != self.Mas.count, @"绘制均线个数与均线绘制颜色个数不一致！");
+    NSAssert(self.masColors.count == self.Mas.count, @"绘制均线个数与均线绘制颜色个数不一致！");
     
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetLineWidth(context, self.movingAvgLineWidth);
@@ -735,6 +735,10 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
             CGFloat yAxis = self.yAxisHeight - (([[mas valueForKeyPath:@"@avg.floatValue"] floatValue] - self.minLowValue)/scale == 0 ? 1.0 : ([[mas valueForKeyPath:@"@avg.floatValue"] floatValue] - self.minLowValue)/scale) + self.topMargin;
             
             CGPoint maPoint = CGPointMake(xAxis, yAxis);
+            
+            if (yAxis < self.topMargin) {
+                continue;
+            }
             
             if (yAxis > self.frame.size.height - self.bottomMargin) {
                 xAxis += self.kLineWidth + self.kLinePadding;

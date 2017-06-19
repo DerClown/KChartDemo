@@ -45,6 +45,10 @@
     [self.view addSubview:self.kLineChartView];
     [self.view addSubview:self.tLineChartView];
     
+    // 绘制均线
+    
+    self.kLineChartView.Mas = @[@5, @10, @30];
+    
     [self drawChart];
     /*[self.kLineChartView addSubview:self.kStatusView];
     
@@ -150,8 +154,7 @@
         _tLineChartView.leftMargin = 50.0;
         _tLineChartView.bottomMargin = 0.5;
         _tLineChartView.rightMargin = 1.0;
-        _tLineChartView.pointPadding = 30.0f
-        ;
+        _tLineChartView.pointPadding = 30.0f;
         _tLineChartView.separatorNum = 4;
         _tLineChartView.flashPoint = YES;
         //_tLineChartView.smoothPath = NO;
