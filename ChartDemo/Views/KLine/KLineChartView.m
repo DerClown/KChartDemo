@@ -75,6 +75,12 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 //交互中， 默认NO
 @property (nonatomic, assign) BOOL interactive;
 
+// 正在绘制
+@property (nonatomic, assign) BOOL inDrawing;
+
+// 需同步数据, 临时数据, 用于动态更新数据
+@property (nonatomic, strong) NSMutableArray<KLineItem *> *needsSyncChartsValue;
+
 @end
 
 @implementation KLineChartView
@@ -164,6 +170,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     self.lastPanScale = 1.0;
     
     self.xAxisContext = [NSMutableDictionary new];
+    self.needsSyncChartsValue = [NSMutableArray new];
     
     //添加手势
     [self addGestures];
@@ -213,6 +220,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     _horizontalCrossLine = nil;
     
     if (!self.chartValues || self.chartValues.count == 0) {
+        self.inDrawing = NO;
         return;
     }
     //x坐标轴长度
@@ -238,11 +246,17 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     //交易量
     [self drawVol];
+    
+    self.inDrawing = NO;
 }
 
 #pragma mark - render UI
 
 - (void)drawChartWithData:(NSArray *)data {
+    if (self.inDrawing) {
+        return;
+    }
+    
     self.chartValues = data;
     
     if (self.showBarChart) {
@@ -254,6 +268,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     [self resetMaxAndMin];
     
+    self.inDrawing = YES;
     [self setNeedsDisplay];
 }
 
@@ -277,16 +292,6 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
                         low:(NSNumber *)low
                        date:(NSString *)date
                       isNew:(BOOL)isNew {
-    [self updateChartWithOpen:open close:close high:high low:low date:date mas:nil isNew:isNew];
-}
-
-- (void)updateChartWithOpen:(NSNumber *)open
-                      close:(NSNumber *)close
-                       high:(NSNumber *)high
-                        low:(NSNumber *)low
-                       date:(NSString *)date
-                        mas:(NSArray *)mas
-                      isNew:(BOOL)isNew {
     KLineItem *item= [KLineItem new];
     item.open = open;
     item.close = close;
@@ -294,19 +299,36 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     item.low = low;
     item.date = date;
     
-    if (isNew) {
-        self.chartValues = self.chartValues.count != 0 ? [self.chartValues arrayByAddingObject:item] : @[item];
+    if (self.needsSyncChartsValue.count == 0 || isNew) {
+        [self.needsSyncChartsValue addObject:item];
     } else {
-        if ([item.close floatValue] == [self.chartValues.lastObject.close floatValue]) {
-            return;
-        }
-        NSMutableArray *copy = [self.chartValues mutableCopy];
-        [copy removeLastObject];
-        [copy addObject:item];
-        self.chartValues = copy;
+        [self.needsSyncChartsValue removeLastObject];
+        [self.needsSyncChartsValue addObject:item];
     }
     
+    // 同步数据
+    [self syncChartValue];
+    
+    // 绘制视图
     [self drawChartWithData:self.chartValues];
+}
+
+- (void)syncChartValue {
+    if (self.inDrawing) {
+        return;
+    }
+    
+    NSMutableArray<KLineItem *> *tempChartValue = self.chartValues.mutableCopy;
+    
+    if (EqualString(tempChartValue.lastObject.date, self.needsSyncChartsValue.firstObject.date)) {
+        [tempChartValue removeLastObject];
+    }
+    // 添加需要绘制的数据
+    [tempChartValue addObjectsFromArray:self.needsSyncChartsValue];
+    self.chartValues = tempChartValue;
+    
+    // 清除需要绘制的数据
+    [self.needsSyncChartsValue removeAllObjects];
 }
 
 #pragma mark - event reponse
@@ -325,6 +347,10 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 }
 
 - (void)panEvent:(UIPanGestureRecognizer *)panGesture {
+    if (self.inDrawing) {
+        return;
+    }
+    
     [self hideTipsWithAnimated:NO];
     CGPoint touchPoint = [panGesture translationInView:self];
     NSInteger offsetIndex = fabs(touchPoint.x/(self.kLineWidth > self.maxKLineWidth/2.0 ? 16.0f : 8.0));
@@ -343,6 +369,8 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     [self resetMaxAndMin];
     
     [panGesture setTranslation:CGPointZero inView:self];
+    
+    self.inDrawing = YES;
     [self setNeedsDisplay];
 }
 
@@ -352,7 +380,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     [self postNotificationWithGestureRecognizerStatus:pinchEvent.state];
     
-    if (!self.zoomEnable || self.chartValues.count == 0) {
+    if (!self.zoomEnable || self.chartValues.count == 0 || self.inDrawing) {
         return;
     }
     
@@ -391,6 +419,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     pinchEvent.scale = scale;
     self.lastPanScale = pinchEvent.scale;
     
+    self.inDrawing = YES;
     [self setNeedsDisplay];
 }
 
@@ -839,6 +868,7 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 #pragma mark -  public methods
 
 - (void)clear {
+    self.inDrawing = NO;
     self.chartValues = nil;
     [self setNeedsDisplay];
 }

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KLineItem : NSObject
+@interface KLineItem : NSObject <NSCopying>
 
 // 开盘价
 @property (nonatomic, copy) NSNumber *open;

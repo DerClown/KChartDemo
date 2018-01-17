@@ -249,14 +249,6 @@
                        date:(NSString *)date
                       isNew:(BOOL)isNew;
 
-- (void)updateChartWithOpen:(NSNumber *)open
-                      close:(NSNumber *)close
-                       high:(NSNumber *)high
-                        low:(NSNumber *)low
-                       date:(NSString *)date
-                        mas:(NSArray *)mas
-                      isNew:(BOOL)isNew;
-
 - (void)clear;
 
 @end

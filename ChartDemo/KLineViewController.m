@@ -61,6 +61,9 @@
     self.chartApi.dateType = @"d";
     self.chartApi.kLineID = @"601888.SS";
     [self.chartApi startRequest];*/
+    
+    // 动态更新数据
+//    [self performSelector:@selector(startTimer) withObject:nil afterDelay:10];
 }
 
 - (void)drawChart {
@@ -77,7 +80,7 @@
 - (void)startTimer {
     [self stopTimer];
     
-    _timer = [NSTimer scheduledTimerWithTimeInterval:10 target:self selector:@selector(realTimeData:) userInfo:nil repeats:YES];
+    _timer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(realTimeData:) userInfo:nil repeats:YES];
 }
 
 - (void)stopTimer {
@@ -88,6 +91,9 @@
 }
 
 - (void)realTimeData:(id)timer {
+    //3462.5828,  3495.7017  3457.2295  3476.5615  1251141.1  2015/12/09
+    int close = arc4random()%30;
+    [self.kLineChartView updateChartWithOpen:@(3189.48) close:@(3200.23 + close) high:@(3223.76) low:@(3163.45) date:@"2015/09/11" isNew:NO];
 }
 
 #pragma mark - GAPIBaseManagerRequestCallBackDelegate
