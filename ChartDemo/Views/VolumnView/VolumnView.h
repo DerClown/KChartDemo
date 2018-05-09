@@ -3,7 +3,7 @@
 //  ChartDemo
 //
 //  Created by xdliu on 2016/11/17.
-//  Copyright © 2016年 taiya. All rights reserved.
+//  Copyright © 2016年 yoyo. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -23,25 +23,10 @@ typedef NS_ENUM(NSInteger, CandlerstickChartsVolStyle) {
 
 @interface VolumnView : UIView
 
-/*
- * 边框开始坐标点
- */
-@property (nonatomic, assign) float boxOriginX;
-
-/*
- *  边框距离右边距离
- */
-@property (nonatomic, assign) float boxRightMargin;
-
 /**
  *  k线图宽度
  */
 @property (nonatomic, assign) CGFloat kLineWidth;
-
-/**
- *  k线图间距
- */
-@property (nonatomic, assign) CGFloat linePadding;
 
 /**
  *  y坐标轴字体
@@ -56,12 +41,12 @@ typedef NS_ENUM(NSInteger, CandlerstickChartsVolStyle) {
 /**
  *  坐标轴边框颜色
  */
-@property (nonatomic, strong) UIColor *axisShadowColor;
+@property (nonatomic, strong) UIColor *AxisColor;
 
 /**
  *  坐标轴边框宽度
  */
-@property (nonatomic, assign) CGFloat axisShadowWidth;
+@property (nonatomic, assign) CGFloat AxisWidth;
 
 /**
  *  交易量阳线颜色
@@ -82,27 +67,5 @@ typedef NS_ENUM(NSInteger, CandlerstickChartsVolStyle) {
  *  分割线颜色
  */
 @property (nonatomic, strong) UIColor *separatorColor;
-
-/*
- *  取值位置
- */
-@property (nonatomic, assign) NSInteger startDrawIndex;
-
-/*
- *  绘制个数 
- */
-@property (nonatomic, assign) NSInteger numberOfDrawCount;
-
-//默认 YES
-@property (nonatomic, assign) BOOL gestureEnable;
-
-@property (nonatomic, strong) NSArray *data;
-
-/*
- * 柱状图类型
- */
-@property (nonatomic) CandlerstickChartsVolStyle volStyle;
-
-- (void)update;
 
 @end

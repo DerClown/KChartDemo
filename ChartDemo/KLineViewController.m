@@ -3,7 +3,7 @@
 //  ChartDemo
 //
 //  Created by xdliu on 16/8/12.
-//  Copyright © 2016年 taiya. All rights reserved.
+//  Copyright © 2016年 yoyo. All rights reserved.
 //
 
 #import "KLineViewController.h"
@@ -35,7 +35,6 @@
 #pragma mark - life cycle
 
 - (void)dealloc {
-    [self stopTimer];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
@@ -73,27 +72,6 @@
     self.data = [self.lineListTransformer manager:nil transformData:sourceArray];
     [self.kLineChartView drawChartWithData:self.data];
     [self.tLineChartView drawChartWithData:self.data];
-}
-
-#pragma mark - private methods
-
-- (void)startTimer {
-    [self stopTimer];
-    
-    _timer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self selector:@selector(realTimeData:) userInfo:nil repeats:YES];
-}
-
-- (void)stopTimer {
-    if (_timer && [_timer isValid]) {
-        [_timer setFireDate:[NSDate distantFuture]];
-    }
-    _timer = nil;
-}
-
-- (void)realTimeData:(id)timer {
-    //3462.5828,  3495.7017  3457.2295  3476.5615  1251141.1  2015/12/09
-    int close = arc4random()%30;
-    [self.kLineChartView updateChartWithOpen:@(3189.48) close:@(3200.23 + close) high:@(3223.76) low:@(3163.45) date:@"2015/09/11" isNew:NO];
 }
 
 #pragma mark - GAPIBaseManagerRequestCallBackDelegate
@@ -140,7 +118,7 @@
         _kLineChartView.rightMargin = 1.0;
         _kLineChartView.bottomMargin = 80.0f;
         _kLineChartView.leftMargin = 25.0f;
-        _kLineChartView.yAxisTitleIsChange = NO;
+        _kLineChartView.isVisiableViewerExtremeValue = YES;
         // YES表示：Y坐标的值根据视图中呈现的k线图的最大值最小值变化而变化；NO表示：Y坐标是所有数据中的最大值最小值，不管k线图呈现如何都不会变化。默认YES
         //_kLineChartView.yAxisTitleIsChange = NO;
         
@@ -155,15 +133,15 @@
 
 - (TLineChartView *)tLineChartView {
     if (!_tLineChartView) {
-        _tLineChartView = [[TLineChartView alloc] initWithFrame:CGRectMake(20, 380.0f, self.view.frame.size.width - 40.0f, 180.0f)];
-        _tLineChartView.backgroundColor = [UIColor whiteColor];
-        _tLineChartView.topMargin = 5.0f;
-        _tLineChartView.leftMargin = 50.0;
-        _tLineChartView.bottomMargin = 0.5;
-        _tLineChartView.rightMargin = 1.0;
-        _tLineChartView.pointPadding = 30.0f;
-        _tLineChartView.separatorNum = 4;
-        _tLineChartView.flashPoint = YES;
+//        _tLineChartView = [[TLineChartView alloc] initWithFrame:CGRectMake(20, 380.0f, self.view.frame.size.width - 40.0f, 180.0f)];
+//        _tLineChartView.backgroundColor = [UIColor whiteColor];
+//        _tLineChartView.topMargin = 5.0f;
+//        _tLineChartView.leftMargin = 50.0;
+//        _tLineChartView.bottomMargin = 0.5;
+//        _tLineChartView.rightMargin = 1.0;
+//        _tLineChartView.pointPadding = 30.0f;
+//        _tLineChartView.separatorNum = 4;
+//        _tLineChartView.flashPoint = YES;
         //_tLineChartView.smoothPath = NO;
     }
     return _tLineChartView;

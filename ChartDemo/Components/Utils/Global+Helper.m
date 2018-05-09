@@ -3,7 +3,7 @@
 //  SCE
 //
 //  Created by xdliu on 16/9/30.
-//  Copyright © 2016年 taiya. All rights reserved.
+//  Copyright © 2016年 yoyo. All rights reserved.
 //
 
 #import "Global+Helper.h"

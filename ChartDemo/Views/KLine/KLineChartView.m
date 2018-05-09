@@ -9,101 +9,62 @@
 
 #import "KLineChartView.h"
 #import "UIBezierPath+curved.h"
-#import "KLineTipBoardView.h"
-#import "MATipView.h"
 #import "ACMacros.h"
 #import "Global+Helper.h"
 #import "VolumnView.h"
 #import "KLineItem.h"
+#import "KCandleView.h"
+#import <Masonry.h>
+#import "KLineDataTransport.h"
 
-NSString *const KLineKeyStartUserInterfaceNotification = @"KLineKeyStartUserInterfaceNotification";
-NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInterfaceNotification";
+@interface KLineChartView ()<KLineDataTransportDelegate, KCandleViewDelegate>
 
-@interface KLineChartView ()
+// 成交量图
+@property (nonatomic, strong) VolumnView *volView;
 
 @property (nonatomic, assign) CGFloat yAxisHeight;
 
 @property (nonatomic, assign) CGFloat xAxisWidth;
 
-@property (nonatomic, strong) NSArray<KLineItem *> *chartValues;
+@property (nonatomic, strong) NSArray<KLineItem *> *chartDataSources;
 
 @property (nonatomic, assign) NSInteger startDrawIndex;
 
-@property (nonatomic, assign) NSInteger kLineDrawNum;
-
-@property (nonatomic, strong) KLineItem *highItem;
-
-@property (nonatomic, assign) CGFloat maxHighValue;
-
-@property (nonatomic, assign) CGFloat minLowValue;
+@property (nonatomic, assign) NSInteger needDrawCandleNumber;
 
 //手势
-@property (nonatomic, strong) UITapGestureRecognizer *tapGesture;
+@property (nonatomic, strong) UITapGestureRecognizer *tapGestureRecognizer;
+@property (nonatomic, strong) UIPanGestureRecognizer *panGestureRecognizer;
 
-@property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
+@property (nonatomic, strong) UIPinchGestureRecognizer *pinchGestureRecognizer;
+@property (nonatomic, assign) CGFloat lastPinchScale;
 
-@property (nonatomic, strong) UIPinchGestureRecognizer *pinchGesture;
+@property (nonatomic, strong) UILongPressGestureRecognizer *longPressGestureRecognizer;
+@property (nonatomic) NSInteger lastTouchIndex;
 
-@property (nonatomic, strong) UILongPressGestureRecognizer *longGesture;
+// 申请锁
+@property (nonatomic, assign) BOOL lock;
 
-@property (nonatomic, assign) CGFloat lastPanScale;
+@property (nonatomic, strong) KLineDataTransport *dataTransport;
+@property (nonatomic, strong) KCandleView *candleView;
 
-//坐标轴
-@property (nonatomic, strong) NSMutableDictionary *xAxisContext;
+@property (nonatomic, strong) NSArray<UILabel *> *yAsixLableContainers;
+@property (nonatomic, strong) NSArray<UILabel *> *xAsixLableContainers;
 
 //十字线
 @property (nonatomic, strong) UIView *verticalCrossLine;     //垂直十字线
 @property (nonatomic, strong) UIView *horizontalCrossLine;   //水平十字线
 
-@property (nonatomic, strong) UIView *barVerticalLine;
-
-@property (nonatomic, strong) KLineTipBoardView *tipBoard;
-
-@property (nonatomic, strong) MATipView * maTipView;
-
-// 成交量图
-@property (nonatomic, strong) VolumnView *volView;
-
 //时间
-@property (nonatomic, strong) UILabel *timeLbl;
+@property (nonatomic, strong) UILabel *dateLabel;
 //价格
-@property (nonatomic, strong) UILabel *priceLbl;
-
-//实时数据提示按钮
-@property (nonatomic, strong) UIButton *realDataTipBtn;
-
-//交互中， 默认NO
-@property (nonatomic, assign) BOOL interactive;
-
-// 正在绘制
-@property (nonatomic, assign) BOOL inDrawing;
-
-// 需同步数据, 临时数据, 用于动态更新数据
-@property (nonatomic, strong) NSMutableArray<KLineItem *> *needsSyncChartsValue;
+@property (nonatomic, strong) UILabel *priceLabel;
 
 @end
 
 @implementation KLineChartView
 
 #pragma mark - life cycle
-
-- (void)dealloc {
-    [self removeObserver];
-}
-
-- (id)init {
-    if (self = [super init]) {
-        [self _setup];
-    }
-    return self;
-}
-
-- (id)initWithCoder:(NSCoder *)aDecoder {
-    if (self = [super initWithCoder:aDecoder]) {
-        [self _setup];
-    }
-    return self;
-}
 
 - (id)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
@@ -115,23 +76,12 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 - (void)_setup {
     self.fullScreen = YES;
     
-    self.timeAxisHeight = 20.0;
-    
     self.positiveLineColor = [UIColor colorWithRed:(31/255.0f) green:(185/255.0f) blue:(63.0f/255.0f) alpha:1.0];
     self.negativeLineColor = [UIColor colorWithRed:(232/255.0f) green:(50.0f/255.0f) blue:(52.0f/255.0f) alpha:1.0];
     
-    self.upperShadowColor = self.positiveLineColor;
-    self.lowerShadowColor = self.negativeLineColor;
-    
     self.movingAvgLineWidth = 0.8;
     
-    self.masColors = @[HexRGB(0x019FFD), HexRGB(0xFF9900), HexRGB(0xFF00FF)];
-    
-    self.positiveVolColor = self.positiveLineColor;
-    self.negativeVolColor =  self.negativeLineColor;
-    
-    self.axisShadowColor = [UIColor colorWithRed:223/255.0f green:223/255.0f blue:223/255.0f alpha:1.0];
-    self.axisShadowWidth = 0.8;
+    self.MAColors = @[HexRGB(0x019FFD), HexRGB(0xFF9900), HexRGB(0xFF00FF)];
     
     self.separatorColor = [UIColor colorWithRed:230/255.0f green:230/255.0f blue:230/255.0f alpha:1.0];
     self.separatorWidth = 0.5;
@@ -148,260 +98,232 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
     
     self.zoomEnable = YES;
     
-    self.showAvgLine = YES;
+    self.showMA = YES;
     
-    self.showBarChart = YES;
+    self.showVolChart = YES;
     
-    self.yAxisTitleIsChange = YES;
+    self.isVisiableViewerExtremeValue = YES;
     
     self.saveDecimalPlaces = 2;
     
-    self.timeAndPriceTipsBackgroundColor = HexRGB(0xD70002);
-    self.timeAndPriceTextColor = [UIColor colorWithWhite:1.0 alpha:0.95];
+    self.dateTipAndPriceTipBackgroundColor = HexRGB(0xD70002);
+    self.dateTipAndPriceTipTextColor = [UIColor colorWithWhite:1.0 alpha:0.95];
     
     self.supportGesture = YES;
     
-    self.maxKLineWidth = 24;
-    self.minKLineWidth = 1.5;
+    self.maxCandleWidth = 24;
+    self.minCandleWidth = 1.5;
     
-    self.kLineWidth = 8.0;
-    self.kLinePadding = 2.0;
+    self.kCandleWidth = 8.0;
+    self.kCandleFixedSpacing = 2.0;
     
-    self.lastPanScale = 1.0;
+    self.lastPinchScale = 1.0;
+    self.lastTouchIndex = -1;
     
-    self.xAxisContext = [NSMutableDictionary new];
-    self.needsSyncChartsValue = [NSMutableArray new];
+    // 添加试图
+    [self addPageSubViews];
     
     //添加手势
-    [self addGestures];
+    [self addGestureRecognizers];
+}
+
+- (void)addPageSubViews {
+    _candleView = [[KCandleView alloc] initWithFrame:self.bounds];
+    _candleView.autoresizingMask = UIViewAutoresizingFlexibleRightMargin|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
+    _candleView.kCandleWidth = _kCandleWidth;
+    _candleView.kCandleFixedSpacing = _kCandleFixedSpacing;
+    _candleView.negativeCandleColor = _negativeLineColor;
+    _candleView.positiveCandleColor = _positiveLineColor;
+    _candleView.MAColors = self.MAColors;
+    _candleView.delegate = self;
+    [self addSubview:_candleView];
     
-    [self registerObserver];
+    NSMutableArray *yAsixLables = [NSMutableArray new];
+    for (int i = 0; i < 6; i ++) {
+        UILabel *yAsixLbl = [UILabel new];
+        yAsixLbl.font = self.yAxisTitleFont;
+        yAsixLbl.textColor = self.yAxisTitleColor;
+        yAsixLbl.autoresizingMask = UIViewAutoresizingFlexibleRightMargin|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
+        [self addSubview:yAsixLbl];
+        [yAsixLables addObject:yAsixLbl];
+    }
+    self.yAsixLableContainers = yAsixLables;
+    
+    NSMutableArray *xAsixLables = [NSMutableArray new];
+    for (int i = 0; i < _candleView.separatorNumber; i ++) {
+        UILabel *xAsixLbl = [UILabel new];
+        xAsixLbl.font = self.xAxisTitleFont;
+        xAsixLbl.textColor = self.xAxisTitleColor;
+        xAsixLbl.numberOfLines = 0;
+        xAsixLbl.autoresizingMask = UIViewAutoresizingFlexibleRightMargin|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
+        [self addSubview:xAsixLbl];
+        [xAsixLables addObject:xAsixLbl];
+    }
+    self.xAsixLableContainers = xAsixLables;
 }
 
 /**
  *  添加手势
  */
-- (void)addGestures {
-    if (!self.supportGesture) {
-        return;
-    }
-    
-    [self addGestureRecognizer:self.tapGesture];
-    
-    [self addGestureRecognizer:self.panGesture];
-    
-    [self addGestureRecognizer:self.pinchGesture];
-    
-    [self addGestureRecognizer:self.longGesture];
+- (void)addGestureRecognizers {
+    [self addGestureRecognizer:self.tapGestureRecognizer];
+    [self addGestureRecognizer:self.panGestureRecognizer];
+    [self addGestureRecognizer:self.pinchGestureRecognizer];
+    [self addGestureRecognizer:self.longPressGestureRecognizer];
 }
 
-/**
- *  通知
- */
-- (void)registerObserver {
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(startTouchNotification:) name:KLineKeyStartUserInterfaceNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(endOfTouchNotification:) name:KLineKeyEndOfUserInterfaceNotification object:nil];
+- (void)removeGestureRecognizers {
+    [self addGestureRecognizer:_tapGestureRecognizer];
+    [self addGestureRecognizer:_panGestureRecognizer];
+    [self addGestureRecognizer:_pinchGestureRecognizer];
+    [self addGestureRecognizer:_longPressGestureRecognizer];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
+    _tapGestureRecognizer = nil;
+    _panGestureRecognizer = nil;
+    _pinchGestureRecognizer = nil;
+    _longPressGestureRecognizer = nil;
 }
 
-- (void)removeObserver {
-    [self removeObserver:self forKeyPath:KLineKeyStartUserInterfaceNotification];
-    [self removeObserver:self forKeyPath:KLineKeyEndOfUserInterfaceNotification];
-    [self removeObserver:self forKeyPath:UIDeviceOrientationDidChangeNotification];
-}
-
-- (void)drawRect:(CGRect)rect {
-    [super drawRect:rect];
-    [self hideTipsWithAnimated:NO];
-    [_verticalCrossLine removeFromSuperview];
-    _verticalCrossLine = nil;
-    [_horizontalCrossLine removeFromSuperview];
-    _horizontalCrossLine = nil;
-    
-    if (!self.chartValues || self.chartValues.count == 0) {
-        self.inDrawing = NO;
-        return;
-    }
-    //x坐标轴长度
-    self.xAxisWidth = rect.size.width - self.rightMargin - (self.fullScreen ? 0 : self.leftMargin);
-    
-    //y坐标轴高度
-    self.yAxisHeight = rect.size.height - self.bottomMargin - self.topMargin;
-    
-    //坐标轴
-    [self drawAxisInRect:rect];
-    
-    //时间轴
-    [self drawTimeAxis];
-    
-    //k线
-    [self drawKLine];
-    
-    //均线
-    [self drawMALine];
-    
-    //y坐标标题
-    [self drawYAxisTitle];
-    
-    //交易量
-    [self drawVol];
-    
-    self.inDrawing = NO;
+- (BOOL)askLock:(BOOL *)lock {
+    BOOL spinLock = *lock;
+    return spinLock;
 }
 
 #pragma mark - render UI
 
 - (void)drawChartWithData:(NSArray *)data {
-    if (self.inDrawing) {
+    if ([self askLock:&_lock]) {
         return;
     }
     
-    self.chartValues = data;
+    self.chartDataSources = data;
     
-    if (self.showBarChart) {
-        self.volView.data = data;
-    }
-    
-    // 设置
+    // 绘制前的一些设置项
     [self drawSetting];
     
-    [self resetMaxAndMin];
+    [self drawStockViewer];
     
-    self.inDrawing = YES;
-    [self setNeedsDisplay];
+    // 更新坐标标题
+    [self updateAxisTitles];
 }
 
 - (void)drawSetting {
-    NSAttributedString *attString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%.2f", self.highItem.high.floatValue] attributes:@{NSFontAttributeName:self.yAxisTitleFont, NSForegroundColorAttributeName:self.yAxisTitleColor}];
-    CGSize size = [attString boundingRectWithSize:CGSizeMake(MAXFLOAT, self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
-    self.leftMargin = size.width + 4.0f;
+    self.leftMargin += 10.0f;
+    
+    self.xAxisWidth = self.frame.size.width - self.rightMargin - (self.fullScreen ? 0 : self.leftMargin);
+    
+    //y坐标轴高度
+    self.yAxisHeight = self.frame.size.height - self.bottomMargin - self.topMargin;
+    
+    _candleView.frame = CGRectMake(self.frame.size.width - self.xAxisWidth, self.topMargin, self.xAxisWidth, self.yAxisHeight);
     
     //更具宽度和间距确定要画多少个k线柱形图
-    self.kLineDrawNum = floor(((self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kLinePadding) / (self.kLineWidth + self.kLinePadding)));
+    self.needDrawCandleNumber = floor(((self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kCandleFixedSpacing) / (self.kCandleWidth + self.kCandleFixedSpacing)));
     
     //确定从第几个开始画
-    self.startDrawIndex = self.chartValues.count > 0 ? self.chartValues.count - self.kLineDrawNum : 0;
-}
-
-#pragma mark - public methods
-
-- (void)updateChartWithOpen:(NSNumber *)open
-                      close:(NSNumber *)close
-                       high:(NSNumber *)high
-                        low:(NSNumber *)low
-                       date:(NSString *)date
-                      isNew:(BOOL)isNew {
-    KLineItem *item= [KLineItem new];
-    item.open = open;
-    item.close = close;
-    item.high = high;
-    item.low = low;
-    item.date = date;
+    self.startDrawIndex = self.chartDataSources.count > 0 ? self.chartDataSources.count - self.needDrawCandleNumber : 0;
     
-    if (self.needsSyncChartsValue.count == 0 || isNew) {
-        [self.needsSyncChartsValue addObject:item];
-    } else {
-        [self.needsSyncChartsValue removeLastObject];
-        [self.needsSyncChartsValue addObject:item];
+    float avgHeight = _candleView.frame.size.height/5.0, fontHeight = self.yAxisTitleFont.lineHeight;
+    for (int i = 0; i < self.yAsixLableContainers.count; i ++) {
+        float diffHeight = i == 0 ? 1 : (i == self.yAsixLableContainers.count - 1 ? fontHeight : fontHeight*0.5);
+        CGRect frame = CGRectMake(1.0f, avgHeight*i - diffHeight + self.topMargin, self.leftMargin, self.yAxisTitleFont.lineHeight);
+        
+        self.yAsixLableContainers[i].frame = frame;
     }
-    
-    // 同步数据
-    [self syncChartValue];
-    
-    // 绘制视图
-    [self drawChartWithData:self.chartValues];
 }
 
-- (void)syncChartValue {
-    if (self.inDrawing) {
+- (void)drawStockViewer {
+    _lock = YES;
+    
+    while ([self askLock:&_lock]) {
+        _candleView.maxValue = self.dataTransport.maxValue;
+        _candleView.minValue = self.dataTransport.minValue;
+        
+        [_candleView updateCandleForData:self.dataTransport.getNeedDrawingCandleData];
+        [_candleView updateMAWithData:self.dataTransport.getMovingAverageData];
+        _lock = NO;
+    }
+}
+
+- (void)updateAxisTitles {
+    float avg = (_candleView.maxValue - _candleView.minValue)/5.0;
+    for (int i = 0; i < self.yAsixLableContainers.count; i ++) {
+        self.yAsixLableContainers[i].text = [self saveDecimalPlaceWithNum:@(_candleView.maxValue - (i == self.yAsixLableContainers.count - 1 ? _candleView.minValue : avg*i))];
+    }
+}
+
+#pragma mark - gesture events
+
+- (void)tapTouchHandler:(UITapGestureRecognizer *)tapGesture {
+    if (self.chartDataSources.count == 0 || !self.chartDataSources) {
         return;
     }
     
-    NSMutableArray<KLineItem *> *tempChartValue = self.chartValues.mutableCopy;
-    
-    if (EqualString(tempChartValue.lastObject.date, self.needsSyncChartsValue.firstObject.date)) {
-        [tempChartValue removeLastObject];
-    }
-    // 添加需要绘制的数据
-    [tempChartValue addObjectsFromArray:self.needsSyncChartsValue];
-    self.chartValues = tempChartValue;
-    
-    // 清除需要绘制的数据
-    [self.needsSyncChartsValue removeAllObjects];
+    CGPoint touchPoint = [tapGesture locationInView:_candleView];
+    [self showTipWithTouchPoint:touchPoint];
 }
 
-#pragma mark - event reponse
-
-- (void)updateChartPressed:(UIButton *)button {
-    self.startDrawIndex = self.chartValues.count - self.kLineDrawNum;
-}
-
-- (void)tapEvent:(UITapGestureRecognizer *)tapGesture {
-    if (self.chartValues.count == 0 || !self.chartValues) {
+- (void)panTouchHandler:(UIPanGestureRecognizer *)panGesture {
+    if ([self askLock:&_lock] || !self.scrollEnable || self.chartDataSources.count == 0) {
         return;
     }
     
-    CGPoint touchPoint = [tapGesture locationInView:self];
-    [self showTipBoardWithTouchPoint:touchPoint];
-}
-
-- (void)panEvent:(UIPanGestureRecognizer *)panGesture {
-    if (self.inDrawing) {
-        return;
-    }
-    
-    [self hideTipsWithAnimated:NO];
     CGPoint touchPoint = [panGesture translationInView:self];
-    NSInteger offsetIndex = fabs(touchPoint.x/(self.kLineWidth > self.maxKLineWidth/2.0 ? 16.0f : 8.0));
-    
-    [self postNotificationWithGestureRecognizerStatus:panGesture.state];
-    if (!self.scrollEnable || self.chartValues.count == 0 || offsetIndex == 0) {
+    NSInteger offsetIndex = fabs(touchPoint.x/(self.kCandleWidth > self.maxCandleWidth/2.0 ? 12 : 8));
+    if (offsetIndex == 0) {
         return;
     }
+    
     
     if (touchPoint.x > 0) {
+        if (self.startDrawIndex == 0) {
+            return;
+        }
         self.startDrawIndex = self.startDrawIndex - offsetIndex < 0 ? 0 : self.startDrawIndex - offsetIndex;
     } else {
-        self.startDrawIndex = self.startDrawIndex + offsetIndex + self.kLineDrawNum > self.chartValues.count ? self.chartValues.count - self.kLineDrawNum : self.startDrawIndex + offsetIndex;
+        if (self.startDrawIndex == self.chartDataSources.count - self.needDrawCandleNumber) {
+            return;
+        }
+        
+        self.startDrawIndex = self.startDrawIndex + offsetIndex + self.needDrawCandleNumber > self.chartDataSources.count ? self.chartDataSources.count - self.needDrawCandleNumber : self.startDrawIndex + offsetIndex;
     }
     
-    [self resetMaxAndMin];
+    [self drawStockViewer];
+    [self updateAxisTitles];
     
     [panGesture setTranslation:CGPointZero inView:self];
-    
-    self.inDrawing = YES;
-    [self setNeedsDisplay];
 }
 
-- (void)pinchEvent:(UIPinchGestureRecognizer *)pinchEvent {
-    [self hideTipsWithAnimated:NO];
-    CGFloat scale = pinchEvent.scale - self.lastPanScale + 1;
-    
-    [self postNotificationWithGestureRecognizerStatus:pinchEvent.state];
-    
-    if (!self.zoomEnable || self.chartValues.count == 0 || self.inDrawing) {
+- (void)pinchTouchHandler:(UIPinchGestureRecognizer *)pinchGesture {
+    if (!self.zoomEnable || self.chartDataSources.count == 0 || [self askLock:&_lock]) {
         return;
     }
     
-    self.kLineWidth = _kLineWidth*scale;
+    CGFloat scale = pinchGesture.scale - self.lastPinchScale + 1;
+    if (self.lastPinchScale > scale) {
+        if (_minCandleWidth > _kCandleWidth*scale && _minCandleWidth >= _kCandleWidth) return;
+    } else {
+        if (_kCandleWidth >= _kCandleWidth*scale && _maxCandleWidth <= _kCandleWidth) return;
+    }
     
-    CGFloat forwardDrawCount = self.kLineDrawNum;
+    self.kCandleWidth = _kCandleWidth*scale;
     
-    _kLineDrawNum = floor((self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin) / (self.kLineWidth + self.kLinePadding));
+    CGFloat forwardDrawCount = _needDrawCandleNumber;
+    
+    self.needDrawCandleNumber = floor((self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin) / (self.kCandleWidth + self.kCandleFixedSpacing));
     
     //容差处理
-    CGFloat diffWidth = (self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin) - (self.kLineWidth + self.kLinePadding)*_kLineDrawNum;
-    if (diffWidth > 4*(self.kLineWidth + self.kLinePadding)/5.0) {
-        _kLineDrawNum = _kLineDrawNum + 1;
+    CGFloat diffWidth = (self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin) - (self.kCandleWidth + self.kCandleFixedSpacing)*_needDrawCandleNumber;
+    if (diffWidth > 4*(self.kCandleWidth + self.kCandleFixedSpacing)/5.0) {
+        self.needDrawCandleNumber = _needDrawCandleNumber + 1;
     }
     
-    _kLineDrawNum = self.chartValues.count > 0 && _kLineDrawNum < self.chartValues.count ? _kLineDrawNum : self.chartValues.count;
-    if (forwardDrawCount == self.kLineDrawNum && self.maxKLineWidth != self.kLineWidth) {
+    self.needDrawCandleNumber = self.chartDataSources.count > 0 && _needDrawCandleNumber < self.chartDataSources.count ? _needDrawCandleNumber : self.chartDataSources.count;
+    if (forwardDrawCount == self.needDrawCandleNumber && self.maxCandleWidth != self.kCandleWidth) {
         return;
     }
     
-    NSInteger diffCount = fabs(self.kLineDrawNum - forwardDrawCount);
+    NSInteger diffCount = fabs(self.needDrawCandleNumber - forwardDrawCount);
     
     if (forwardDrawCount > self.startDrawIndex) {
         // 放大
@@ -412,437 +334,69 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
         self.startDrawIndex = self.startDrawIndex < 0 ? 0 : self.startDrawIndex;
     }
     
-    self.startDrawIndex = self.startDrawIndex + self.kLineDrawNum > self.chartValues.count ? self.chartValues.count - self.kLineDrawNum : self.startDrawIndex;
+    self.startDrawIndex = self.startDrawIndex + self.needDrawCandleNumber > self.chartDataSources.count ? self.chartDataSources.count - self.needDrawCandleNumber : self.startDrawIndex;
     
-    [self resetMaxAndMin];
+    [self drawStockViewer];
+    [self updateAxisTitles];
     
-    pinchEvent.scale = scale;
-    self.lastPanScale = pinchEvent.scale;
-    
-    self.inDrawing = YES;
-    [self setNeedsDisplay];
+    pinchGesture.scale = scale;
+    self.lastPinchScale = scale;
 }
 
-- (void)longPressEvent:(UILongPressGestureRecognizer *)longGesture {
-    [self postNotificationWithGestureRecognizerStatus:longGesture.state];
-    
-    if (self.chartValues.count == 0 || !self.chartValues) {
+- (void)longTouchHander:(UILongPressGestureRecognizer *)longGesture {
+    if (self.chartDataSources.count == 0 || !self.chartDataSources) {
         return;
     }
     
     if (longGesture.state == UIGestureRecognizerStateEnded) {
-        [self hideTipsWithAnimated:NO];
+        [self hideTips];
     } else {
         CGPoint touchPoint = [longGesture locationInView:self];
-        [self showTipBoardWithTouchPoint:touchPoint];
+        [self showTipWithTouchPoint:touchPoint];
     }
 }
 
-- (void)showTipBoardWithTouchPoint:(CGPoint)touchPoint {
-    [self.xAxisContext enumerateKeysAndObjectsUsingBlock:^(NSNumber *xAxisKey, NSNumber *indexObject, BOOL *stop) {
-        if (_kLinePadding+_kLineWidth >= ([xAxisKey floatValue] - touchPoint.x) && ([xAxisKey floatValue] - touchPoint.x) > 0) {
-            NSInteger index = [indexObject integerValue];
-            // 获取对应的k线数据
-            KLineItem *item = self.chartValues[index];
-            CGFloat open = [item.open floatValue];
-            CGFloat close = [item.close floatValue];
-            CGFloat scale = (self.maxHighValue - self.minLowValue) / self.yAxisHeight;
-            scale = scale == 0 ? 1.0 : scale;
-            
-            CGFloat xAxis = [xAxisKey floatValue] - _kLineWidth / 2.0 + (self.fullScreen ? 0 : self.leftMargin);
-            CGFloat yAxis = self.yAxisHeight - (open - self.minLowValue)/scale + self.topMargin;
-            
-            if ([item.high floatValue] > [item.low floatValue]) {
-                yAxis = self.yAxisHeight - (close - self.minLowValue)/scale + self.topMargin;
-            }
-            
-            [self configUIWithLineItem:item atPoint:CGPointMake(xAxis, yAxis)];
-            
-            *stop = YES;
-        }
-    }];
-}
-
-- (void)configUIWithLineItem:(KLineItem *)item atPoint:(CGPoint)point {
-    //十字线
+- (void)showTipWithTouchPoint:(CGPoint)touchPoint {
+    NSInteger touchIndex = touchPoint.x/(_candleView.kCandleWidth + _candleView.kCandleFixedSpacing)/1;
+    // 不符合要求，不继续操作
+    if (touchIndex <= 0 || touchIndex > self.dataTransport.needDrawingCandleNumber || self.lastTouchIndex == touchIndex) return;
+    
+    self.lastTouchIndex = touchIndex;
+    KLineItem *touchItem = self.chartDataSources[touchIndex + self.startDrawIndex - 1];
+    
+    // 计算高度
+    float scale = (_candleView.maxValue - _candleView.minValue)/_candleView.frame.size.height;
+    float height = MIN(MAX((touchItem.close.floatValue - _candleView.minValue)/scale, 0.5), _candleView.frame.size.height - 0.5);
+    
+    float verticalXOrigin = (self.fullScreen ? 0 : self.leftMargin) + touchIndex*(_candleView.kCandleWidth + _candleView.kCandleFixedSpacing) - _candleView.kCandleWidth*0.5, horizontalYOrigin = self.topMargin + _candleView.frame.size.height - height + (touchItem.close.floatValue < touchItem.open.floatValue ? 0.5 : - 0.5);
+    
     self.verticalCrossLine.hidden = NO;
-    CGRect frame = self.verticalCrossLine.frame;
-    frame.origin.x = point.x;
-    frame.size.height = self.showBarChart ? self.frame.size.height - self.topMargin : frame.size.height;
-    self.verticalCrossLine.frame = frame;
-    
     self.horizontalCrossLine.hidden = NO;
-    frame = self.horizontalCrossLine.frame;
-    frame.origin.y = point.y;
-    self.horizontalCrossLine.frame = frame;
+    self.verticalCrossLine.frame = CGRectMake(verticalXOrigin, self.topMargin + 0.5, 0.5, self.yAxisHeight);
+    self.horizontalCrossLine.frame = CGRectMake((self.fullScreen ? 0 : self.leftMargin) + 1.0, horizontalYOrigin, self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin), 0.5);
     
-    self.barVerticalLine.hidden = NO;
-    frame = self.barVerticalLine.frame;
-    frame.origin.x = point.x;
-    self.barVerticalLine.frame = frame;
-    //均值
-    self.maTipView.hidden = !self.showAvgLine;
-    if (self.showAvgLine) {
-        self.maTipView.minAvgPrice = [NSString stringWithFormat:@"MA5：%.2f", [self.Mas[0] doubleValue]];
-        self.maTipView.midAvgPrice = [NSString stringWithFormat:@"MA10：%.2f", [self.Mas[1] doubleValue]];
-        self.maTipView.maxAvgPrice = [NSString stringWithFormat:@"MA20：%.2f", [self.Mas[2] doubleValue]];
-    }
-    //提示版
-    self.tipBoard.open = [self dealDecimalWithNum:item.open];
-    self.tipBoard.close = [self dealDecimalWithNum:item.close];
-    self.tipBoard.high = [self dealDecimalWithNum:item.high];
-    self.tipBoard.low = [self dealDecimalWithNum:item.low];
     
-    if (point.y - self.topMargin - self.tipBoard.frame.size.height/2.0 < 0) {
-        point.y = self.topMargin;
-    } else if ((point.y - self.tipBoard.frame.size.height/2.0) > self.topMargin + self.yAxisHeight - self.tipBoard.frame.size.height*3/2.0f) {
-        point.y = self.topMargin + self.yAxisHeight - self.tipBoard.frame.size.height*3/2.0f;
-    } else {
-        point.y -= self.tipBoard.frame.size.height / 2.0;
-    }
+    self.priceLabel.hidden = NO;
+    self.dateLabel.hidden = NO;
+    self.priceLabel.text = touchItem.close.stringValue;
+    self.dateLabel.text = touchItem.date;
     
-    NSAttributedString *maxText = [Global_Helper attributeText:[NSString stringWithFormat:@"最高价：%@", [self dealDecimalWithNum:@(self.maxHighValue)]] textColor:HexRGB(0xffffff) font:self.tipBoard.font];
-    CGSize size = [Global_Helper attributeString:maxText boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT)];
-    
-    frame = self.tipBoard.frame;
-    frame.size.width = size.width + Adaptor_Value(20.0f);
-
-    self.tipBoard.frame = frame;
-    
-    [self.tipBoard showWithTipPoint:CGPointMake(point.x, point.y)];
-    
-    //时间，价额
-    self.priceLbl.hidden = NO;
-    self.priceLbl.text = [item.open floatValue] > [item.close floatValue] ? [self dealDecimalWithNum:item.open] :[self dealDecimalWithNum:item.close] ;
-    self.priceLbl.frame = CGRectMake(0.5, MIN(self.horizontalCrossLine.frame.origin.y - (self.timeAxisHeight*2/3.0 - self.separatorWidth*2)/2.0, self.topMargin + self.yAxisHeight - self.timeAxisHeight), (self.fullScreen ? self.leftMargin + Adaptor_Value(6.0f) : self.leftMargin - self.separatorWidth), self.timeAxisHeight*2/3.0 - self.separatorWidth*2);
-    [self bringSubviewToFront:self.priceLbl];
-    
-    NSString *date = item.date;
-    self.timeLbl.text = date;
-    self.timeLbl.hidden = date.length > 0 ? NO : YES;
-    [self bringSubviewToFront:self.timeLbl];
-    if (date.length > 0) {
-        CGSize size = [date boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:self.xAxisTitleFont} context:nil].size;
-        CGFloat originX = MIN(MAX(0, point.x - size.width/2.0 - 2), self.frame.size.width - self.rightMargin - size.width - 4);
-        self.timeLbl.frame = CGRectMake(originX, self.topMargin + self.yAxisHeight + self.separatorWidth, size.width + 4, self.timeAxisHeight - self.separatorWidth*2);
-    }
+    CGSize size = [self.priceLabel sizeThatFits:CGSizeMake(100, 100)];
+    self.priceLabel.frame = CGRectMake(1.0, MIN(MAX(1.0, self.horizontalCrossLine.frame.origin.y - size.height/2.0), self.topMargin + _candleView.frame.size.height - size.height), size.width, size.height);
+    size = [self.dateLabel sizeThatFits:CGSizeMake(100, 100)];
+    self.dateLabel.frame = CGRectMake(MIN(MAX(self.verticalCrossLine.frame.origin.x - size.width/2.0, 1.0), self.frame.size.width - size.width), self.topMargin + _candleView.frame.size.height, size.width, size.height + 1.0);
 }
 
-- (void)hideTipsWithAnimated:(BOOL)animated {
-    self.horizontalCrossLine.hidden = YES;
+- (void)hideTips {
     self.verticalCrossLine.hidden = YES;
-    self.barVerticalLine.hidden = YES;
-    self.maTipView.hidden = YES;
-    self.priceLbl.hidden = YES;
-    self.timeLbl.hidden = YES;
-    if (animated) {
-        [self.tipBoard hide];
-    } else {
-        self.tipBoard.hidden = YES;
-    }
-}
-
-- (void)postNotificationWithGestureRecognizerStatus:(UIGestureRecognizerState)state {
-    switch (state) {
-        case UIGestureRecognizerStateBegan: {
-            [[NSNotificationCenter defaultCenter] postNotificationName:KLineKeyStartUserInterfaceNotification object:nil];
-            break;
-        }
-        case UIGestureRecognizerStateEnded: {
-            [[NSNotificationCenter defaultCenter] postNotificationName:KLineKeyEndOfUserInterfaceNotification object:nil];
-            break;
-        }
-        default:
-            break;
-    }
+    self.horizontalCrossLine.hidden = YES;
+    self.priceLabel.hidden = YES;
+    self.dateLabel.hidden = YES;
 }
 
 #pragma mark - private methods
 
-/**
- *  网格（坐标图）
- */
-- (void)drawAxisInRect:(CGRect)rect {
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    
-    //k线边框
-    CGRect strokeRect = CGRectMake((self.fullScreen ? 0 : self.leftMargin), self.topMargin, self.xAxisWidth, self.yAxisHeight);
-    CGContextSetLineWidth(context, self.axisShadowWidth);
-    CGContextSetStrokeColorWithColor(context, self.axisShadowColor.CGColor);
-    CGContextStrokeRect(context, strokeRect);
-    
-    //k线分割线
-    CGFloat avgHeight = strokeRect.size.height/5.0;
-    for (int i = 1; i <= 4; i ++) {
-        [self drawDashLineInContext:context
-                          movePoint:CGPointMake((self.fullScreen ? 0 : self.leftMargin) + 1.25, self.topMargin + avgHeight*i)
-                            toPoint:CGPointMake(rect.size.width  - self.rightMargin - 0.8, self.topMargin + avgHeight*i)];
-    }
-    
-    //这必须把dash给初始化一次，不然会影响其他线条的绘制
-    CGContextSetLineDash(context, 0, 0, 0);
-}
-
-- (void)drawYAxisTitle {
-    //k线y坐标
-    CGFloat avgValue = (self.maxHighValue - self.minLowValue) / 5.0;
-    for (int i = 0; i < 6; i ++) {
-        float yAxisValue = i == 5 ? self.minLowValue : self.maxHighValue - avgValue*i;
-        
-        NSAttributedString *attString = [Global_Helper attributeText:[self dealDecimalWithNum:@(yAxisValue)] textColor:self.yAxisTitleColor font:self.yAxisTitleFont];
-        CGSize size = [attString boundingRectWithSize:CGSizeMake((self.fullScreen ? 0 : self.leftMargin), self.yAxisTitleFont.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin context:nil].size;
-        
-        CGFloat diffHeight = 0;
-        if (i == 5) {
-            diffHeight = size.height;
-        } else if (i > 0 && i < 5) {
-            diffHeight = size.height/2.0;
-        }
-        [attString drawInRect:CGRectMake((self.fullScreen ? 2.0 : self.leftMargin - size.width - 2.0f), self.topMargin + self.yAxisHeight/5.0*i - diffHeight, size.width, size.height)];
-    }
-}
-
-- (void)drawDashLineInContext:(CGContextRef)context
-                    movePoint:(CGPoint)mPoint toPoint:(CGPoint)toPoint {
-    CGContextSetLineWidth(context, self.separatorWidth);
-    CGFloat lengths[] = {5,5};
-    CGContextSetStrokeColorWithColor(context, self.separatorColor.CGColor);
-    CGContextSetLineDash(context, 0, lengths, 2);  //画虚线
-    
-    CGContextBeginPath(context);
-    CGContextMoveToPoint(context, mPoint.x, mPoint.y);    //开始画线
-    CGContextAddLineToPoint(context, toPoint.x, toPoint.y);
-    
-    CGContextStrokePath(context);
-}
-
-- (void)drawTimeAxis {
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    
-    CGFloat quarteredWidth = self.xAxisWidth/4.0;
-    NSInteger avgDrawCount = ceil(quarteredWidth/(_kLinePadding + _kLineWidth));
-    
-    CGFloat xAxis = (self.fullScreen ? 0 : self.leftMargin) + _kLineWidth/2.0 + _kLinePadding;
-    //画4条虚线
-    for (int i = 0; i < 4; i ++) {
-        if (xAxis > (self.fullScreen ? 0 : self.leftMargin) + self.xAxisWidth) {
-            break;
-        }
-        [self drawDashLineInContext:context movePoint:CGPointMake(xAxis, self.topMargin + 1.25) toPoint:CGPointMake(xAxis, self.topMargin + self.yAxisHeight - 1.25)];
-        //x轴坐标
-        NSInteger timeIndex = i*avgDrawCount + self.startDrawIndex;
-        if (timeIndex > self.chartValues.count - 1) {
-            xAxis += avgDrawCount*(_kLinePadding + _kLineWidth);
-            continue;
-        }
-        NSAttributedString *attString = [Global_Helper attributeText:self.chartValues[timeIndex].date textColor:self.xAxisTitleColor font:self.xAxisTitleFont lineSpacing:2];
-        CGSize size = [Global_Helper attributeString:attString boundingRectWithSize:CGSizeMake(MAXFLOAT, MAXFLOAT)];
-        CGFloat originX = MAX(MIN(xAxis - size.width/2.0, self.frame.size.width - self.rightMargin - size.width), 0);
-        [attString drawInRect:CGRectMake(originX, self.topMargin + self.yAxisHeight + 2.0, size.width, size.height)];
-        
-        xAxis += avgDrawCount*(_kLinePadding + _kLineWidth);
-    }
-    CGContextSetLineDash(context, 0, 0, 0);
-}
-
-/**
- *  K线
- */
-- (void)drawKLine {
-    CGFloat scale = (self.maxHighValue - self.minLowValue) / self.yAxisHeight;
-    if (scale == 0) {
-        scale = 1.0;
-    }
-    
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetLineWidth(context, 0.5);
-    
-    CGFloat xAxis = _kLinePadding;
-    [self.xAxisContext removeAllObjects];
-    
-    CGPoint maxPoint, minPoint;
-    
-    for (KLineItem *item in [self.chartValues subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)]) {
-        [self.xAxisContext setObject:@([self.chartValues indexOfObject:item]) forKey:@(xAxis + _kLineWidth)];
-        //通过开盘价、收盘价判断颜色
-        CGFloat open = [item.open floatValue];
-        CGFloat close = [item.close floatValue];
-        UIColor *fillColor = open > close ? self.positiveLineColor : self.negativeLineColor;
-        CGContextSetFillColorWithColor(context, fillColor.CGColor);
-        
-        CGFloat diffValue = fabs(open - close);
-        CGFloat maxValue = MAX(open, close);
-        CGFloat height = MAX(diffValue/scale == 0 ? 1 : diffValue/scale, 0.5);
-        CGFloat width = _kLineWidth;
-        CGFloat yAxis = self.yAxisHeight - ((maxValue - self.minLowValue)/scale == 0 ? 1 : (maxValue - self.minLowValue)/scale) + self.topMargin;
-        
-        CGRect rect = CGRectMake(xAxis + (self.fullScreen ? 0 : self.leftMargin), yAxis, width, height);
-        CGContextAddRect(context, rect);
-        CGContextFillPath(context);
-        
-        //上、下影线
-        CGFloat highYAxis = self.yAxisHeight - ([item.high floatValue] - self.minLowValue)/scale;
-        CGFloat lowYAxis = self.yAxisHeight - ([item.low floatValue] - self.minLowValue)/scale;
-        CGPoint highPoint = CGPointMake(xAxis + width/2.0 + (self.fullScreen ? 0 : self.leftMargin), highYAxis + self.topMargin);
-        CGPoint lowPoint = CGPointMake(xAxis + width/2.0 + (self.fullScreen ? 0 : self.leftMargin), lowYAxis + self.topMargin);
-        CGContextSetStrokeColorWithColor(context, fillColor.CGColor);
-        CGContextBeginPath(context);
-        CGContextMoveToPoint(context, highPoint.x, highPoint.y);  //起点坐标
-        CGContextAddLineToPoint(context, lowPoint.x, lowPoint.y);   //终点坐标
-        CGContextStrokePath(context);
-        
-        if ([item.high floatValue] == self.maxHighValue) {
-            maxPoint = highPoint;
-        }
-        
-        if ([item.low floatValue] == self.minLowValue) {
-            minPoint = lowPoint;
-        }
-        
-        xAxis += width + _kLinePadding;
-    }
-    
-    NSAttributedString *attString = [Global_Helper attributeText:[self dealDecimalWithNum:@(self.maxHighValue)] textColor:HexRGB(0xFFB54C) font:[UIFont systemFontOfSize:12.0f]];
-    CGSize size = [Global_Helper attributeString:attString boundingRectWithSize:CGSizeMake(100, 100)];
-    float originX = maxPoint.x - size.width - self.kLineWidth - 2 < (self.fullScreen ? 0 : self.leftMargin) + self.kLineWidth + 2.0 ?  maxPoint.x + self.kLineWidth : maxPoint.x - size.width - self.kLineWidth;
-    [attString drawInRect:CGRectMake(originX, maxPoint.y, size.width, size.height)];
-    
-    attString = [Global_Helper attributeText:[self dealDecimalWithNum:@(self.minLowValue)] textColor:HexRGB(0xFFB54C) font:[UIFont systemFontOfSize:12.0f]];
-    size = [Global_Helper attributeString:attString boundingRectWithSize:CGSizeMake(100, 100)];
-    originX = minPoint.x - size.width - self.kLineWidth - 2 < (self.fullScreen ? 0 : self.leftMargin) + self.kLineWidth + 2.0 ?  minPoint.x + self.kLineWidth : minPoint.x - size.width - self.kLineWidth;
-    [attString drawInRect:CGRectMake(originX, self.yAxisHeight - size.height + self.topMargin, size.width, size.height)];
-}
-
-/**
- *  均线图
- */
-- (void)drawMALine {
-    if (!self.showAvgLine) {
-        return;
-    }
-    
-    NSAssert(self.masColors.count == self.Mas.count, @"绘制均线个数与均线绘制颜色个数不一致！");
-    
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetLineWidth(context, self.movingAvgLineWidth);
-    
-    for (int i = 0; i < self.Mas.count; i ++) {
-        CGContextSetStrokeColorWithColor(context, self.masColors[i].CGColor);
-        CGPathRef path = [self movingAvgGraphPathForContextAtIndex:i];
-        CGContextAddPath(context, path);
-        CGContextStrokePath(context);
-    }
-}
-
-/**
- *  均线path
- */
-- (CGPathRef)movingAvgGraphPathForContextAtIndex:(NSInteger)index {
-    UIBezierPath *path;
-    
-    CGFloat xAxis = (self.fullScreen ? 0 : self.leftMargin) + 1/2.0*_kLineWidth + _kLinePadding;
-    CGFloat scale = (self.maxHighValue - self.minLowValue) / self.yAxisHeight;
-    if (scale == 0) {
-        scale = 1.0f;
-    }
-    
-    // 均线个数
-    NSInteger maLength = [self.Mas[index] integerValue];
-    
-    // 均线个数达不到三个以上也不绘制
-    if (scale != 0 || maLength + 2 < self.chartValues.count) {
-        NSArray *drawArrays = [self.chartValues subarrayWithRange:NSMakeRange(self.startDrawIndex, self.kLineDrawNum)];
-        for (int i = 0; i < drawArrays.count; i ++) {
-            KLineItem *item = drawArrays[i];
-            
-            // 不足均线个数，则不需要获取该段均线数据(例如: 均5，个数小于5个，则不需要绘制前四均线，...)
-            if ([self.chartValues indexOfObject:item] < maLength - 1) {
-                xAxis += self.kLineWidth + self.kLinePadding;
-                continue;
-            }
-            NSArray *mas = [self maWithData:self.chartValues subInRange:NSMakeRange([self.chartValues indexOfObject:item] - maLength + 1, maLength)];
-            CGFloat yAxis = self.yAxisHeight - (([[mas valueForKeyPath:@"@avg.floatValue"] floatValue] - self.minLowValue)/scale == 0 ? 1.0 : ([[mas valueForKeyPath:@"@avg.floatValue"] floatValue] - self.minLowValue)/scale) + self.topMargin;
-            
-            CGPoint maPoint = CGPointMake(xAxis, yAxis);
-            
-            if (yAxis < self.topMargin) {
-                continue;
-            }
-            
-            if (yAxis > self.frame.size.height - self.bottomMargin) {
-                xAxis += self.kLineWidth + self.kLinePadding;
-                continue;
-            }
-            
-            if (!path) {
-                path = [UIBezierPath bezierPath];
-                [path moveToPoint:maPoint];
-            } else {
-                [path addLineToPoint:maPoint];
-            }
-            
-            xAxis += self.kLineWidth + self.kLinePadding;
-        }
-    }
-    
-    //圆滑
-    path = [path smoothedPathWithGranularity:15];
-    
-    return path.CGPath;
-}
-
-// MA Count
-- (NSMutableArray *)maWithData:(NSArray *)data subInRange:(NSRange)range {
-    
-    NSArray<KLineItem *> *rangeData = data.count - range.location >= range.length ? [data subarrayWithRange:range] : data;
-    
-    NSMutableArray *mas = [NSMutableArray new];
-    for (int i = 0; i < rangeData.count; i ++) {
-        [mas addObject:rangeData[i].close];
-    }
-    
-    return mas;
-}
-
-/**
- *  交易量
- */
-- (void)drawVol {
-    if (!self.showBarChart) {
-        return;
-    }
-    
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGContextSetLineWidth(context, self.kLineWidth);
-    
-    CGRect rect = self.bounds;
-    
-    CGFloat boxOriginY = self.topMargin + self.yAxisHeight + self.timeAxisHeight;
-    CGFloat boxHeight = rect.size.height - boxOriginY;
-    self.volView.frame = CGRectMake(0, boxOriginY, rect.size.width, boxHeight);
-    self.volView.kLineWidth = self.kLineWidth;
-    self.volView.linePadding = self.kLinePadding;
-    self.volView.boxOriginX = (self.fullScreen ? 0 : self.leftMargin);
-    
-    self.volView.startDrawIndex = self.startDrawIndex;
-    self.volView.numberOfDrawCount = self.kLineDrawNum;
-    [self.volView update];
-}
-
-- (void)resetMaxAndMin {
-    self.maxHighValue = -MAXFLOAT;
-    self.minLowValue = MAXFLOAT;
-    NSArray *drawContext = self.yAxisTitleIsChange ? [self.chartValues subarrayWithRange:NSMakeRange(self.startDrawIndex, MIN(self.kLineDrawNum, self.chartValues.count))] : self.chartValues;
-    
-    for (int i = 0; i < drawContext.count; i++) {
-        KLineItem *item = drawContext[i];
-        
-        self.maxHighValue = MAX([item.high floatValue], self.maxHighValue);
-        self.minLowValue = MIN([item.low floatValue], self.minLowValue);
-    }
-}
-
-- (NSString *)dealDecimalWithNum:(NSNumber *)num {
+- (NSString *)saveDecimalPlaceWithNum:(NSNumber *)num {
     NSString *dealString;
     
     switch (self.saveDecimalPlaces) {
@@ -868,48 +422,35 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 #pragma mark -  public methods
 
 - (void)clear {
-    self.inDrawing = NO;
-    self.chartValues = nil;
-    [self setNeedsDisplay];
+    _lock = NO;
+    self.chartDataSources = nil;
+    [_candleView clean];
 }
 
-#pragma mark - notificaiton events
+#pragma mark - KCandleViewDelegate
 
-- (void)startTouchNotification:(NSNotification *)notification {
-    self.interactive = YES;
+- (void)xAxis_coordinate:(float)x_coordinate date:(NSString *)date atIndex:(NSInteger)index {
+    UILabel *xAxisLbl = self.xAsixLableContainers[index];
+    xAxisLbl.text = date;
+    CGSize size = [xAxisLbl sizeThatFits:CGSizeMake(100, 100)];
+    xAxisLbl.frame = CGRectMake((self.fullScreen ? x_coordinate : self.leftMargin + x_coordinate) - size.width/2.0, self.topMargin + _candleView.frame.size.height + 0.5, size.width, size.height);
 }
 
-- (void)endOfTouchNotification:(NSNotification *)notification {
-    self.interactive = NO;
+#pragma mark - KLineDataTransportDelegate
+
+- (NSArray *)MAs {
+    return self.Mas;
 }
 
-- (void)deviceOrientationDidChangeNotification:(NSNotification *)notificaiton {
-    
+- (NSArray *)kLineDataSources {
+    return self.chartDataSources;
 }
 
 #pragma mark - getters
 
-- (VolumnView *)volView {
-    if (!_volView) {
-        _volView = [VolumnView new];
-        _volView.backgroundColor  = self.backgroundColor;
-        _volView.boxRightMargin = self.rightMargin;
-        _volView.axisShadowColor = self.axisShadowColor;
-        _volView.axisShadowWidth = self.axisShadowWidth;
-        _volView.negativeVolColor = self.negativeVolColor;
-        _volView.positiveVolColor = self.positiveVolColor;
-        _volView.yAxisTitleFont = self.yAxisTitleFont;
-        _volView.yAxisTitleColor = self.yAxisTitleColor;
-        _volView.separatorWidth = self.separatorWidth;
-        _volView.separatorColor = self.separatorColor;
-        [self addSubview:_volView];
-    }
-    return _volView;
-}
-
 - (UIView *)verticalCrossLine {
     if (!_verticalCrossLine) {
-        _verticalCrossLine = [[UIView alloc] initWithFrame:CGRectMake((self.fullScreen ? 0 : self.leftMargin), self.topMargin, 0.5, self.yAxisHeight)];
+        _verticalCrossLine = [UIView new];
         _verticalCrossLine.backgroundColor = self.crossLineColor;
         [self addSubview:_verticalCrossLine];
     }
@@ -918,166 +459,136 @@ NSString *const KLineKeyEndOfUserInterfaceNotification = @"KLineKeyEndOfUserInte
 
 - (UIView *)horizontalCrossLine {
     if (!_horizontalCrossLine) {
-        _horizontalCrossLine = [[UIView alloc] initWithFrame:CGRectMake((self.fullScreen ? 0 : self.leftMargin), self.topMargin, self.xAxisWidth, 0.5)];
+        _horizontalCrossLine = [UIView new];
         _horizontalCrossLine.backgroundColor = self.crossLineColor;
         [self addSubview:_horizontalCrossLine];
     }
     return _horizontalCrossLine;
 }
 
-- (UIView *)barVerticalLine {
-    if (!_barVerticalLine) {
-        _barVerticalLine = [[UIView alloc] initWithFrame:CGRectMake((self.fullScreen ? 0 : self.leftMargin), self.topMargin + self.yAxisHeight + self.timeAxisHeight, 0.5, self.frame.size.height - (self.topMargin + self.yAxisHeight + self.timeAxisHeight))];
-        _barVerticalLine.backgroundColor = self.crossLineColor;
-        [self addSubview:_barVerticalLine];
+- (UILabel *)dateLabel {
+    if (!_dateLabel) {
+        _dateLabel = [UILabel new];
+        _dateLabel.backgroundColor = self.dateTipAndPriceTipBackgroundColor;
+        _dateLabel.textAlignment = NSTextAlignmentCenter;
+        _dateLabel.font = self.yAxisTitleFont;
+        _dateLabel.textColor = self.dateTipAndPriceTipTextColor;
+        _dateLabel.numberOfLines = 0;
+        [self addSubview:_dateLabel];
     }
-    return _barVerticalLine;
+    return _dateLabel;
 }
 
-- (KLineTipBoardView *)tipBoard {
-    if (!_tipBoard) {
-        _tipBoard = [[KLineTipBoardView alloc] initWithFrame:CGRectMake((self.fullScreen ? 0 : self.leftMargin), self.topMargin, 115.0f, 24.0f + [UIFont systemFontOfSize:14.0f].lineHeight*4.0f)];
-        _tipBoard.backgroundColor = [UIColor clearColor];
-        _tipBoard.font = [UIFont systemFontOfSize:14.0f];
-        [self addSubview:_tipBoard];
+- (UILabel *)priceLabel {
+    if (!_priceLabel) {
+        _priceLabel = [UILabel new];
+        _priceLabel.backgroundColor = self.dateTipAndPriceTipBackgroundColor;
+        _priceLabel.textAlignment = NSTextAlignmentCenter;
+        _priceLabel.font = [UIFont systemFontOfSize:self.xAxisTitleFont.pointSize + 2.0];
+        _priceLabel.textColor = self.dateTipAndPriceTipTextColor;
+        [self addSubview:_priceLabel];
     }
-    return _tipBoard;
+    return _priceLabel;
 }
 
-- (MATipView *)maTipView {
-    if (!_maTipView) {
-        _maTipView = [[MATipView alloc] initWithFrame:CGRectMake((self.fullScreen ? 0 : self.leftMargin) + 20, self.topMargin - 18.0f, self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - 20, 13.0f)];
-        _maTipView.layer.masksToBounds = YES;
-        _maTipView.layer.cornerRadius = 7.0f;
-        _maTipView.backgroundColor = [UIColor colorWithWhite:0.35 alpha:1.0];
-        [self addSubview:_maTipView];
+- (UITapGestureRecognizer *)tapGestureRecognizer {
+    if (!_tapGestureRecognizer) {
+        _tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapTouchHandler:)];
     }
-    return _maTipView;
+    return _tapGestureRecognizer;
 }
 
-- (UIButton *)realDataTipBtn {
-    if (!_realDataTipBtn) {
-        _realDataTipBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-        [_realDataTipBtn setTitle:@"New Data" forState:UIControlStateNormal];
-        [_realDataTipBtn setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
-        _realDataTipBtn.titleLabel.font = [UIFont systemFontOfSize:12.0f];
-        _realDataTipBtn.frame = CGRectMake(self.frame.size.width - self.rightMargin - 60.0f, self.topMargin + 10.0f, 60.0f, 25.0f);
-        [_realDataTipBtn addTarget:self action:@selector(updateChartPressed:) forControlEvents:UIControlEventTouchUpInside];
-        [self addSubview:_realDataTipBtn];
-        _realDataTipBtn.layer.borderWidth = 1.0;
-        _realDataTipBtn.layer.borderColor = [UIColor redColor].CGColor;
-        _realDataTipBtn.hidden = YES;
+- (UIPanGestureRecognizer *)panGestureRecognizer {
+    if (!_panGestureRecognizer) {
+        _panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panTouchHandler:)];
     }
-    return _realDataTipBtn;
+    return _panGestureRecognizer;
 }
 
-- (UILabel *)timeLbl {
-    if (!_timeLbl) {
-        _timeLbl = [UILabel new];
-        _timeLbl.backgroundColor = self.timeAndPriceTipsBackgroundColor;
-        _timeLbl.textAlignment = NSTextAlignmentCenter;
-        _timeLbl.font = self.yAxisTitleFont;
-        _timeLbl.textColor = self.timeAndPriceTextColor;
-        _timeLbl.numberOfLines = 0;
-        [self addSubview:_timeLbl];
+- (UIPinchGestureRecognizer *)pinchGestureRecognizer {
+    if (!_pinchGestureRecognizer) {
+        _pinchGestureRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchTouchHandler:)];
     }
-    return _timeLbl;
+    return _pinchGestureRecognizer;
 }
 
-- (UILabel *)priceLbl {
-    if (!_priceLbl) {
-        _priceLbl = [UILabel new];
-        _priceLbl.backgroundColor = self.timeAndPriceTipsBackgroundColor;
-        _priceLbl.textAlignment = NSTextAlignmentCenter;
-        _priceLbl.font = [UIFont systemFontOfSize:self.xAxisTitleFont.pointSize + 2.0];
-        _priceLbl.textColor = self.timeAndPriceTextColor;
-        [self addSubview:_priceLbl];
+- (UILongPressGestureRecognizer *)longPressGestureRecognizer {
+    if (!_longPressGestureRecognizer) {
+        _longPressGestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longTouchHander:)];
     }
-    return _priceLbl;
+    return _longPressGestureRecognizer;
 }
 
-- (UITapGestureRecognizer *)tapGesture {
-    if (!_tapGesture) {
-        _tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapEvent:)];
+- (KLineDataTransport *)dataTransport {
+    if (!_dataTransport) {
+        _dataTransport = [KLineDataTransport new];
+        _dataTransport.delegate = self;
     }
-    return _tapGesture;
+    return _dataTransport;
 }
 
-- (UIPanGestureRecognizer *)panGesture {
-    if (!_panGesture) {
-        _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panEvent:)];
-    }
-    return _panGesture;
+#pragma mark - setters
+
+- (void)setSeparatorNumber:(NSInteger)separatorNumber {
+    _candleView.separatorNumber = separatorNumber;
 }
 
-- (UIPinchGestureRecognizer *)pinchGesture {
-    if (!_pinchGesture) {
-        _pinchGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(pinchEvent:)];
-    }
-    return _pinchGesture;
-}
-
-- (UILongPressGestureRecognizer *)longGesture {
-    if (!_longGesture) {
-        _longGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressEvent:)];
-    }
-    return _longGesture;
-}
-
-#pragma mark - setters 
-
-- (void)setChartValues:(NSArray<KLineItem *> *)chartValues {
-    _chartValues = chartValues;
+- (void)setNeedDrawCandleNumber:(NSInteger)kLineDrawNum {
+    _needDrawCandleNumber = MAX(MIN(self.chartDataSources.count, kLineDrawNum), 0);
     
-    CGFloat maxHigh = -MAXFLOAT;
-    for (KLineItem *item in self.chartValues) {
-        if (item.high.floatValue > maxHigh) {
-            maxHigh = item.high.floatValue;
-            self.highItem = item;
-        }
-    }
-}
-
-- (void)setKLineDrawNum:(NSInteger)kLineDrawNum {
-    _kLineDrawNum = MAX(MIN(self.chartValues.count, kLineDrawNum), 0);
-    
-    if (_kLineDrawNum != 0) {
-        self.kLineWidth = (self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kLinePadding)/_kLineDrawNum - _kLinePadding;
-    }
-}
-
-- (void)setKLineWidth:(CGFloat)kLineWidth {
-    _kLineWidth = MIN(MAX(kLineWidth, self.minKLineWidth), self.maxKLineWidth);
-}
-
-- (void)setMaxKLineWidth:(CGFloat)maxKLineWidth {
-    if (maxKLineWidth < _minKLineWidth) {
-        maxKLineWidth = _minKLineWidth;
+    if (_needDrawCandleNumber != 0) {
+        self.kCandleWidth = (self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kCandleFixedSpacing)/_needDrawCandleNumber - _kCandleFixedSpacing;
     }
     
-    CGFloat realAxisWidth = (self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kLinePadding);
-    NSInteger maxKLineCount = floor(realAxisWidth)/(maxKLineWidth + _kLinePadding);
-    maxKLineWidth = realAxisWidth/maxKLineCount - _kLinePadding;
+    self.dataTransport.needDrawingCandleNumber = _needDrawCandleNumber;
+}
+
+- (void)setStartDrawIndex:(NSInteger)startDrawIndex {
+    _startDrawIndex = startDrawIndex;
+    self.dataTransport.startIndex = startDrawIndex;
+}
+
+- (void)setKCandleWidth:(CGFloat)kLineWidth {
+    _kCandleWidth = MIN(MAX(kLineWidth, self.minCandleWidth), self.maxCandleWidth);
+    _candleView.kCandleWidth = _kCandleWidth;
+}
+
+- (void)setMaxCandleWidth:(CGFloat)maxKLineWidth {
+    if (maxKLineWidth < _minCandleWidth) {
+        maxKLineWidth = _minCandleWidth;
+    }
     
-    _maxKLineWidth = maxKLineWidth;
+    CGFloat realAxisWidth = (self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kCandleFixedSpacing);
+    NSInteger maxKLineCount = floor(realAxisWidth)/(maxKLineWidth + _kCandleFixedSpacing);
+    maxKLineWidth = realAxisWidth/maxKLineCount - _kCandleFixedSpacing;
+    
+    _maxCandleWidth = maxKLineWidth;
 }
 
 - (void)setLeftMargin:(CGFloat)leftMargin {
     _leftMargin = leftMargin;
     
-    self.maxKLineWidth = _maxKLineWidth;
+    self.maxCandleWidth = _maxCandleWidth;
+}
+
+- (void)setIsVisiableViewerExtremeValue:(BOOL)isVisiableViewerExtremeValue  {
+    self.dataTransport.isVisableExtremeValue = isVisiableViewerExtremeValue;
 }
 
 - (void)setSupportGesture:(BOOL)supportGesture {
-    _supportGesture = supportGesture;
-    
-    for (UIGestureRecognizer *gesture in self.gestureRecognizers) {
-        gesture.enabled = supportGesture;
+    if (!supportGesture) {
+        [self removeGestureRecognizers];
+    } else {
+        [self addGestureRecognizers];
     }
 }
 
-- (void)setBottomMargin:(CGFloat)bottomMargin {
-    _bottomMargin = bottomMargin < _timeAxisHeight ? _timeAxisHeight : bottomMargin;
+- (void)setAxisColor:(UIColor *)axisColor {
+    _candleView.layer.borderColor = axisColor.CGColor;
+}
+
+- (void)setAxisWidth:(CGFloat)axisWidth {
+    _candleView.layer.borderWidth = axisWidth;
 }
 
 @end

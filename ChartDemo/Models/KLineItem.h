@@ -3,7 +3,7 @@
 //  ChartDemo
 //
 //  Created by xdliu on 2016/12/2.
-//  Copyright © 2016年 taiya. All rights reserved.
+//  Copyright © 2016年 yoyo. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
