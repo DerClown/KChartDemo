@@ -7,20 +7,20 @@
 //  Copyright © 2016年 liuxd. All rights reserved.
 //
 
-#import "KLineChartView.h"
+#import "CandlestickChartsView.h"
 #import "UIBezierPath+curved.h"
 #import "ACMacros.h"
 #import "Global+Helper.h"
-#import "VolumnView.h"
+#import "VOLView.h"
 #import "KLineItem.h"
-#import "KCandleView.h"
+#import "CandlestickView.h"
 #import <Masonry.h>
 #import "KLineDataTransport.h"
 
-@interface KLineChartView ()<KLineDataTransportDelegate, KCandleViewDelegate>
+@interface CandlestickChartsView ()<KLineDataTransportDelegate, CandlestickViewDelegate>
 
 // 成交量图
-@property (nonatomic, strong) VolumnView *volView;
+@property (nonatomic, strong) VOLView *volView;
 
 @property (nonatomic, assign) CGFloat yAxisHeight;
 
@@ -46,7 +46,7 @@
 @property (nonatomic, assign) BOOL lock;
 
 @property (nonatomic, strong) KLineDataTransport *dataTransport;
-@property (nonatomic, strong) KCandleView *candleView;
+@property (nonatomic, strong) CandlestickView *candleView;
 
 @property (nonatomic, strong) NSArray<UILabel *> *yAsixLableContainers;
 @property (nonatomic, strong) NSArray<UILabel *> *xAsixLableContainers;
@@ -62,7 +62,7 @@
 
 @end
 
-@implementation KLineChartView
+@implementation CandlestickChartsView
 
 #pragma mark - life cycle
 
@@ -104,8 +104,6 @@
     
     self.isVisiableViewerExtremeValue = YES;
     
-    self.saveDecimalPlaces = 2;
-    
     self.dateTipAndPriceTipBackgroundColor = HexRGB(0xD70002);
     self.dateTipAndPriceTipTextColor = [UIColor colorWithWhite:1.0 alpha:0.95];
     
@@ -128,7 +126,7 @@
 }
 
 - (void)addPageSubViews {
-    _candleView = [[KCandleView alloc] initWithFrame:self.bounds];
+    _candleView = [[CandlestickView alloc] initWithFrame:self.bounds];
     _candleView.autoresizingMask = UIViewAutoresizingFlexibleRightMargin|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
     _candleView.kCandleWidth = _kCandleWidth;
     _candleView.kCandleFixedSpacing = _kCandleFixedSpacing;
@@ -137,6 +135,16 @@
     _candleView.MAColors = self.MAColors;
     _candleView.delegate = self;
     [self addSubview:_candleView];
+    
+    if (self.showVolChart) {
+        _volView = [VOLView new];
+        _volView.autoresizingMask = UIViewAutoresizingFlexibleRightMargin|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
+        _volView.barWidth = _kCandleWidth;
+        _volView.barFixedSpacing = _kCandleFixedSpacing;
+        _volView.negativeVOLColor = _negativeLineColor;
+        _volView.positiveVOLColor = _positiveLineColor;
+        [self addSubview:_volView];
+    }
     
     NSMutableArray *yAsixLables = [NSMutableArray new];
     for (int i = 0; i < 6; i ++) {
@@ -201,10 +209,7 @@
     // 绘制前的一些设置项
     [self drawSetting];
     
-    [self drawStockViewer];
-    
-    // 更新坐标标题
-    [self updateAxisTitles];
+    [self randerUI];
 }
 
 - (void)drawSetting {
@@ -216,6 +221,9 @@
     self.yAxisHeight = self.frame.size.height - self.bottomMargin - self.topMargin;
     
     _candleView.frame = CGRectMake(self.frame.size.width - self.xAxisWidth, self.topMargin, self.xAxisWidth, self.yAxisHeight);
+    
+    float volYOrigin = _candleView.frame.origin.y + self.yAxisHeight + 25.0f;
+    _volView.frame = CGRectMake(self.frame.size.width - self.xAxisWidth, volYOrigin, self.xAxisWidth, self.frame.size.height - volYOrigin);
     
     //更具宽度和间距确定要画多少个k线柱形图
     self.needDrawCandleNumber = floor(((self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kCandleFixedSpacing) / (self.kCandleWidth + self.kCandleFixedSpacing)));
@@ -232,23 +240,36 @@
     }
 }
 
-- (void)drawStockViewer {
+- (void)randerUI {
     _lock = YES;
     
     while ([self askLock:&_lock]) {
-        _candleView.maxValue = self.dataTransport.maxValue;
-        _candleView.minValue = self.dataTransport.minValue;
-        
-        [_candleView updateCandleForData:self.dataTransport.getNeedDrawingCandleData];
-        [_candleView updateMAWithData:self.dataTransport.getMovingAverageData];
+        [self drawCandlestick];
+        [self drawVOL];
+        [self updateAxisTitles];
         _lock = NO;
     }
 }
 
+- (void)drawCandlestick {
+    _candleView.maxmumPrice = self.dataTransport.maxmumPrice;
+    _candleView.minmumPrice = self.dataTransport.minmumPrice;
+    
+    [_candleView updateCandleForData:self.dataTransport.getNeedDrawingCandleData];
+    [_candleView updateMAWithData:self.dataTransport.getMovingAverageData];
+}
+
+- (void)drawVOL {
+    _volView.maxmumVol = self.dataTransport.maxmumVol;
+    _volView.minmunVol = self.dataTransport.minmumVol;
+    
+    [_volView updateVolWithData:self.dataTransport.getNeedDrawingCandleData];
+}
+
 - (void)updateAxisTitles {
-    float avg = (_candleView.maxValue - _candleView.minValue)/5.0;
+    float avg = (_candleView.maxmumPrice - _candleView.minmumPrice)/5.0;
     for (int i = 0; i < self.yAsixLableContainers.count; i ++) {
-        self.yAsixLableContainers[i].text = [self saveDecimalPlaceWithNum:@(_candleView.maxValue - (i == self.yAsixLableContainers.count - 1 ? _candleView.minValue : avg*i))];
+        self.yAsixLableContainers[i].text = [self.dataTransport getPriceString:@(_candleView.maxmumPrice - (i == self.yAsixLableContainers.count - 1 ? _candleView.minmumPrice : avg*i))];
     }
 }
 
@@ -288,8 +309,7 @@
         self.startDrawIndex = self.startDrawIndex + offsetIndex + self.needDrawCandleNumber > self.chartDataSources.count ? self.chartDataSources.count - self.needDrawCandleNumber : self.startDrawIndex + offsetIndex;
     }
     
-    [self drawStockViewer];
-    [self updateAxisTitles];
+    [self randerUI];
     
     [panGesture setTranslation:CGPointZero inView:self];
 }
@@ -336,8 +356,7 @@
     
     self.startDrawIndex = self.startDrawIndex + self.needDrawCandleNumber > self.chartDataSources.count ? self.chartDataSources.count - self.needDrawCandleNumber : self.startDrawIndex;
     
-    [self drawStockViewer];
-    [self updateAxisTitles];
+    [self randerUI];
     
     pinchGesture.scale = scale;
     self.lastPinchScale = scale;
@@ -365,8 +384,8 @@
     KLineItem *touchItem = self.chartDataSources[touchIndex + self.startDrawIndex - 1];
     
     // 计算高度
-    float scale = (_candleView.maxValue - _candleView.minValue)/_candleView.frame.size.height;
-    float height = MIN(MAX((touchItem.close.floatValue - _candleView.minValue)/scale, 0.5), _candleView.frame.size.height - 0.5);
+    float scale = (_candleView.maxmumPrice - _candleView.minmumPrice)/_candleView.frame.size.height;
+    float height = MIN(MAX((touchItem.close.floatValue - _candleView.minmumPrice)/scale, 0.5), _candleView.frame.size.height - 0.5);
     
     float verticalXOrigin = (self.fullScreen ? 0 : self.leftMargin) + touchIndex*(_candleView.kCandleWidth + _candleView.kCandleFixedSpacing) - _candleView.kCandleWidth*0.5, horizontalYOrigin = self.topMargin + _candleView.frame.size.height - height + (touchItem.close.floatValue < touchItem.open.floatValue ? 0.5 : - 0.5);
     
@@ -392,31 +411,6 @@
     self.horizontalCrossLine.hidden = YES;
     self.priceLabel.hidden = YES;
     self.dateLabel.hidden = YES;
-}
-
-#pragma mark - private methods
-
-- (NSString *)saveDecimalPlaceWithNum:(NSNumber *)num {
-    NSString *dealString;
-    
-    switch (self.saveDecimalPlaces) {
-        case 0: {
-            dealString = [NSString stringWithFormat:@"%ld", lroundf(num.doubleValue)];
-        }
-            break;
-        case 1: {
-            dealString = [NSString stringWithFormat:@"%.1f", num.doubleValue];
-        }
-            break;
-        case 2: {
-            dealString = [NSString stringWithFormat:@"%.2f", num.doubleValue];
-        }
-            break;
-        default:
-            break;
-    }
-    
-    return dealString;
 }
 
 #pragma mark -  public methods
@@ -589,6 +583,10 @@
 
 - (void)setAxisWidth:(CGFloat)axisWidth {
     _candleView.layer.borderWidth = axisWidth;
+}
+
+- (void)setMaxnumIntegerDigits:(NSUInteger)maxnumIntegerDigits {
+    self.dataTransport.maxnumIntegerDigits = maxnumIntegerDigits;
 }
 
 @end

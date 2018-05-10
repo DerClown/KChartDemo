@@ -7,12 +7,12 @@
 //  Copyright © 2016年 liuxd. All rights reserved.
 //
 
-#import "TLineChartView.h"
+#import "TimeShareChartView.h"
 
-@interface TLineChartView ()
+@interface TimeShareChartView ()
 
 @end
 
-@implementation TLineChartView
+@implementation TimeShareChartView
 
 @end

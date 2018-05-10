@@ -24,20 +24,35 @@
 
 @property (nonatomic) NSInteger needDrawingCandleNumber;
 
+/**
+ *  小数点位数，默认保留两位(最多两位)
+ */
+@property (nonatomic) NSUInteger  maxnumIntegerDigits;;
+
 // 是否可见部分最值
 @property (nonatomic) BOOL isVisableExtremeValue;
 
 @property (nonatomic, weak) id<KLineDataTransportDelegate>delegate;
 
 /*
- *  最大值
+ *  最大值价格
  */
-- (float)maxValue;
+- (float)maxmumPrice;
 
 /*
- *  最小值
+ *  最小价格
  */
-- (float)minValue;
+- (float)minmumPrice;
+
+/*
+ *  最大值成交量
+ */
+- (float)maxmumVol;
+
+/*
+ *  最小成交量
+ */
+- (float)minmumVol;
 
 // 绘制k线图数据
 - (NSArray *)getNeedDrawingCandleData;
@@ -48,4 +63,8 @@
  */
 - (NSArray *)getMovingAverageData;
 
+/*
+ *  价格字符串
+ */
+- (NSString *)getPriceString:(NSNumber *)price;
 @end

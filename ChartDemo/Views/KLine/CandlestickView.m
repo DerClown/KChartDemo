@@ -1,24 +1,22 @@
 //
-//  KCandleView.m
+//  CandlestickView.m
 //  ChartDemo
 //
 //  Created by YoYo on 2018/5/7.
 //  Copyright © 2018年 yoyo. All rights reserved.
 //
 
-#import "KCandleView.h"
+#import "CandlestickView.h"
 #import "KLineItem.h"
 #import "UIBezierPath+curved.h"
 
-@interface KCandleView ()
-
-@property (nonatomic, strong) NSArray<KLineItem *> *chartDataSources;
+@interface CandlestickView ()
 
 @property (nonatomic, strong) CAShapeLayer *horizontalSeparatorLayer;
 
 @end
 
-@implementation KCandleView
+@implementation CandlestickView
 
 - (void)setSeparatorNumber:(NSInteger)separatorNumber {
     _separatorNumber = MIN(6, MAX(separatorNumber, 2));
@@ -66,7 +64,7 @@
 }
 
 // 垂直方向会动态变化
-- (void)drawVerticalAxisSeparator {
+- (void)drawVerticalAxisSeparatorForData:(NSArray *)data {
     CGFloat quarteredWidth = self.frame.size.width/((self.separatorNumber+1)*1.0);
     NSInteger avgNeedDrawCandleCount = ceil(quarteredWidth/(_kCandleFixedSpacing + _kCandleWidth));
 
@@ -81,9 +79,9 @@
         [vsPath appendPath:path];
         
         // x轴坐标标题
-        if ((i + 1)*avgNeedDrawCandleCount < self.chartDataSources.count - 1) {
+        if ((i + 1)*avgNeedDrawCandleCount < data.count - 1) {
             if (self.delegate && [self.delegate respondsToSelector:@selector(xAxis_coordinate:date:atIndex:)]) {
-                KLineItem *item = self.chartDataSources[(i + 1)*avgNeedDrawCandleCount];
+                KLineItem *item = data[(i + 1)*avgNeedDrawCandleCount];
                 [self.delegate xAxis_coordinate:xAxis date:item.date atIndex:i];
             }
         }
@@ -112,7 +110,7 @@
     [self drawHorizontalSeparator];
     
     // 垂直方向分割线
-    [self drawVerticalAxisSeparator];
+    [self drawVerticalAxisSeparatorForData:data];
 }
 
 - (void)updateMAWithData:(NSArray *)data {
@@ -128,20 +126,18 @@
 
 // 绘制蜡烛图
 - (void)drawCandleWithData:(NSArray *)data {
-    _chartDataSources = data;
-    
     // 移除layer，重新绘制
     [self.layer.sublayers makeObjectsPerformSelector:@selector(removeFromSuperlayer)];
     
-    CGFloat scale = (self.maxValue - self.minValue) / self.frame.size.height;
+    CGFloat scale = (self.maxmumPrice - self.minmumPrice) / self.frame.size.height;
     if (scale == 0) {
         scale = 1.0;
     }
     
     CGFloat xAxis = _kCandleFixedSpacing;
     
-    for (int index = 0; index < self.chartDataSources.count; index ++) {
-        KLineItem *drawItem = self.chartDataSources[index];
+    for (int index = 0; index < data.count; index ++) {
+        KLineItem *drawItem = data[index];
         
         //通过开盘价、收盘价判断颜色
         CGFloat open = [drawItem.open floatValue];
@@ -150,14 +146,15 @@
         
         CGFloat diffValue = fabs(open - close);
         CGFloat height = MAX(diffValue/scale == 0 ? 1 : diffValue/scale, 0.5);
-        CGFloat yAxis = self.frame.size.height - ((MAX(open, close) - self.minValue)/scale == 0 ? 1 : (MAX(open, close) - self.minValue)/scale);
+        CGFloat yAxis = self.frame.size.height - ((MAX(open, close) - self.minmumPrice)/scale == 0 ? 1 : (MAX(open, close) - self.minmumPrice)/scale);
         
         CGRect rect = CGRectMake(xAxis, MAX(0.5, yAxis), _kCandleWidth, MIN(height, self.frame.size.height - 0.5));
+        
         UIBezierPath *path = [UIBezierPath bezierPathWithRect:rect];
         
         //上、下影线
-        CGFloat highYAxis = self.frame.size.height - ([drawItem.high floatValue] - self.minValue)/scale;
-        CGFloat lowYAxis = self.frame.size.height - ([drawItem.low floatValue] - self.minValue)/scale;
+        CGFloat highYAxis = self.frame.size.height - ([drawItem.high floatValue] - self.minmumPrice)/scale;
+        CGFloat lowYAxis = self.frame.size.height - ([drawItem.low floatValue] - self.minmumPrice)/scale;
         CGPoint highPoint = CGPointMake(xAxis + _kCandleWidth/2.0, highYAxis);
         CGPoint lowPoint = CGPointMake(xAxis + _kCandleWidth/2.0, lowYAxis );
         
@@ -172,9 +169,6 @@
         layer.fillColor = fillColor.CGColor;
         layer.strokeColor = fillColor.CGColor;
         [self.layer addSublayer:layer];
-        
-        [path removeAllPoints];
-        path = nil;
         
         xAxis += _kCandleWidth + _kCandleFixedSpacing;
     }
@@ -210,8 +204,8 @@
             continue;
         }
         
-        float scale = ([ma floatValue] - self.minValue)/(self.maxValue - self.minValue);
-        if (scale > 1) {
+        float scale = ([ma floatValue] - self.minmumPrice)/(self.maxmumPrice - self.minmumPrice);
+        if (scale > 1 || scale <= 0) {
             xAxis += self.kCandleWidth + self.kCandleFixedSpacing;
             continue;
         }
@@ -235,7 +229,6 @@
 }
 
 - (void)clean {
-    self.chartDataSources = nil;
     [self.layer.sublayers makeObjectsPerformSelector:@selector(removeFromSuperlayer)];
 }
 

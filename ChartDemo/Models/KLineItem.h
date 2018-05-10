@@ -28,4 +28,10 @@
 // 成交量 
 @property (nonatomic, copy) NSNumber *vol;
 
+// 成交比例
+@property (nonatomic, copy) NSString *rise_and_fall_rate;
+
+//成交差
+@property (nonatomic, copy) NSString *rise_and_fall_value;
+
 @end

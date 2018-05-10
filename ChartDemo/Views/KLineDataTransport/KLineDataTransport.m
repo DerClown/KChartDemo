@@ -11,15 +11,30 @@
 
 @implementation KLineDataTransport
 
-- (float)maxValue {
-    return [self getExtremeValue:YES];
+- (id)init {
+    if (self = [super init]) {
+        _maxnumIntegerDigits = 2;
+    }
+    return self;
 }
 
-- (float)minValue {
-    return [self getExtremeValue:NO];
+- (float)maxmumPrice {
+    return [self getExtremeValue:YES isVol:NO];
 }
 
-- (float)getExtremeValue:(BOOL)isMax {
+- (float)minmumPrice {
+    return [self getExtremeValue:NO isVol:NO];
+}
+
+- (float)maxmumVol {
+    return [self getExtremeValue:YES isVol:YES];
+}
+
+- (float)minmumVol {
+    return [self getExtremeValue:NO isVol:YES];
+}
+
+- (float)getExtremeValue:(BOOL)isMax isVol:(BOOL)vol {
     NSArray *data = self.delegate.kLineDataSources;
     
     if (!data) return 0.0;
@@ -30,9 +45,16 @@
         data = [data subarrayWithRange:range];
     }
     
-    for (int i = 0; i < data.count; i ++) {
-        KLineItem *obj = data[i];
-        extremeValue = isMax ? MAX(obj.high.floatValue, extremeValue) : MIN(extremeValue, obj.low.floatValue);
+    if (vol) {
+        for (int i = 0; i < data.count; i ++) {
+            KLineItem *obj = data[i];
+            extremeValue = isMax ? MAX(fabs(obj.rise_and_fall_value.floatValue), extremeValue) : MIN(extremeValue, fabs(obj.rise_and_fall_value.floatValue));
+        }
+    } else {
+        for (int i = 0; i < data.count; i ++) {
+            KLineItem *obj = data[i];
+            extremeValue = isMax ? MAX(obj.high.floatValue, extremeValue) : MIN(extremeValue, obj.low.floatValue);
+        }
     }
     
     return extremeValue;
@@ -97,6 +119,42 @@
     }
     
     return MAContainerLists;
+}
+
+- (NSString *)getPriceString:(NSNumber *)price {
+    if (!price) {
+        return nil;
+    }else if (_maxnumIntegerDigits == 0) {
+        return @(price.floatValue/1).stringValue;
+    }
+    
+    NSString *positiveString = @"###0.";
+    NSUInteger count = _maxnumIntegerDigits;
+    while (count) {
+        positiveString = [positiveString stringByAppendingString:@"#"];
+        count --;
+    }
+    
+    NSNumberFormatter *numberFormatter = [NSNumberFormatter new];
+    [numberFormatter setPositiveFormat:positiveString];
+    
+    NSString *resultString = [numberFormatter stringFromNumber:price];
+    if (![resultString containsString:@"."]) {
+        resultString = [resultString stringByAppendingString:@"."];
+    }
+    
+    NSArray *nums = [resultString componentsSeparatedByString:@"."];
+    if (nums.count == 2) {
+        count = _maxnumIntegerDigits - [nums.lastObject length];
+    } else {
+        count = _maxnumIntegerDigits;
+    }
+    while (count) {
+        resultString = [resultString stringByAppendingString:@"0"];
+        count --;
+    }
+    
+    return resultString;
 }
 
 @end

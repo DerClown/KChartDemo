@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		1E2AB5681DDC6596002E96B8 /* Global+Helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E2AB5671DDC6596002E96B8 /* Global+Helper.m */; };
-		1E2AB56F1DDD9089002E96B8 /* VolumnView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E2AB56E1DDD9089002E96B8 /* VolumnView.m */; };
-		1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TLineChartView.m */; };
+		1E2AB56F1DDD9089002E96B8 /* VOLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E2AB56E1DDD9089002E96B8 /* VOLView.m */; };
+		1E7B58C71D621010005BF850 /* TimeShareChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7B58C61D621010005BF850 /* TimeShareChartView.m */; };
 		1E7F343A1DF11C5D0058317B /* KLineItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7F34391DF11C5D0058317B /* KLineItem.m */; };
 		1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC1A4B1D5DC4600063A205 /* UIBezierPath+curved.m */; };
 		1EECF1B21D6E9AD300E52D10 /* StatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EECF1B11D6E9AD300E52D10 /* StatusView.m */; };
@@ -32,9 +32,9 @@
 		1EF4CF251D5D63B400221294 /* GApiResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF1B1D5D63B400221294 /* GApiResponse.m */; };
 		1EF4CF2E1D5D650400221294 /* KLineListManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF2D1D5D650400221294 /* KLineListManager.m */; };
 		1EF4CF321D5D659500221294 /* KLineListTransformer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF311D5D659500221294 /* KLineListTransformer.m */; };
-		1EF4CF391D5D67C200221294 /* KLineChartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF351D5D67C200221294 /* KLineChartView.m */; };
+		1EF4CF391D5D67C200221294 /* CandlestickChartsView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EF4CF351D5D67C200221294 /* CandlestickChartsView.m */; };
 		330576591CA2D489547641F4 /* libPods-ChartDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D535C7F057AFD1EF9EB36 /* libPods-ChartDemo.a */; };
-		BE37AF84209FFC4E003D1938 /* KCandleView.m in Sources */ = {isa = PBXBuildFile; fileRef = BE37AF83209FFC4E003D1938 /* KCandleView.m */; };
+		BE37AF84209FFC4E003D1938 /* CandlestickView.m in Sources */ = {isa = PBXBuildFile; fileRef = BE37AF83209FFC4E003D1938 /* CandlestickView.m */; };
 		BEFAF73A20A096EF003FD028 /* KLineDataTransport.m in Sources */ = {isa = PBXBuildFile; fileRef = BEFAF73920A096EF003FD028 /* KLineDataTransport.m */; };
 		F5A0C66B1EF7AC10009DC837 /* data.plist in Resources */ = {isa = PBXBuildFile; fileRef = F5A0C66A1EF7AC10009DC837 /* data.plist */; };
 /* End PBXBuildFile section */
@@ -61,10 +61,10 @@
 		1E2AB5661DDC6596002E96B8 /* Global+Helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Global+Helper.h"; sourceTree = "<group>"; };
 		1E2AB5671DDC6596002E96B8 /* Global+Helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Global+Helper.m"; sourceTree = "<group>"; };
 		1E2AB56A1DDC665B002E96B8 /* ACMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ACMacros.h; sourceTree = "<group>"; };
-		1E2AB56D1DDD9089002E96B8 /* VolumnView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VolumnView.h; sourceTree = "<group>"; };
-		1E2AB56E1DDD9089002E96B8 /* VolumnView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VolumnView.m; sourceTree = "<group>"; };
-		1E7B58C51D621010005BF850 /* TLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TLineChartView.h; sourceTree = "<group>"; };
-		1E7B58C61D621010005BF850 /* TLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TLineChartView.m; sourceTree = "<group>"; };
+		1E2AB56D1DDD9089002E96B8 /* VOLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VOLView.h; sourceTree = "<group>"; };
+		1E2AB56E1DDD9089002E96B8 /* VOLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VOLView.m; sourceTree = "<group>"; };
+		1E7B58C51D621010005BF850 /* TimeShareChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeShareChartView.h; sourceTree = "<group>"; };
+		1E7B58C61D621010005BF850 /* TimeShareChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TimeShareChartView.m; sourceTree = "<group>"; };
 		1E7F34381DF11C5D0058317B /* KLineItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineItem.h; sourceTree = "<group>"; };
 		1E7F34391DF11C5D0058317B /* KLineItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineItem.m; sourceTree = "<group>"; };
 		1EEC1A4A1D5DC4600063A205 /* UIBezierPath+curved.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIBezierPath+curved.h"; sourceTree = "<group>"; };
@@ -110,10 +110,10 @@
 		1EF4CF2D1D5D650400221294 /* KLineListManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineListManager.m; sourceTree = "<group>"; };
 		1EF4CF301D5D659500221294 /* KLineListTransformer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineListTransformer.h; sourceTree = "<group>"; };
 		1EF4CF311D5D659500221294 /* KLineListTransformer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineListTransformer.m; sourceTree = "<group>"; };
-		1EF4CF341D5D67C200221294 /* KLineChartView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineChartView.h; sourceTree = "<group>"; };
-		1EF4CF351D5D67C200221294 /* KLineChartView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineChartView.m; sourceTree = "<group>"; };
-		BE37AF82209FFC4E003D1938 /* KCandleView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KCandleView.h; sourceTree = "<group>"; };
-		BE37AF83209FFC4E003D1938 /* KCandleView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KCandleView.m; sourceTree = "<group>"; };
+		1EF4CF341D5D67C200221294 /* CandlestickChartsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CandlestickChartsView.h; sourceTree = "<group>"; };
+		1EF4CF351D5D67C200221294 /* CandlestickChartsView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CandlestickChartsView.m; sourceTree = "<group>"; };
+		BE37AF82209FFC4E003D1938 /* CandlestickView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CandlestickView.h; sourceTree = "<group>"; };
+		BE37AF83209FFC4E003D1938 /* CandlestickView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CandlestickView.m; sourceTree = "<group>"; };
 		BEFAF73820A096EF003FD028 /* KLineDataTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineDataTransport.h; sourceTree = "<group>"; };
 		BEFAF73920A096EF003FD028 /* KLineDataTransport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineDataTransport.m; sourceTree = "<group>"; };
 		E55D535C7F057AFD1EF9EB36 /* libPods-ChartDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ChartDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -159,8 +159,8 @@
 		1E2AB56C1DDD8FF4002E96B8 /* VolumnView */ = {
 			isa = PBXGroup;
 			children = (
-				1E2AB56D1DDD9089002E96B8 /* VolumnView.h */,
-				1E2AB56E1DDD9089002E96B8 /* VolumnView.m */,
+				1E2AB56D1DDD9089002E96B8 /* VOLView.h */,
+				1E2AB56E1DDD9089002E96B8 /* VOLView.m */,
 			);
 			path = VolumnView;
 			sourceTree = "<group>";
@@ -168,8 +168,8 @@
 		1E7B58C41D621010005BF850 /* TLine */ = {
 			isa = PBXGroup;
 			children = (
-				1E7B58C51D621010005BF850 /* TLineChartView.h */,
-				1E7B58C61D621010005BF850 /* TLineChartView.m */,
+				1E7B58C51D621010005BF850 /* TimeShareChartView.h */,
+				1E7B58C61D621010005BF850 /* TimeShareChartView.m */,
 			);
 			path = TLine;
 			sourceTree = "<group>";
@@ -381,10 +381,10 @@
 		1EF4CF331D5D67C200221294 /* KLine */ = {
 			isa = PBXGroup;
 			children = (
-				1EF4CF341D5D67C200221294 /* KLineChartView.h */,
-				1EF4CF351D5D67C200221294 /* KLineChartView.m */,
-				BE37AF82209FFC4E003D1938 /* KCandleView.h */,
-				BE37AF83209FFC4E003D1938 /* KCandleView.m */,
+				1EF4CF341D5D67C200221294 /* CandlestickChartsView.h */,
+				1EF4CF351D5D67C200221294 /* CandlestickChartsView.m */,
+				BE37AF82209FFC4E003D1938 /* CandlestickView.h */,
+				BE37AF83209FFC4E003D1938 /* CandlestickView.m */,
 			);
 			path = KLine;
 			sourceTree = "<group>";
@@ -596,13 +596,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BE37AF84209FFC4E003D1938 /* KCandleView.m in Sources */,
+				BE37AF84209FFC4E003D1938 /* CandlestickView.m in Sources */,
 				1EF4CEAB1D5D5FA600221294 /* KLineViewController.m in Sources */,
 				1EEC1A4C1D5DC4600063A205 /* UIBezierPath+curved.m in Sources */,
-				1E7B58C71D621010005BF850 /* TLineChartView.m in Sources */,
+				1E7B58C71D621010005BF850 /* TimeShareChartView.m in Sources */,
 				1EF4CF201D5D63B400221294 /* GApiBaseManager.m in Sources */,
 				1EF4CF1F1D5D63B400221294 /* GApiAgent.m in Sources */,
-				1E2AB56F1DDD9089002E96B8 /* VolumnView.m in Sources */,
+				1E2AB56F1DDD9089002E96B8 /* VOLView.m in Sources */,
 				1EF4CF2E1D5D650400221294 /* KLineListManager.m in Sources */,
 				BEFAF73A20A096EF003FD028 /* KLineDataTransport.m in Sources */,
 				1EF4CF211D5D63B400221294 /* GApiCache.m in Sources */,
@@ -613,7 +613,7 @@
 				1E2AB5681DDC6596002E96B8 /* Global+Helper.m in Sources */,
 				1EF4CF1E1D5D63B400221294 /* NSString+md5.m in Sources */,
 				1EF4CF1D1D5D63B400221294 /* NSDictionary+NetWorkingMehods.m in Sources */,
-				1EF4CF391D5D67C200221294 /* KLineChartView.m in Sources */,
+				1EF4CF391D5D67C200221294 /* CandlestickChartsView.m in Sources */,
 				1EF4CF251D5D63B400221294 /* GApiResponse.m in Sources */,
 				1EF4CEA81D5D5FA600221294 /* AppDelegate.m in Sources */,
 				1EF4CF241D5D63B400221294 /* GApiLogger.m in Sources */,

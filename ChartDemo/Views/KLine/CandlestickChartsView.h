@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface KLineChartView : UIView
+@interface CandlestickChartsView : UIView
 
 /************************************************************************************/
 /*                                          |                                       */
@@ -158,7 +158,7 @@
 /**
  *  保留小数点位数，默认保留两位(最多两位)
  */
-@property (nonatomic, assign) NSInteger  saveDecimalPlaces;
+@property (nonatomic, assign) NSUInteger  maxnumIntegerDigits;
 
 /**
  *  k线最大宽度

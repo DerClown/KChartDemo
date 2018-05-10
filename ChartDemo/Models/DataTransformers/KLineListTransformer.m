@@ -38,7 +38,7 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
     }
     
     NSMutableArray *items = [NSMutableArray new];
-    for (int i = (int)([data count] - 1); i > 0; i --) {
+    for (int i = 0; i < [data count]; i ++) {
         NSDictionary *dic = data[i];
         
         KLineItem *item = [KLineItem new];
@@ -48,6 +48,8 @@ NSString *const kCandlerstickChartsBIAS = @"kCandlerstickChartsBIAS";
         item.low = @([dic[@"low_px"] doubleValue]);
         item.close = @([dic[@"close_px"] doubleValue]);
         item.vol = @([dic[@"total_volume_trade"] doubleValue]/10000.00);
+        item.rise_and_fall_rate = dic[@"rise_and_fall_rate"];
+        item.rise_and_fall_value = [NSString stringWithFormat:@"%@", dic[@"rise_and_fall_value"]];
         
         [items addObject:item];
     }

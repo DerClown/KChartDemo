@@ -8,7 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TLineChartView : UIView
+typedef NS_ENUM(NSInteger, TimeShareChartViewStyle) {
+    TimeShareChartViewStyleOption = 0,
+    TimeShareChartViewStyleStock,
+};
+
+@interface TimeShareChartView : UIView
 
 /**
  *  顶部距离

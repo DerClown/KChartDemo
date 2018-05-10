@@ -7,8 +7,8 @@
 //
 
 #import "KLineViewController.h"
-#import "KLineChartView.h"
-#import "TLineChartView.h"
+#import "CandlestickChartsView.h"
+#import "TimeShareChartView.h"
 #import "KLineListManager.h"
 #import "KLineListTransformer.h"
 #import "StatusView.h"
@@ -17,8 +17,8 @@
 
 @property (nonatomic, strong) KLineListManager *chartApi;
 @property (nonatomic, strong) KLineListTransformer *lineListTransformer;
-@property (nonatomic, strong) KLineChartView *kLineChartView;
-@property (nonatomic, strong) TLineChartView *tLineChartView;
+@property (nonatomic, strong) CandlestickChartsView *kLineChartView;
+@property (nonatomic, strong) TimeShareChartView *tLineChartView;
 
 @property (nonatomic, strong) StatusView *kStatusView;
 
@@ -110,9 +110,9 @@
 
 #pragma mark - getters
 
-- (KLineChartView *)kLineChartView {
+- (CandlestickChartsView *)kLineChartView {
     if (!_kLineChartView) {
-        _kLineChartView = [[KLineChartView alloc] initWithFrame:CGRectMake(20, 50, self.view.frame.size.width - 40.0f, 300.0f)];
+        _kLineChartView = [[CandlestickChartsView alloc] initWithFrame:CGRectMake(20, 50, self.view.frame.size.width - 40.0f, 300.0f)];
         _kLineChartView.backgroundColor = [UIColor whiteColor];
         _kLineChartView.topMargin = 20.0f;
         _kLineChartView.rightMargin = 1.0;
@@ -131,7 +131,7 @@
     return _kLineChartView;
 }
 
-- (TLineChartView *)tLineChartView {
+- (TimeShareChartView *)tLineChartView {
     if (!_tLineChartView) {
 //        _tLineChartView = [[TLineChartView alloc] initWithFrame:CGRectMake(20, 380.0f, self.view.frame.size.width - 40.0f, 180.0f)];
 //        _tLineChartView.backgroundColor = [UIColor whiteColor];
