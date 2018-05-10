@@ -36,11 +36,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ChartDemo/Views/KLineDataTransport/KLineDataTransport.m"
-            timestampString = "547620864.719458"
+            timestampString = "547665294.638129"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "138"
-            endingLineNumber = "138"
+            startingLineNumber = "163"
+            endingLineNumber = "163"
             landmarkName = "-getPriceString:"
             landmarkType = "7">
          </BreakpointContent>
@@ -51,13 +51,61 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "ChartDemo/Views/VolumnView/VOLView.m"
-            timestampString = "547620864.7195489"
+            filePath = "ChartDemo/Views/TLine/TimeShareChartView.m"
+            timestampString = "547665294.6385"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "39"
-            endingLineNumber = "39"
-            landmarkName = "-drawVolWithData:"
+            startingLineNumber = "142"
+            endingLineNumber = "142"
+            landmarkName = "-tapTouchHandler:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "ChartDemo/Views/TLine/TimeShareChartView.m"
+            timestampString = "547665294.638584"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "126"
+            endingLineNumber = "126"
+            landmarkName = "-updateYAxisTitles"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "ChartDemo/Views/TLine/TimeSharingChartContentView.m"
+            timestampString = "547665294.638649"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "92"
+            endingLineNumber = "92"
+            landmarkName = "-drawTSChartForData:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "ChartDemo/Views/TLine/TimeShareChartView.m"
+            timestampString = "547665294.638702"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "186"
+            endingLineNumber = "186"
+            landmarkName = "-showTipsWithTouchPoint:"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

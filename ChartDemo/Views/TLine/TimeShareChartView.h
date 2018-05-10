@@ -8,37 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
-typedef NS_ENUM(NSInteger, TimeShareChartViewStyle) {
-    TimeShareChartViewStyleOption = 0,
-    TimeShareChartViewStyleStock,
-};
-
 @interface TimeShareChartView : UIView
 
 /**
- *  顶部距离
+ *  绘制点的个数
  */
-@property (nonatomic, assign) CGFloat topMargin;
-
-/**
- *  左边距离
- */
-@property (nonatomic, assign) CGFloat leftMargin;
-
-/**
- *  右边距离
- */
-@property (nonatomic, assign) CGFloat rightMargin;
-
-/**
- *  底部距离
- */
-@property (nonatomic, assign) CGFloat bottomMargin;
-
-/**
- *  线宽度
- */
-@property (nonatomic, assign) CGFloat lineWidth;
+@property (nonatomic, assign) NSUInteger needDrawingPointNumber;
 
 /**
  *  线颜色
@@ -49,16 +24,6 @@ typedef NS_ENUM(NSInteger, TimeShareChartViewStyle) {
  *  阴影颜色
  */
 @property (nonatomic, strong) UIColor *gradientFillColor;
-
-/**
- *  坐标轴边框颜色
- */
-@property (nonatomic, strong) UIColor *AxisColor;
-
-/**
- *  坐标轴边框宽度
- */
-@property (nonatomic, assign) CGFloat AxisWidth;
 
 /**
  *  y坐标轴字体
@@ -81,16 +46,6 @@ typedef NS_ENUM(NSInteger, TimeShareChartViewStyle) {
 @property (nonatomic, strong) UIColor *xAxisTitleColor;
 
 /**
- *  分割线条数, 默认4条
- */
-@property (nonatomic, assign) NSInteger separatorNumber;
-
-/**
- *  分割线颜色
- */
-@property (nonatomic, strong) UIColor *separatorColor;
-
-/**
  *  十字线颜色
  */
 @property (nonatomic, strong) UIColor *crossLineColor;
@@ -99,11 +54,6 @@ typedef NS_ENUM(NSInteger, TimeShareChartViewStyle) {
  *  圆滑曲线，默认YES
  */
 @property (nonatomic, assign) BOOL smoothPath;
-
-/**
- *  YES表示：Y坐标的值根据视图中呈现的k线图的最大值最小值变化而变化；NO表示：Y坐标的最大和最小值初始设定多少就多少，不管k线图呈现如何都不会变化。默认YES
- */
-@property (nonatomic, assign) BOOL isVisiableViewerExtremeValue;
 
 /**
  *  时间和价格提示的字体颜色
@@ -116,9 +66,14 @@ typedef NS_ENUM(NSInteger, TimeShareChartViewStyle) {
 @property (nonatomic, strong) UIColor *dateTipAndPriceTipBackgroundColor;
 
 /*
- *  保留小数点位数，默认保留两位(最多两位)
+ *  保留小数点位数，默认保留两位
  */
-@property (nonatomic, assign) NSInteger  saveDecimalPlaces;
+@property (nonatomic, assign) NSUInteger  maxnumIntegerDigits;
+
+/**
+ *  显示成交量柱形图，默认显示
+ */
+@property (nonatomic, assign) BOOL showVolChart;
 
 /*
  * self.data 的格式为 @[@KLineItem, @KLineItem, ...]

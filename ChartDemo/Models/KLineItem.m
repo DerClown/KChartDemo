@@ -17,6 +17,8 @@
     copyItem.high = self.high;
     copyItem.low = self.low;
     copyItem.date = self.date;
+    copyItem.rise_and_fall_rate = self.rise_and_fall_rate;
+    copyItem.rise_and_fall_value = self.rise_and_fall_value;
     
     return copyItem;
 }

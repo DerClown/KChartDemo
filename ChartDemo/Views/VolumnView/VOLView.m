@@ -50,8 +50,8 @@
         UIColor *fillColor = rise_and_fall_value > 0 ? self.positiveVOLColor : self.negativeVOLColor;
         
         
-        float height = MAX(MIN(fabs(rise_and_fall_value)/scale, self.frame.size.height - 0.5), 0.5);
-        float yAxis = self.frame.size.height - height - 0.5;
+        float height = MAX(MIN(fabs(rise_and_fall_value)/scale, self.frame.size.height - 1.0), 0.5);
+        float yAxis = MAX(self.frame.size.height - height - 0.5, 0.5);
         
         CGRect rect = CGRectMake(xAxis, yAxis, _barWidth, height);
         UIBezierPath *path = [UIBezierPath bezierPathWithRect:rect];

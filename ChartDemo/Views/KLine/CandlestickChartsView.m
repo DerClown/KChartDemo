@@ -30,7 +30,7 @@
 
 @property (nonatomic, assign) NSInteger startDrawIndex;
 
-@property (nonatomic, assign) NSInteger needDrawCandleNumber;
+@property (nonatomic, assign) NSInteger needDrawingCandlestickNumber;
 
 //手势
 @property (nonatomic, strong) UITapGestureRecognizer *tapGestureRecognizer;
@@ -60,11 +60,24 @@
 //价格
 @property (nonatomic, strong) UILabel *priceLabel;
 
+// 临时数组用于存放需要更新的数据，合适的时机完成同步。
+@property (nonatomic, strong) NSMutableArray *tempDataSourcesContainer;
+
 @end
 
 @implementation CandlestickChartsView
 
+- (void)clean {
+    _lock = NO;
+    self.chartDataSources = nil;
+    [_candleView clean];
+}
+
 #pragma mark - life cycle
+
+- (void)dealloc {
+    [self clean];
+}
 
 - (id)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
@@ -78,8 +91,6 @@
     
     self.positiveLineColor = [UIColor colorWithRed:(31/255.0f) green:(185/255.0f) blue:(63.0f/255.0f) alpha:1.0];
     self.negativeLineColor = [UIColor colorWithRed:(232/255.0f) green:(50.0f/255.0f) blue:(52.0f/255.0f) alpha:1.0];
-    
-    self.movingAvgLineWidth = 0.8;
     
     self.MAColors = @[HexRGB(0x019FFD), HexRGB(0xFF9900), HexRGB(0xFF00FF)];
     
@@ -112,8 +123,8 @@
     self.maxCandleWidth = 24;
     self.minCandleWidth = 1.5;
     
-    self.kCandleWidth = 8.0;
-    self.kCandleFixedSpacing = 2.0;
+    self.kCandleWidth = 5.0;
+    self.kCandleFixedSpacing = 1.8;
     
     self.lastPinchScale = 1.0;
     self.lastTouchIndex = -1;
@@ -226,10 +237,10 @@
     _volView.frame = CGRectMake(self.frame.size.width - self.xAxisWidth, volYOrigin, self.xAxisWidth, self.frame.size.height - volYOrigin);
     
     //更具宽度和间距确定要画多少个k线柱形图
-    self.needDrawCandleNumber = floor(((self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kCandleFixedSpacing) / (self.kCandleWidth + self.kCandleFixedSpacing)));
+    self.needDrawingCandlestickNumber = floor(((self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kCandleFixedSpacing) / (self.kCandleWidth + self.kCandleFixedSpacing)));
     
     //确定从第几个开始画
-    self.startDrawIndex = self.chartDataSources.count > 0 ? self.chartDataSources.count - self.needDrawCandleNumber : 0;
+    self.startDrawIndex = self.chartDataSources.count > 0 ? self.chartDataSources.count - self.needDrawingCandlestickNumber : 0;
     
     float avgHeight = _candleView.frame.size.height/5.0, fontHeight = self.yAxisTitleFont.lineHeight;
     for (int i = 0; i < self.yAsixLableContainers.count; i ++) {
@@ -273,15 +284,36 @@
     }
 }
 
+- (void)updateChartWithKLineItem:(KLineItem *)item {
+    // 等待解锁
+    while ([self askLock:&_lock]);
+    
+    BOOL isNew = (self.chartDataSources.count == 0 || ![self.chartDataSources.lastObject.date isEqualToString:item.date]);
+    if (isNew) {
+        self.chartDataSources = [self.chartDataSources arrayByAddingObject:item];
+    } else {
+        float high = MAX(item.high.floatValue, self.chartDataSources.lastObject.high.floatValue);
+        float low = MIN(item.low.floatValue, self.chartDataSources.lastObject.low.floatValue);
+        
+        self.chartDataSources.lastObject.high = @(high);
+        self.chartDataSources.lastObject.low = @(low);
+        self.chartDataSources.lastObject.close = item.close;
+    }
+    
+    [self randerUI];
+}
+
 #pragma mark - gesture events
 
-- (void)tapTouchHandler:(UITapGestureRecognizer *)tapGesture {
-    if (self.chartDataSources.count == 0 || !self.chartDataSources) {
+- (void)tapTouchHandler:(UIGestureRecognizer *)gestureRecognizer {
+    if (self.chartDataSources.count == 0) {
         return;
     }
     
-    CGPoint touchPoint = [tapGesture locationInView:_candleView];
+    [self cancelAllActions];
+    CGPoint touchPoint = [gestureRecognizer locationInView:self];
     [self showTipWithTouchPoint:touchPoint];
+    [self performSelector:@selector(hideTips) withObject:nil afterDelay:2.5];
 }
 
 - (void)panTouchHandler:(UIPanGestureRecognizer *)panGesture {
@@ -302,11 +334,11 @@
         }
         self.startDrawIndex = self.startDrawIndex - offsetIndex < 0 ? 0 : self.startDrawIndex - offsetIndex;
     } else {
-        if (self.startDrawIndex == self.chartDataSources.count - self.needDrawCandleNumber) {
+        if (self.startDrawIndex == self.chartDataSources.count - self.needDrawingCandlestickNumber) {
             return;
         }
         
-        self.startDrawIndex = self.startDrawIndex + offsetIndex + self.needDrawCandleNumber > self.chartDataSources.count ? self.chartDataSources.count - self.needDrawCandleNumber : self.startDrawIndex + offsetIndex;
+        self.startDrawIndex = self.startDrawIndex + offsetIndex + self.needDrawingCandlestickNumber > self.chartDataSources.count ? self.chartDataSources.count - self.needDrawingCandlestickNumber : self.startDrawIndex + offsetIndex;
     }
     
     [self randerUI];
@@ -328,22 +360,22 @@
     
     self.kCandleWidth = _kCandleWidth*scale;
     
-    CGFloat forwardDrawCount = _needDrawCandleNumber;
+    CGFloat forwardDrawCount = _needDrawingCandlestickNumber;
     
-    self.needDrawCandleNumber = floor((self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin) / (self.kCandleWidth + self.kCandleFixedSpacing));
+    self.needDrawingCandlestickNumber = floor((self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin) / (self.kCandleWidth + self.kCandleFixedSpacing));
     
     //容差处理
-    CGFloat diffWidth = (self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin) - (self.kCandleWidth + self.kCandleFixedSpacing)*_needDrawCandleNumber;
+    CGFloat diffWidth = (self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin) - (self.kCandleWidth + self.kCandleFixedSpacing)*_needDrawingCandlestickNumber;
     if (diffWidth > 4*(self.kCandleWidth + self.kCandleFixedSpacing)/5.0) {
-        self.needDrawCandleNumber = _needDrawCandleNumber + 1;
+        self.needDrawingCandlestickNumber = _needDrawingCandlestickNumber + 1;
     }
     
-    self.needDrawCandleNumber = self.chartDataSources.count > 0 && _needDrawCandleNumber < self.chartDataSources.count ? _needDrawCandleNumber : self.chartDataSources.count;
-    if (forwardDrawCount == self.needDrawCandleNumber && self.maxCandleWidth != self.kCandleWidth) {
+    self.needDrawingCandlestickNumber = self.chartDataSources.count > 0 && _needDrawingCandlestickNumber < self.chartDataSources.count ? _needDrawingCandlestickNumber : self.chartDataSources.count;
+    if (forwardDrawCount == self.needDrawingCandlestickNumber && self.maxCandleWidth != self.kCandleWidth) {
         return;
     }
     
-    NSInteger diffCount = fabs(self.needDrawCandleNumber - forwardDrawCount);
+    NSInteger diffCount = fabs(self.needDrawingCandlestickNumber - forwardDrawCount);
     
     if (forwardDrawCount > self.startDrawIndex) {
         // 放大
@@ -354,7 +386,7 @@
         self.startDrawIndex = self.startDrawIndex < 0 ? 0 : self.startDrawIndex;
     }
     
-    self.startDrawIndex = self.startDrawIndex + self.needDrawCandleNumber > self.chartDataSources.count ? self.chartDataSources.count - self.needDrawCandleNumber : self.startDrawIndex;
+    self.startDrawIndex = self.startDrawIndex + self.needDrawingCandlestickNumber > self.chartDataSources.count ? self.chartDataSources.count - self.needDrawingCandlestickNumber : self.startDrawIndex;
     
     [self randerUI];
     
@@ -363,13 +395,15 @@
 }
 
 - (void)longTouchHander:(UILongPressGestureRecognizer *)longGesture {
-    if (self.chartDataSources.count == 0 || !self.chartDataSources) {
+    if (self.chartDataSources.count == 0) {
         return;
     }
     
     if (longGesture.state == UIGestureRecognizerStateEnded) {
-        [self hideTips];
+        [self performSelector:@selector(hideTips) withObject:nil afterDelay:2.5];
     } else {
+        [self cancelAllActions];
+        
         CGPoint touchPoint = [longGesture locationInView:self];
         [self showTipWithTouchPoint:touchPoint];
     }
@@ -391,9 +425,8 @@
     
     self.verticalCrossLine.hidden = NO;
     self.horizontalCrossLine.hidden = NO;
-    self.verticalCrossLine.frame = CGRectMake(verticalXOrigin, self.topMargin + 0.5, 0.5, self.yAxisHeight);
     self.horizontalCrossLine.frame = CGRectMake((self.fullScreen ? 0 : self.leftMargin) + 1.0, horizontalYOrigin, self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin), 0.5);
-    
+    self.verticalCrossLine.frame = CGRectMake(verticalXOrigin, self.topMargin + 0.5, 0.5, self.yAxisHeight);
     
     self.priceLabel.hidden = NO;
     self.dateLabel.hidden = NO;
@@ -413,12 +446,8 @@
     self.dateLabel.hidden = YES;
 }
 
-#pragma mark -  public methods
-
-- (void)clear {
-    _lock = NO;
-    self.chartDataSources = nil;
-    [_candleView clean];
+- (void)cancelAllActions {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(hideTips) object:nil];
 }
 
 #pragma mark - KCandleViewDelegate
@@ -521,20 +550,27 @@
     return _dataTransport;
 }
 
+- (NSArray<KLineItem *> *)chartDataSources {
+    if (!_chartDataSources) {
+        _chartDataSources = @[];
+    }
+    return _chartDataSources;
+}
+
 #pragma mark - setters
 
 - (void)setSeparatorNumber:(NSInteger)separatorNumber {
     _candleView.separatorNumber = separatorNumber;
 }
 
-- (void)setNeedDrawCandleNumber:(NSInteger)kLineDrawNum {
-    _needDrawCandleNumber = MAX(MIN(self.chartDataSources.count, kLineDrawNum), 0);
+- (void)setNeedDrawingCandlestickNumber:(NSInteger)kLineDrawNum {
+    _needDrawingCandlestickNumber = MAX(MIN(self.chartDataSources.count, kLineDrawNum), 0);
     
-    if (_needDrawCandleNumber != 0) {
-        self.kCandleWidth = (self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kCandleFixedSpacing)/_needDrawCandleNumber - _kCandleFixedSpacing;
+    if (_needDrawingCandlestickNumber != 0) {
+        self.kCandleWidth = (self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin) - self.rightMargin - _kCandleFixedSpacing)/_needDrawingCandlestickNumber - _kCandleFixedSpacing;
     }
     
-    self.dataTransport.needDrawingCandleNumber = _needDrawCandleNumber;
+    self.dataTransport.needDrawingCandleNumber = _needDrawingCandlestickNumber;
 }
 
 - (void)setStartDrawIndex:(NSInteger)startDrawIndex {
@@ -586,7 +622,7 @@
 }
 
 - (void)setMaxnumIntegerDigits:(NSUInteger)maxnumIntegerDigits {
-    self.dataTransport.maxnumIntegerDigits = maxnumIntegerDigits;
+    self.dataTransport.maxnumIntegerDigits = MAX(0, MIN(maxnumIntegerDigits, 3));
 }
 
 @end

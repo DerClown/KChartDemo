@@ -36,6 +36,7 @@
 		330576591CA2D489547641F4 /* libPods-ChartDemo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E55D535C7F057AFD1EF9EB36 /* libPods-ChartDemo.a */; };
 		BE37AF84209FFC4E003D1938 /* CandlestickView.m in Sources */ = {isa = PBXBuildFile; fileRef = BE37AF83209FFC4E003D1938 /* CandlestickView.m */; };
 		BEFAF73A20A096EF003FD028 /* KLineDataTransport.m in Sources */ = {isa = PBXBuildFile; fileRef = BEFAF73920A096EF003FD028 /* KLineDataTransport.m */; };
+		BEFAF73D20A42618003FD028 /* TimeSharingChartContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = BEFAF73C20A42618003FD028 /* TimeSharingChartContentView.m */; };
 		F5A0C66B1EF7AC10009DC837 /* data.plist in Resources */ = {isa = PBXBuildFile; fileRef = F5A0C66A1EF7AC10009DC837 /* data.plist */; };
 /* End PBXBuildFile section */
 
@@ -116,6 +117,8 @@
 		BE37AF83209FFC4E003D1938 /* CandlestickView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CandlestickView.m; sourceTree = "<group>"; };
 		BEFAF73820A096EF003FD028 /* KLineDataTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KLineDataTransport.h; sourceTree = "<group>"; };
 		BEFAF73920A096EF003FD028 /* KLineDataTransport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KLineDataTransport.m; sourceTree = "<group>"; };
+		BEFAF73B20A42618003FD028 /* TimeSharingChartContentView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeSharingChartContentView.h; sourceTree = "<group>"; };
+		BEFAF73C20A42618003FD028 /* TimeSharingChartContentView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TimeSharingChartContentView.m; sourceTree = "<group>"; };
 		E55D535C7F057AFD1EF9EB36 /* libPods-ChartDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ChartDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5A0C66A1EF7AC10009DC837 /* data.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = data.plist; sourceTree = "<group>"; };
 		FC75484B824CADDEA0656875 /* Pods-ChartDemo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChartDemo.release.xcconfig"; path = "Pods/Target Support Files/Pods-ChartDemo/Pods-ChartDemo.release.xcconfig"; sourceTree = "<group>"; };
@@ -170,6 +173,8 @@
 			children = (
 				1E7B58C51D621010005BF850 /* TimeShareChartView.h */,
 				1E7B58C61D621010005BF850 /* TimeShareChartView.m */,
+				BEFAF73B20A42618003FD028 /* TimeSharingChartContentView.h */,
+				BEFAF73C20A42618003FD028 /* TimeSharingChartContentView.m */,
 			);
 			path = TLine;
 			sourceTree = "<group>";
@@ -603,6 +608,7 @@
 				1EF4CF201D5D63B400221294 /* GApiBaseManager.m in Sources */,
 				1EF4CF1F1D5D63B400221294 /* GApiAgent.m in Sources */,
 				1E2AB56F1DDD9089002E96B8 /* VOLView.m in Sources */,
+				BEFAF73D20A42618003FD028 /* TimeSharingChartContentView.m in Sources */,
 				1EF4CF2E1D5D650400221294 /* KLineListManager.m in Sources */,
 				BEFAF73A20A096EF003FD028 /* KLineDataTransport.m in Sources */,
 				1EF4CF211D5D63B400221294 /* GApiCache.m in Sources */,

@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+@class KLineItem;
+
 @interface CandlestickChartsView : UIView
 
 /************************************************************************************/
@@ -64,11 +66,6 @@
  *  k线图间距
  */
 @property (nonatomic, assign) CGFloat kCandleFixedSpacing;
-
-/**
- *  均线宽度
- */
-@property (nonatomic, assign) CGFloat movingAvgLineWidth;
 
 /**
  *  阳线颜色(negative line)
@@ -156,7 +153,7 @@
 @property (nonatomic, assign) BOOL isVisiableViewerExtremeValue;
 
 /**
- *  保留小数点位数，默认保留两位(最多两位)
+ *  保留小数点位数，默认保留两位
  */
 @property (nonatomic, assign) NSUInteger  maxnumIntegerDigits;
 
@@ -201,10 +198,17 @@
 @property (nonatomic, assign) BOOL fullScreen;
 
 /*
- * self.data 的格式为 @[@KLineItem, @KLineItem, ...]
+ *  绘制k线图
  */
-- (void)drawChartWithData:(NSArray *)data;
+- (void)drawChartWithData:(NSArray<KLineItem *> *)data;
 
-- (void)clear;
+/*
+ *  更新k线图
+ *  item: 需要更新的对象
+ */
+- (void)updateChartWithKLineItem:(KLineItem *)item;
+
+// 清除绘制
+- (void)clean;
 
 @end

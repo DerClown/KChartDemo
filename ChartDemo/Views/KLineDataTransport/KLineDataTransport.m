@@ -19,22 +19,30 @@
 }
 
 - (float)maxmumPrice {
-    return [self getExtremeValue:YES isVol:NO];
+    return [self getExtremeValue:YES isVol:NO isCandle:YES];
 }
 
 - (float)minmumPrice {
-    return [self getExtremeValue:NO isVol:NO];
+    return [self getExtremeValue:NO isVol:NO isCandle:YES];
+}
+
+- (float)timeSharingChartMaxPrice {
+    return [self getExtremeValue:NO isVol:NO isCandle:NO];
+}
+
+- (float)timeSharingChartMinPrice {
+    return [self getExtremeValue:NO isVol:NO isCandle:NO];
 }
 
 - (float)maxmumVol {
-    return [self getExtremeValue:YES isVol:YES];
+    return [self getExtremeValue:YES isVol:YES isCandle:NO];
 }
 
 - (float)minmumVol {
-    return [self getExtremeValue:NO isVol:YES];
+    return [self getExtremeValue:NO isVol:YES isCandle:NO];
 }
 
-- (float)getExtremeValue:(BOOL)isMax isVol:(BOOL)vol {
+- (float)getExtremeValue:(BOOL)isMax isVol:(BOOL)vol isCandle:(BOOL)isCandle {
     NSArray *data = self.delegate.kLineDataSources;
     
     if (!data) return 0.0;
@@ -50,10 +58,15 @@
             KLineItem *obj = data[i];
             extremeValue = isMax ? MAX(fabs(obj.rise_and_fall_value.floatValue), extremeValue) : MIN(extremeValue, fabs(obj.rise_and_fall_value.floatValue));
         }
-    } else {
+    } else if(isCandle) {
         for (int i = 0; i < data.count; i ++) {
             KLineItem *obj = data[i];
             extremeValue = isMax ? MAX(obj.high.floatValue, extremeValue) : MIN(extremeValue, obj.low.floatValue);
+        }
+    } else {
+        for (int i = 0; i < data.count; i ++) {
+            KLineItem *obj = data[i];
+            extremeValue = isMax ? MAX(obj.close.floatValue, extremeValue) : MIN(extremeValue, obj.close.floatValue);
         }
     }
     
@@ -119,6 +132,18 @@
     }
     
     return MAContainerLists;
+}
+
+- (NSArray *)getNeedDrawingTimeSharingChartData {
+    NSArray *data = self.delegate.kLineDataSources;
+    
+    if (!data) return nil;
+    
+    if (self.needDrawingCandleNumber > data.count) {
+        return data;
+    }
+    
+    return [data subarrayWithRange:NSMakeRange(data.count - self.needDrawingCandleNumber, self.needDrawingCandleNumber)];
 }
 
 - (NSString *)getPriceString:(NSNumber *)price {

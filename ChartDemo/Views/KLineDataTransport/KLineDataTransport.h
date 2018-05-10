@@ -10,6 +10,8 @@
 
 @protocol KLineDataTransportDelegate <NSObject>
 
+@optional
+
 - (NSArray *)MAs;
 
 - (NSArray *)kLineDataSources;
@@ -35,14 +37,24 @@
 @property (nonatomic, weak) id<KLineDataTransportDelegate>delegate;
 
 /*
- *  最大值价格
+ *  k线图最大值价格
  */
 - (float)maxmumPrice;
 
 /*
- *  最小价格
+ *  k线图最小价格
  */
 - (float)minmumPrice;
+
+/*
+ *  分时图最大值价格
+ */
+- (float)timeSharingChartMaxPrice;
+
+/*
+ *  分时图最小价格
+ */
+- (float)timeSharingChartMinPrice;
 
 /*
  *  最大值成交量
@@ -62,6 +74,9 @@
  *  注意：可能有些均线个别点绘制不满足条件，不满足条件的点，则使用[NSNull null] 占位填充
  */
 - (NSArray *)getMovingAverageData;
+
+// 分时图数据
+- (NSArray *)getNeedDrawingTimeSharingChartData;
 
 /*
  *  价格字符串

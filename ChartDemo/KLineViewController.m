@@ -133,16 +133,8 @@
 
 - (TimeShareChartView *)tLineChartView {
     if (!_tLineChartView) {
-//        _tLineChartView = [[TLineChartView alloc] initWithFrame:CGRectMake(20, 380.0f, self.view.frame.size.width - 40.0f, 180.0f)];
-//        _tLineChartView.backgroundColor = [UIColor whiteColor];
-//        _tLineChartView.topMargin = 5.0f;
-//        _tLineChartView.leftMargin = 50.0;
-//        _tLineChartView.bottomMargin = 0.5;
-//        _tLineChartView.rightMargin = 1.0;
-//        _tLineChartView.pointPadding = 30.0f;
-//        _tLineChartView.separatorNum = 4;
-//        _tLineChartView.flashPoint = YES;
-        //_tLineChartView.smoothPath = NO;
+        _tLineChartView = [[TimeShareChartView alloc] initWithFrame:CGRectMake(20, 380.0f, self.view.frame.size.width - 40.0f, 180.0f)];
+        _tLineChartView.backgroundColor = [UIColor whiteColor];
     }
     return _tLineChartView;
 }
