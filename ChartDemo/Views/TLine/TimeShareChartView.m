@@ -173,9 +173,11 @@
 }
 
 - (void)showTipsWithTouchPoint:(CGPoint)touchPoint {
+    if (!CGRectContainsPoint(_chartContentView.bounds, touchPoint)) return;
+    
     NSInteger touchIndex = touchPoint.x/self.chartContentView.linePadding/1;
     // 不符合要求，不继续操作
-    if (touchIndex < 0 || touchIndex >= self.dataTransport.needDrawingCandleNumber || self.lastTouchIndex == touchIndex) return;
+    if (touchIndex + 1 > self.dataTransport.getNeedDrawingTimeSharingChartData.count || self.lastTouchIndex == touchIndex) return;
     
     self.lastTouchIndex = touchIndex;
     KLineItem *touchItem = self.dataTransport.getNeedDrawingTimeSharingChartData[touchIndex];
@@ -192,7 +194,7 @@
     
     self.priceLabel.hidden = NO;
     self.dateLabel.hidden = NO;
-    self.priceLabel.text = touchItem.close.stringValue;
+    self.priceLabel.text = [self.dataTransport getPriceString:touchItem.close];
     self.dateLabel.text = touchItem.date;
     
     CGSize size = [self.priceLabel sizeThatFits:CGSizeMake(100, 100)];

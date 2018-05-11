@@ -311,7 +311,7 @@
     }
     
     [self cancelAllActions];
-    CGPoint touchPoint = [gestureRecognizer locationInView:self];
+    CGPoint touchPoint = [gestureRecognizer locationInView:self.candleView];
     [self showTipWithTouchPoint:touchPoint];
     [self performSelector:@selector(hideTips) withObject:nil afterDelay:2.5];
 }
@@ -404,29 +404,35 @@
     } else {
         [self cancelAllActions];
         
-        CGPoint touchPoint = [longGesture locationInView:self];
+        CGPoint touchPoint = [longGesture locationInView:self.candleView];
         [self showTipWithTouchPoint:touchPoint];
     }
 }
 
 - (void)showTipWithTouchPoint:(CGPoint)touchPoint {
+    if (!CGRectContainsPoint(_candleView.bounds, touchPoint)) {
+        return;
+    }
+    
     NSInteger touchIndex = touchPoint.x/(_candleView.kCandleWidth + _candleView.kCandleFixedSpacing)/1;
+    
     // 不符合要求，不继续操作
-    if (touchIndex <= 0 || touchIndex > self.dataTransport.needDrawingCandleNumber || self.lastTouchIndex == touchIndex) return;
+    if (touchIndex == self.lastTouchIndex || touchIndex > self.dataTransport.getNeedDrawingCandleData.count - 1) return;
     
     self.lastTouchIndex = touchIndex;
-    KLineItem *touchItem = self.chartDataSources[touchIndex + self.startDrawIndex - 1];
+    KLineItem *touchItem = self.dataTransport.getNeedDrawingCandleData[touchIndex];
     
     // 计算高度
     float scale = (_candleView.maxmumPrice - _candleView.minmumPrice)/_candleView.frame.size.height;
     float height = MIN(MAX((touchItem.close.floatValue - _candleView.minmumPrice)/scale, 0.5), _candleView.frame.size.height - 0.5);
     
-    float verticalXOrigin = (self.fullScreen ? 0 : self.leftMargin) + touchIndex*(_candleView.kCandleWidth + _candleView.kCandleFixedSpacing) - _candleView.kCandleWidth*0.5, horizontalYOrigin = self.topMargin + _candleView.frame.size.height - height + (touchItem.close.floatValue < touchItem.open.floatValue ? 0.5 : - 0.5);
+    float verticalXOrigin = (self.fullScreen ? 0 : self.leftMargin) + (touchIndex + 1)*(_candleView.kCandleWidth + _candleView.kCandleFixedSpacing) - _candleView.kCandleWidth*0.5;
+    float horizontalYOrigin = self.topMargin + _candleView.frame.size.height - height + (touchItem.close.floatValue < touchItem.open.floatValue ? 0.5 : - 0.5);
     
     self.horizontalCrossLine.frame = CGRectMake((self.fullScreen ? 0 : self.leftMargin) + 1.0, horizontalYOrigin, self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin), 0.5);
     self.verticalCrossLine.frame = CGRectMake(verticalXOrigin + 0.75, self.topMargin + 0.5, 0.5, self.yAxisHeight);
     
-    self.priceLabel.text = touchItem.close.stringValue;
+    self.priceLabel.text = [self.dataTransport getPriceString:touchItem.close];
     self.dateLabel.text = touchItem.date;
     
     CGSize size = [self.priceLabel sizeThatFits:CGSizeMake(100, 100)];
@@ -434,12 +440,12 @@
     size = [self.dateLabel sizeThatFits:CGSizeMake(100, 100)];
     self.dateLabel.frame = CGRectMake(MIN(MAX(self.verticalCrossLine.frame.origin.x - size.width/2.0, 1.0), self.frame.size.width - size.width), self.topMargin + _candleView.frame.size.height, size.width, size.height + 1.0);
     
-    _tipView.close = [self.dataTransport getPriceString:touchItem.close];
-    _tipView.open = [self.dataTransport getPriceString:touchItem.open];
-    _tipView.high = [self.dataTransport getPriceString:touchItem.high];
-    _tipView.low = [self.dataTransport getPriceString:touchItem.low];
+    self.tipView.close = [self.dataTransport getPriceString:touchItem.close];
+    self.tipView.open = [self.dataTransport getPriceString:touchItem.open];
+    self.tipView.high = [self.dataTransport getPriceString:touchItem.high];
+    self.tipView.low = [self.dataTransport getPriceString:touchItem.low];
     
-    size = _tipView.fitSize;
+    size = self.tipView.fitSize;
     
     float xOrigin = 0.0, yOrigin = 0.0;
     if (self.verticalCrossLine.frame.origin.x - size.width - MIN(2*_kCandleWidth, _maxCandleWidth/2.0f +2) - (self.fullScreen? _leftMargin : 0) < 0) {
