@@ -16,6 +16,7 @@
 #import "CandlestickView.h"
 #import <Masonry.h>
 #import "KLineDataTransport.h"
+#import "CandlestickTipView.h"
 
 @interface CandlestickChartsView ()<KLineDataTransportDelegate, CandlestickViewDelegate>
 
@@ -60,8 +61,7 @@
 //价格
 @property (nonatomic, strong) UILabel *priceLabel;
 
-// 临时数组用于存放需要更新的数据，合适的时机完成同步。
-@property (nonatomic, strong) NSMutableArray *tempDataSourcesContainer;
+@property (nonatomic, strong) CandlestickTipView *tipView;
 
 @end
 
@@ -426,7 +426,7 @@
     self.verticalCrossLine.hidden = NO;
     self.horizontalCrossLine.hidden = NO;
     self.horizontalCrossLine.frame = CGRectMake((self.fullScreen ? 0 : self.leftMargin) + 1.0, horizontalYOrigin, self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin), 0.5);
-    self.verticalCrossLine.frame = CGRectMake(verticalXOrigin, self.topMargin + 0.5, 0.5, self.yAxisHeight);
+    self.verticalCrossLine.frame = CGRectMake(verticalXOrigin + 0.75, self.topMargin + 0.5, 0.5, self.yAxisHeight);
     
     self.priceLabel.hidden = NO;
     self.dateLabel.hidden = NO;
@@ -437,6 +437,31 @@
     self.priceLabel.frame = CGRectMake(1.0, MIN(MAX(1.0, self.horizontalCrossLine.frame.origin.y - size.height/2.0), self.topMargin + _candleView.frame.size.height - size.height), size.width, size.height);
     size = [self.dateLabel sizeThatFits:CGSizeMake(100, 100)];
     self.dateLabel.frame = CGRectMake(MIN(MAX(self.verticalCrossLine.frame.origin.x - size.width/2.0, 1.0), self.frame.size.width - size.width), self.topMargin + _candleView.frame.size.height, size.width, size.height + 1.0);
+    
+    self.tipView.hidden = NO;
+    _tipView.close = [self.dataTransport getPriceString:touchItem.close];
+    _tipView.open = [self.dataTransport getPriceString:touchItem.open];
+    _tipView.high = [self.dataTransport getPriceString:touchItem.high];
+    _tipView.low = [self.dataTransport getPriceString:touchItem.low];
+    
+    size = _tipView.fitSize;
+    
+    float xOrigin = 0.0, yOrigin = 0.0;
+    if (self.verticalCrossLine.frame.origin.x - size.width - MIN(2*_kCandleWidth, _maxCandleWidth/2.0f +2) - (self.fullScreen? _leftMargin : 0) < 0) {
+        // 展示在右边
+        xOrigin = self.verticalCrossLine.frame.origin.x + 2*_kCandleWidth;
+    } else {
+        xOrigin = self.verticalCrossLine.frame.origin.x - 2*_kCandleWidth - size.width;
+    }
+    
+    if (self.horizontalCrossLine.frame.origin.y - size.height - MIN(2*_kCandleWidth, _maxCandleWidth/2.0f +2) - self.topMargin < 0) {
+        // 显示在下面
+        yOrigin = self.horizontalCrossLine.frame.origin.y + 2*_kCandleWidth;
+    } else {
+        yOrigin = self.horizontalCrossLine.frame.origin.y - size.height - 2*_kCandleWidth;
+    }
+    
+    _tipView.frame = CGRectMake(xOrigin, yOrigin, size.width, size.height);
 }
 
 - (void)hideTips {
@@ -444,6 +469,7 @@
     self.horizontalCrossLine.hidden = YES;
     self.priceLabel.hidden = YES;
     self.dateLabel.hidden = YES;
+    self.tipView.hidden = YES;
 }
 
 - (void)cancelAllActions {
@@ -512,6 +538,14 @@
         [self addSubview:_priceLabel];
     }
     return _priceLabel;
+}
+
+- (CandlestickTipView *)tipView {
+    if (!_tipView) {
+        _tipView = [CandlestickTipView new];
+        [self addSubview:_tipView];
+    }
+    return _tipView;
 }
 
 - (UITapGestureRecognizer *)tapGestureRecognizer {

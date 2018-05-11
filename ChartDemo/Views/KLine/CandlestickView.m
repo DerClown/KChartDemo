@@ -166,6 +166,7 @@
         CAShapeLayer *layer;
         layer = [CAShapeLayer new];
         layer.path = path.CGPath;
+        layer.lineWidth = 1.0;
         layer.fillColor = fillColor.CGColor;
         layer.strokeColor = fillColor.CGColor;
         [self.layer addSublayer:layer];
