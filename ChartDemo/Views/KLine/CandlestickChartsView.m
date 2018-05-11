@@ -423,13 +423,9 @@
     
     float verticalXOrigin = (self.fullScreen ? 0 : self.leftMargin) + touchIndex*(_candleView.kCandleWidth + _candleView.kCandleFixedSpacing) - _candleView.kCandleWidth*0.5, horizontalYOrigin = self.topMargin + _candleView.frame.size.height - height + (touchItem.close.floatValue < touchItem.open.floatValue ? 0.5 : - 0.5);
     
-    self.verticalCrossLine.hidden = NO;
-    self.horizontalCrossLine.hidden = NO;
     self.horizontalCrossLine.frame = CGRectMake((self.fullScreen ? 0 : self.leftMargin) + 1.0, horizontalYOrigin, self.frame.size.width - (self.fullScreen ? 0 : self.leftMargin), 0.5);
     self.verticalCrossLine.frame = CGRectMake(verticalXOrigin + 0.75, self.topMargin + 0.5, 0.5, self.yAxisHeight);
     
-    self.priceLabel.hidden = NO;
-    self.dateLabel.hidden = NO;
     self.priceLabel.text = touchItem.close.stringValue;
     self.dateLabel.text = touchItem.date;
     
@@ -438,7 +434,6 @@
     size = [self.dateLabel sizeThatFits:CGSizeMake(100, 100)];
     self.dateLabel.frame = CGRectMake(MIN(MAX(self.verticalCrossLine.frame.origin.x - size.width/2.0, 1.0), self.frame.size.width - size.width), self.topMargin + _candleView.frame.size.height, size.width, size.height + 1.0);
     
-    self.tipView.hidden = NO;
     _tipView.close = [self.dataTransport getPriceString:touchItem.close];
     _tipView.open = [self.dataTransport getPriceString:touchItem.open];
     _tipView.high = [self.dataTransport getPriceString:touchItem.high];
@@ -465,11 +460,16 @@
 }
 
 - (void)hideTips {
-    self.verticalCrossLine.hidden = YES;
-    self.horizontalCrossLine.hidden = YES;
-    self.priceLabel.hidden = YES;
-    self.dateLabel.hidden = YES;
-    self.tipView.hidden = YES;
+    [_verticalCrossLine removeFromSuperview];
+    [_horizontalCrossLine removeFromSuperview];
+    [_priceLabel removeFromSuperview];
+    [_dateLabel removeFromSuperview];
+    [_tipView removeFromSuperview];
+    _verticalCrossLine = nil;
+    _horizontalCrossLine = nil;
+    _priceLabel = nil;
+    _dateLabel = nil;
+    _tipView = nil;
 }
 
 - (void)cancelAllActions {
